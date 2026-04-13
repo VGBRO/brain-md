@@ -1,0 +1,7 @@
+{
+    "Bookings_Menu": "Bookings menu. Users typically express this intent with phrases like: \"I want to book my flight\", \"I want to modify my booking\", \"Reschedule my booking\". This intent is trained on 7 example utterances to recognize various ways users might express this request.",
+    "Career_Application": "Handles job applications. Users typically express this intent with phrases like: \"Apply for a job\", \"Career opportunities\", \"Build future\". This intent is trained on 6 example utterances to recognize various ways users might express this request.",
+    "Create_Booking": "Handles creating a new booking.",
+    "Merchandise": "Shopping and Merchandise. Users typically express this intent with phrases like: \"Shopping\", \"Products\", \"Merchandise\". This intent is trained on 6 example utterances to recognize various ways users might express this request.",
+    "Queries_Menu": "Queries menu. Users typically express this intent with phrases like: \"I have a query\", \"Baggage\", \"Baggage claims\". This intent is trained on 7 example utterances to recognize various ways users might express this request."
+}

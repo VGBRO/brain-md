@@ -1,0 +1,2209 @@
+{
+    "Bot": {
+        "fullName": "emirates",
+        "botMlDomain": {
+            "label": "emirates",
+            "mlIntents": [
+                {
+                    "description": "Bookings menu",
+                    "developerName": "Bookings_Menu",
+                    "label": "Bookings Menu",
+                    "mlIntentUtterances": [
+                        {
+                            "utterance": "I want to book my flight"
+                        },
+                        {
+                            "utterance": "I want to modify my booking"
+                        },
+                        {
+                            "utterance": "Reschedule my booking"
+                        },
+                        {
+                            "utterance": "Cancel my booking"
+                        },
+                        {
+                            "utterance": "Create booking"
+                        },
+                        {
+                            "utterance": "Cancel flight"
+                        },
+                        {
+                            "utterance": "Reschedule flight"
+                        }
+                    ]
+                },
+                {
+                    "description": "Handles job applications",
+                    "developerName": "Career_Application",
+                    "label": "Career Application",
+                    "mlIntentUtterances": [
+                        {
+                            "utterance": "Apply for a job"
+                        },
+                        {
+                            "utterance": "Career opportunities"
+                        },
+                        {
+                            "utterance": "Build future"
+                        },
+                        {
+                            "utterance": "Salary and employment"
+                        },
+                        {
+                            "utterance": "Job management"
+                        },
+                        {
+                            "utterance": "Job search"
+                        }
+                    ]
+                },
+                {
+                    "description": "Handles creating a new booking",
+                    "developerName": "Create_Booking",
+                    "label": "Create Booking"
+                },
+                {
+                    "description": "Shopping and Merchandise",
+                    "developerName": "Merchandise",
+                    "label": "Merchandise",
+                    "mlIntentUtterances": [
+                        {
+                            "utterance": "Shopping"
+                        },
+                        {
+                            "utterance": "Products"
+                        },
+                        {
+                            "utterance": "Merchandise"
+                        },
+                        {
+                            "utterance": "Catalogue"
+                        },
+                        {
+                            "utterance": "Items"
+                        },
+                        {
+                            "utterance": "What products do you offer in your merch?"
+                        }
+                    ]
+                },
+                {
+                    "description": "Queries menu",
+                    "developerName": "Queries_Menu",
+                    "label": "Queries Menu",
+                    "mlIntentUtterances": [
+                        {
+                            "utterance": "I have a query"
+                        },
+                        {
+                            "utterance": "Baggage"
+                        },
+                        {
+                            "utterance": "Baggage claims"
+                        },
+                        {
+                            "utterance": "Luggage limit"
+                        },
+                        {
+                            "utterance": "Checkin luggage and cabin luggage"
+                        },
+                        {
+                            "utterance": "Track my flight"
+                        },
+                        {
+                            "utterance": "Where is my flight"
+                        }
+                    ]
+                }
+            ],
+            "name": "emirates"
+        },
+        "botVersions": [
+            {
+                "fullName": "v1",
+                "botDialogGroups": [
+                    {
+                        "developerName": "Bookings",
+                        "label": "Bookings"
+                    },
+                    {
+                        "developerName": "Careers",
+                        "label": "Careers"
+                    },
+                    {
+                        "developerName": "Profile_Management",
+                        "label": "Profile Management"
+                    },
+                    {
+                        "developerName": "Queries",
+                        "label": "Queries"
+                    },
+                    {
+                        "developerName": "Rewards",
+                        "label": "Rewards"
+                    }
+                ],
+                "botDialogs": [
+                    {
+                        "botSteps": [
+                            {
+                                "botVariableOperation": {
+                                    "askCollectIfSet": true,
+                                    "autoSelectIfSingleChoice": true,
+                                    "botMessages": [
+                                        {
+                                            "message": "I found the following articles"
+                                        }
+                                    ],
+                                    "botVariableOperands": [
+                                        {
+                                            "disableAutoFill": true,
+                                            "sourceName": "_Object",
+                                            "sourceType": "StandardMlSlotClass",
+                                            "targetName": "AnswerSelectedResult",
+                                            "targetType": "ConversationVariable"
+                                        }
+                                    ],
+                                    "invalidInputBotNavigation": {
+                                        "botNavigationLinks": [
+                                            {
+                                                "targetBotDialog": "Confused"
+                                            }
+                                        ],
+                                        "type": "Redirect"
+                                    },
+                                    "optionalCollect": false,
+                                    "quickReplyOptionTemplate": "{!Title}",
+                                    "quickReplyType": "Dynamic",
+                                    "quickReplyWidgetType": "Menu",
+                                    "sourceVariableName": "_AnswerResults",
+                                    "sourceVariableType": "ConversationVariable",
+                                    "type": "Collect"
+                                },
+                                "type": "VariableOperation"
+                            },
+                            {
+                                "botMessages": [
+                                    {
+                                        "message": "{!AnswerSelectedResult.Answer}"
+                                    }
+                                ],
+                                "type": "Message"
+                            },
+                            {
+                                "botVariableOperation": {
+                                    "askCollectIfSet": true,
+                                    "botMessages": [
+                                        {
+                                            "message": "Was this useful?"
+                                        }
+                                    ],
+                                    "botQuickReplyOptions": [
+                                        {
+                                            "literalValue": "Yes"
+                                        },
+                                        {
+                                            "literalValue": "No"
+                                        }
+                                    ],
+                                    "botVariableOperands": [
+                                        {
+                                            "disableAutoFill": true,
+                                            "sourceName": "_Boolean",
+                                            "sourceType": "StandardMlSlotClass",
+                                            "targetName": "AnswerFeedback",
+                                            "targetType": "ConversationVariable"
+                                        }
+                                    ],
+                                    "optionalCollect": false,
+                                    "quickReplyType": "Static",
+                                    "quickReplyWidgetType": "Buttons",
+                                    "type": "Collect"
+                                },
+                                "type": "VariableOperation"
+                            },
+                            {
+                                "botInvocation": {
+                                    "invocationActionName": "generateKnowledgeLogData",
+                                    "invocationActionType": "logFeedback",
+                                    "invocationMappings": [
+                                        {
+                                            "parameterName": "feedback",
+                                            "type": "Input",
+                                            "variableName": "AnswerFeedback",
+                                            "variableType": "ConversationVariable"
+                                        },
+                                        {
+                                            "parameterName": "selectedResult",
+                                            "type": "Input",
+                                            "variableName": "AnswerSelectedResult",
+                                            "variableType": "ConversationVariable"
+                                        },
+                                        {
+                                            "parameterName": "results",
+                                            "type": "Input",
+                                            "variableName": "_AnswerResults",
+                                            "variableType": "ConversationVariable"
+                                        },
+                                        {
+                                            "parameterName": "input",
+                                            "type": "Input",
+                                            "variableName": "_AnswerInput",
+                                            "variableType": "ConversationVariable"
+                                        }
+                                    ]
+                                },
+                                "type": "Invocation"
+                            },
+                            {
+                                "type": "Wait"
+                            }
+                        ],
+                        "developerName": "Answer_Automation",
+                        "label": "Article Answers"
+                    },
+                    {
+                        "botSteps": [
+                            {
+                                "botMessages": [
+                                    {
+                                        "message": "Hi, I'm emirates bot, a digital assistant."
+                                    }
+                                ],
+                                "type": "Message"
+                            },
+                            {
+                                "botNavigation": {
+                                    "botNavigationLinks": [
+                                        {
+                                            "targetBotDialog": "Main_Menu"
+                                        }
+                                    ],
+                                    "type": "Redirect"
+                                },
+                                "type": "Navigation"
+                            }
+                        ],
+                        "developerName": "Welcome",
+                        "label": "Welcome"
+                    },
+                    {
+                        "botSteps": [
+                            {
+                                "botMessages": [
+                                    {
+                                        "message": "What can I assist you with today?"
+                                    }
+                                ],
+                                "type": "Message"
+                            },
+                            {
+                                "type": "Wait"
+                            }
+                        ],
+                        "developerName": "Main_Menu",
+                        "label": "Main Menu"
+                    },
+                    {
+                        "botSteps": [
+                            {
+                                "conversationSystemMessage": {
+                                    "type": "Transfer"
+                                },
+                                "type": "SystemMessage"
+                            }
+                        ],
+                        "developerName": "Transfer_To_Agent",
+                        "label": "Transfer To Agent"
+                    },
+                    {
+                        "botSteps": [
+                            {
+                                "botMessages": [
+                                    {
+                                        "message": "Thanks for taking the time to chat. I\u2019ve ended the conversation. To start a new conversation, enter some text."
+                                    }
+                                ],
+                                "type": "Message"
+                            },
+                            {
+                                "botSteps": [
+                                    {
+                                        "conversationSystemMessage": {
+                                            "type": "EndChat"
+                                        },
+                                        "type": "SystemMessage"
+                                    }
+                                ],
+                                "type": "Group"
+                            },
+                            {
+                                "type": "Wait"
+                            }
+                        ],
+                        "developerName": "Rich_Content_End_Chat",
+                        "label": "End Chat"
+                    },
+                    {
+                        "botSteps": [
+                            {
+                                "botMessages": [
+                                    {
+                                        "message": "Sorry, I didn't understand that."
+                                    }
+                                ],
+                                "type": "Message"
+                            },
+                            {
+                                "type": "Wait"
+                            }
+                        ],
+                        "developerName": "Confused",
+                        "label": "Confused"
+                    },
+                    {
+                        "botSteps": [
+                            {
+                                "botMessages": [
+                                    {
+                                        "message": "Unfortunately, there are no agents available at the moment"
+                                    }
+                                ],
+                                "type": "Message"
+                            },
+                            {
+                                "type": "Wait"
+                            }
+                        ],
+                        "developerName": "No_Agent_Available",
+                        "label": "No Agent"
+                    },
+                    {
+                        "botSteps": [
+                            {
+                                "botMessages": [
+                                    {
+                                        "message": "Unfortunately, a system error occurred. Let us start again."
+                                    }
+                                ],
+                                "type": "Message"
+                            },
+                            {
+                                "botNavigation": {
+                                    "botNavigationLinks": [
+                                        {
+                                            "targetBotDialog": "Main_Menu"
+                                        }
+                                    ],
+                                    "type": "Redirect"
+                                },
+                                "type": "Navigation"
+                            }
+                        ],
+                        "developerName": "Rich_Content_Error_Handling",
+                        "label": "Error Handler"
+                    },
+                    {
+                        "botDialogGroup": "Profile_Management",
+                        "botSteps": [
+                            {
+                                "botMessages": [
+                                    {
+                                        "message": "Let's create a new profile for you!"
+                                    }
+                                ],
+                                "type": "Message"
+                            },
+                            {
+                                "botVariableOperation": {
+                                    "askCollectIfSet": true,
+                                    "botMessages": [
+                                        {
+                                            "message": "Please enter your full name"
+                                        }
+                                    ],
+                                    "botVariableOperands": [
+                                        {
+                                            "disableAutoFill": true,
+                                            "sourceName": "_Text",
+                                            "sourceType": "StandardMlSlotClass",
+                                            "targetName": "Profile_Name",
+                                            "targetType": "ConversationVariable"
+                                        }
+                                    ],
+                                    "optionalCollect": false,
+                                    "quickReplyWidgetType": "Buttons",
+                                    "type": "Collect"
+                                },
+                                "type": "VariableOperation"
+                            },
+                            {
+                                "botVariableOperation": {
+                                    "askCollectIfSet": true,
+                                    "botMessages": [
+                                        {
+                                            "message": "Please enter your login username"
+                                        }
+                                    ],
+                                    "botVariableOperands": [
+                                        {
+                                            "disableAutoFill": true,
+                                            "sourceName": "_Text",
+                                            "sourceType": "StandardMlSlotClass",
+                                            "targetName": "Profile_Username",
+                                            "targetType": "ConversationVariable"
+                                        }
+                                    ],
+                                    "optionalCollect": false,
+                                    "quickReplyWidgetType": "Buttons",
+                                    "type": "Collect"
+                                },
+                                "type": "VariableOperation"
+                            },
+                            {
+                                "botVariableOperation": {
+                                    "askCollectIfSet": true,
+                                    "botMessages": [
+                                        {
+                                            "message": "Please enter your profile password"
+                                        }
+                                    ],
+                                    "botVariableOperands": [
+                                        {
+                                            "disableAutoFill": true,
+                                            "sourceName": "_Text",
+                                            "sourceType": "StandardMlSlotClass",
+                                            "targetName": "Profile_Password",
+                                            "targetType": "ConversationVariable"
+                                        }
+                                    ],
+                                    "optionalCollect": false,
+                                    "quickReplyWidgetType": "Buttons",
+                                    "type": "Collect"
+                                },
+                                "type": "VariableOperation"
+                            },
+                            {
+                                "botVariableOperation": {
+                                    "botInvocation": {
+                                        "invocationActionName": "EmiratesRegisterProfile",
+                                        "invocationActionType": "apex",
+                                        "invocationMappings": [
+                                            {
+                                                "parameterName": "name",
+                                                "type": "Input",
+                                                "variableName": "Profile_Name",
+                                                "variableType": "ConversationVariable"
+                                            },
+                                            {
+                                                "parameterName": "password",
+                                                "type": "Input",
+                                                "variableName": "Profile_Password",
+                                                "variableType": "ConversationVariable"
+                                            },
+                                            {
+                                                "parameterName": "username",
+                                                "type": "Input",
+                                                "variableName": "Profile_Username",
+                                                "variableType": "ConversationVariable"
+                                            },
+                                            {
+                                                "parameterName": "profile_id",
+                                                "type": "Output",
+                                                "variableName": "Profile_Id",
+                                                "variableType": "ConversationVariable"
+                                            }
+                                        ]
+                                    },
+                                    "type": "Set"
+                                },
+                                "type": "VariableOperation"
+                            },
+                            {
+                                "botMessages": [
+                                    {
+                                        "message": "Registration successful! Your profile_id is {!Profile_Id}."
+                                    }
+                                ],
+                                "type": "Message"
+                            },
+                            {
+                                "type": "Wait"
+                            }
+                        ],
+                        "description": "Handles registering a new profile",
+                        "developerName": "Register_Profile",
+                        "label": "Register Profile"
+                    },
+                    {
+                        "botDialogGroup": "Profile_Management",
+                        "botSteps": [
+                            {
+                                "botMessages": [
+                                    {
+                                        "message": "Let's login to your profile!"
+                                    }
+                                ],
+                                "type": "Message"
+                            },
+                            {
+                                "botVariableOperation": {
+                                    "askCollectIfSet": true,
+                                    "botMessages": [
+                                        {
+                                            "message": "Enter your full name as per your profile"
+                                        }
+                                    ],
+                                    "botVariableOperands": [
+                                        {
+                                            "disableAutoFill": true,
+                                            "sourceName": "_Text",
+                                            "sourceType": "StandardMlSlotClass",
+                                            "targetName": "Profile_Name",
+                                            "targetType": "ConversationVariable"
+                                        }
+                                    ],
+                                    "optionalCollect": false,
+                                    "quickReplyWidgetType": "Buttons",
+                                    "type": "Collect"
+                                },
+                                "type": "VariableOperation"
+                            },
+                            {
+                                "botVariableOperation": {
+                                    "askCollectIfSet": true,
+                                    "botMessages": [
+                                        {
+                                            "message": "Enter your username"
+                                        }
+                                    ],
+                                    "botVariableOperands": [
+                                        {
+                                            "disableAutoFill": true,
+                                            "sourceName": "_Text",
+                                            "sourceType": "StandardMlSlotClass",
+                                            "targetName": "Profile_Username",
+                                            "targetType": "ConversationVariable"
+                                        }
+                                    ],
+                                    "optionalCollect": false,
+                                    "quickReplyWidgetType": "Buttons",
+                                    "type": "Collect"
+                                },
+                                "type": "VariableOperation"
+                            },
+                            {
+                                "botVariableOperation": {
+                                    "askCollectIfSet": true,
+                                    "botMessages": [
+                                        {
+                                            "message": "Enter your password"
+                                        }
+                                    ],
+                                    "botVariableOperands": [
+                                        {
+                                            "disableAutoFill": true,
+                                            "sourceName": "_Text",
+                                            "sourceType": "StandardMlSlotClass",
+                                            "targetName": "Profile_Password",
+                                            "targetType": "ConversationVariable"
+                                        }
+                                    ],
+                                    "optionalCollect": false,
+                                    "quickReplyWidgetType": "Buttons",
+                                    "type": "Collect"
+                                },
+                                "type": "VariableOperation"
+                            },
+                            {
+                                "botVariableOperation": {
+                                    "botInvocation": {
+                                        "invocationActionName": "EmiratesLoginProfile",
+                                        "invocationActionType": "apex",
+                                        "invocationMappings": [
+                                            {
+                                                "parameterName": "name",
+                                                "type": "Input",
+                                                "variableName": "Profile_Name",
+                                                "variableType": "ConversationVariable"
+                                            },
+                                            {
+                                                "parameterName": "password",
+                                                "type": "Input",
+                                                "variableName": "Profile_Password",
+                                                "variableType": "ConversationVariable"
+                                            },
+                                            {
+                                                "parameterName": "username",
+                                                "type": "Input",
+                                                "variableName": "Profile_Username",
+                                                "variableType": "ConversationVariable"
+                                            },
+                                            {
+                                                "parameterName": "profile_id",
+                                                "type": "Output",
+                                                "variableName": "Profile_Id",
+                                                "variableType": "ConversationVariable"
+                                            }
+                                        ]
+                                    },
+                                    "type": "Set"
+                                },
+                                "type": "VariableOperation"
+                            },
+                            {
+                                "botMessages": [
+                                    {
+                                        "message": "Logged in to your profile!"
+                                    }
+                                ],
+                                "type": "Message"
+                            },
+                            {
+                                "botSteps": [
+                                    {
+                                        "botVariableOperation": {
+                                            "botVariableOperands": [
+                                                {
+                                                    "sourceType": "Value",
+                                                    "sourceValue": "true",
+                                                    "targetName": "Profile_Logged_In",
+                                                    "targetType": "ConversationVariable"
+                                                }
+                                            ],
+                                            "type": "Set"
+                                        },
+                                        "type": "VariableOperation"
+                                    }
+                                ],
+                                "type": "Group"
+                            },
+                            {
+                                "type": "Wait"
+                            }
+                        ],
+                        "description": "Handles logging in to a profile",
+                        "developerName": "Login_Profile",
+                        "label": "Login Profile"
+                    },
+                    {
+                        "botDialogGroup": "Profile_Management",
+                        "botSteps": [
+                            {
+                                "botMessages": [
+                                    {
+                                        "message": "Let's log you out"
+                                    }
+                                ],
+                                "type": "Message"
+                            },
+                            {
+                                "botInvocation": {
+                                    "invocationActionName": "EmiratesLogoutProfile",
+                                    "invocationActionType": "apex",
+                                    "invocationMappings": [
+                                        {
+                                            "parameterName": "profile_ids",
+                                            "type": "Input",
+                                            "variableName": "Profile_Id",
+                                            "variableType": "ConversationVariable"
+                                        }
+                                    ]
+                                },
+                                "type": "Invocation"
+                            },
+                            {
+                                "botMessages": [
+                                    {
+                                        "message": "Logged out!"
+                                    }
+                                ],
+                                "type": "Message"
+                            },
+                            {
+                                "type": "Wait"
+                            }
+                        ],
+                        "description": "Handles logging out of a profile",
+                        "developerName": "Logout_Profile",
+                        "label": "Logout Profile"
+                    },
+                    {
+                        "botDialogGroup": "Bookings",
+                        "botSteps": [
+                            {
+                                "botVariableOperation": {
+                                    "askCollectIfSet": true,
+                                    "botMessages": [
+                                        {
+                                            "message": "Enter your booking date (DD-MM-YYYY format)."
+                                        }
+                                    ],
+                                    "botVariableOperands": [
+                                        {
+                                            "disableAutoFill": true,
+                                            "sourceName": "_Text",
+                                            "sourceType": "StandardMlSlotClass",
+                                            "targetName": "Booking_Date",
+                                            "targetType": "ConversationVariable"
+                                        }
+                                    ],
+                                    "optionalCollect": false,
+                                    "quickReplyWidgetType": "Buttons",
+                                    "type": "Collect"
+                                },
+                                "type": "VariableOperation"
+                            },
+                            {
+                                "botVariableOperation": {
+                                    "askCollectIfSet": true,
+                                    "autoSelectIfSingleChoice": true,
+                                    "botInvocation": {
+                                        "invocationActionName": "EmiratesFetchAirports",
+                                        "invocationActionType": "apex",
+                                        "invocationMappings": [
+                                            {
+                                                "parameterName": "output",
+                                                "type": "Output"
+                                            }
+                                        ]
+                                    },
+                                    "botMessages": [
+                                        {
+                                            "message": "Select the source of your journey"
+                                        }
+                                    ],
+                                    "botVariableOperands": [
+                                        {
+                                            "disableAutoFill": true,
+                                            "sourceName": "_Text",
+                                            "sourceType": "StandardMlSlotClass",
+                                            "targetName": "Booking_Source",
+                                            "targetType": "ConversationVariable"
+                                        }
+                                    ],
+                                    "invalidInputBotNavigation": {
+                                        "botNavigationLinks": [
+                                            {
+                                                "targetBotDialog": "Rich_Content_Error_Handling"
+                                            }
+                                        ],
+                                        "type": "Redirect"
+                                    },
+                                    "optionalCollect": false,
+                                    "quickReplyType": "Dynamic",
+                                    "quickReplyWidgetType": "Buttons",
+                                    "type": "Collect"
+                                },
+                                "type": "VariableOperation"
+                            },
+                            {
+                                "botVariableOperation": {
+                                    "askCollectIfSet": true,
+                                    "autoSelectIfSingleChoice": true,
+                                    "botInvocation": {
+                                        "invocationActionName": "EmiratesFetchAirports",
+                                        "invocationActionType": "apex",
+                                        "invocationMappings": [
+                                            {
+                                                "parameterName": "output",
+                                                "type": "Output"
+                                            }
+                                        ]
+                                    },
+                                    "botMessages": [
+                                        {
+                                            "message": "Select the destination of your journey"
+                                        }
+                                    ],
+                                    "botVariableOperands": [
+                                        {
+                                            "disableAutoFill": true,
+                                            "sourceName": "_Text",
+                                            "sourceType": "StandardMlSlotClass",
+                                            "targetName": "Booking_Destination",
+                                            "targetType": "ConversationVariable"
+                                        }
+                                    ],
+                                    "invalidInputBotNavigation": {
+                                        "botNavigationLinks": [
+                                            {
+                                                "targetBotDialog": "Rich_Content_Error_Handling"
+                                            }
+                                        ],
+                                        "type": "Redirect"
+                                    },
+                                    "optionalCollect": false,
+                                    "quickReplyType": "Dynamic",
+                                    "quickReplyWidgetType": "Buttons",
+                                    "type": "Collect"
+                                },
+                                "type": "VariableOperation"
+                            },
+                            {
+                                "botVariableOperation": {
+                                    "askCollectIfSet": true,
+                                    "autoSelectIfSingleChoice": true,
+                                    "botInvocation": {
+                                        "invocationActionName": "EmiratesFetchFlights",
+                                        "invocationActionType": "apex",
+                                        "invocationMappings": [
+                                            {
+                                                "parameterName": "source",
+                                                "type": "Input",
+                                                "variableName": "Booking_Source",
+                                                "variableType": "ConversationVariable"
+                                            },
+                                            {
+                                                "parameterName": "destination",
+                                                "type": "Input",
+                                                "variableName": "Booking_Destination",
+                                                "variableType": "ConversationVariable"
+                                            },
+                                            {
+                                                "parameterName": "output",
+                                                "type": "Output"
+                                            }
+                                        ]
+                                    },
+                                    "botMessages": [
+                                        {
+                                            "message": "Select a flight"
+                                        }
+                                    ],
+                                    "botVariableOperands": [
+                                        {
+                                            "disableAutoFill": true,
+                                            "sourceName": "_Object",
+                                            "sourceType": "StandardMlSlotClass",
+                                            "targetName": "Booking_Flight",
+                                            "targetType": "ConversationVariable"
+                                        }
+                                    ],
+                                    "invalidInputBotNavigation": {
+                                        "botNavigationLinks": [
+                                            {
+                                                "targetBotDialog": "Rich_Content_Error_Handling"
+                                            }
+                                        ],
+                                        "type": "Redirect"
+                                    },
+                                    "optionalCollect": false,
+                                    "quickReplyOptionTemplate": "{!id}",
+                                    "quickReplyType": "Dynamic",
+                                    "quickReplyWidgetType": "Buttons",
+                                    "type": "Collect"
+                                },
+                                "type": "VariableOperation"
+                            },
+                            {
+                                "botMessages": [
+                                    {
+                                        "message": "Booking your flight.."
+                                    }
+                                ],
+                                "type": "Message"
+                            },
+                            {
+                                "botVariableOperation": {
+                                    "botInvocation": {
+                                        "invocationActionName": "EmiratesCreateBooking",
+                                        "invocationActionType": "apex",
+                                        "invocationMappings": [
+                                            {
+                                                "parameterName": "booking_date",
+                                                "type": "Input",
+                                                "variableName": "Booking_Date",
+                                                "variableType": "ConversationVariable"
+                                            },
+                                            {
+                                                "parameterName": "source",
+                                                "type": "Input",
+                                                "variableName": "Booking_Source",
+                                                "variableType": "ConversationVariable"
+                                            },
+                                            {
+                                                "parameterName": "destination",
+                                                "type": "Input",
+                                                "variableName": "Booking_Destination",
+                                                "variableType": "ConversationVariable"
+                                            },
+                                            {
+                                                "parameterName": "profile_id",
+                                                "type": "Input",
+                                                "variableName": "Profile_Id",
+                                                "variableType": "ConversationVariable"
+                                            },
+                                            {
+                                                "parameterName": "flight",
+                                                "type": "Input",
+                                                "variableName": "Booking_Flight",
+                                                "variableType": "ConversationVariable"
+                                            },
+                                            {
+                                                "parameterName": "id",
+                                                "type": "Output",
+                                                "variableName": "Booking_Id",
+                                                "variableType": "ConversationVariable"
+                                            }
+                                        ]
+                                    },
+                                    "type": "Set"
+                                },
+                                "type": "VariableOperation"
+                            },
+                            {
+                                "botMessages": [
+                                    {
+                                        "message": "Your booking is confirmed. Id - {!Booking_Id}"
+                                    }
+                                ],
+                                "type": "Message"
+                            },
+                            {
+                                "botNavigation": {
+                                    "botNavigationLinks": [
+                                        {
+                                            "targetBotDialog": "Main_Menu"
+                                        }
+                                    ],
+                                    "type": "Redirect"
+                                },
+                                "type": "Navigation"
+                            }
+                        ],
+                        "description": "Handles creating a new booking",
+                        "developerName": "Create_Booking",
+                        "label": "Create Booking",
+                        "mlIntent": "Create_Booking",
+                        "mlIntentTrainingEnabled": true
+                    },
+                    {
+                        "botDialogGroup": "Bookings",
+                        "botSteps": [
+                            {
+                                "botVariableOperation": {
+                                    "askCollectIfSet": true,
+                                    "autoSelectIfSingleChoice": true,
+                                    "botInvocation": {
+                                        "invocationActionName": "EmiratesFetchBookingIds",
+                                        "invocationActionType": "apex",
+                                        "invocationMappings": [
+                                            {
+                                                "parameterName": "profile_ids",
+                                                "type": "Input",
+                                                "variableName": "Profile_Id",
+                                                "variableType": "ConversationVariable"
+                                            },
+                                            {
+                                                "parameterName": "output",
+                                                "type": "Output"
+                                            }
+                                        ]
+                                    },
+                                    "botMessages": [
+                                        {
+                                            "message": "Select the booking id that you want to reschedule"
+                                        }
+                                    ],
+                                    "botVariableOperands": [
+                                        {
+                                            "disableAutoFill": true,
+                                            "sourceName": "_Text",
+                                            "sourceType": "StandardMlSlotClass",
+                                            "targetName": "Selected_Booking_Id",
+                                            "targetType": "ConversationVariable"
+                                        }
+                                    ],
+                                    "invalidInputBotNavigation": {
+                                        "botNavigationLinks": [
+                                            {
+                                                "targetBotDialog": "Rich_Content_Error_Handling"
+                                            }
+                                        ],
+                                        "type": "Redirect"
+                                    },
+                                    "optionalCollect": false,
+                                    "quickReplyType": "Dynamic",
+                                    "quickReplyWidgetType": "Buttons",
+                                    "type": "Collect"
+                                },
+                                "type": "VariableOperation"
+                            },
+                            {
+                                "botVariableOperation": {
+                                    "askCollectIfSet": true,
+                                    "botMessages": [
+                                        {
+                                            "message": "Enter the new date in the format DD-MM-YYYY"
+                                        }
+                                    ],
+                                    "botVariableOperands": [
+                                        {
+                                            "disableAutoFill": true,
+                                            "sourceName": "_Text",
+                                            "sourceType": "StandardMlSlotClass",
+                                            "targetName": "Booking_Date",
+                                            "targetType": "ConversationVariable"
+                                        }
+                                    ],
+                                    "optionalCollect": false,
+                                    "quickReplyWidgetType": "Buttons",
+                                    "type": "Collect"
+                                },
+                                "type": "VariableOperation"
+                            },
+                            {
+                                "botVariableOperation": {
+                                    "botInvocation": {
+                                        "invocationActionName": "EmiratesRescheduleBooking",
+                                        "invocationActionType": "apex",
+                                        "invocationMappings": [
+                                            {
+                                                "parameterName": "new_date",
+                                                "type": "Input",
+                                                "variableName": "Booking_Date",
+                                                "variableType": "ConversationVariable"
+                                            },
+                                            {
+                                                "parameterName": "booking_id",
+                                                "type": "Input",
+                                                "variableName": "Selected_Booking_Id",
+                                                "variableType": "ConversationVariable"
+                                            },
+                                            {
+                                                "parameterName": "output",
+                                                "type": "Output",
+                                                "variableName": "Op_Status",
+                                                "variableType": "ConversationVariable"
+                                            }
+                                        ]
+                                    },
+                                    "type": "Set"
+                                },
+                                "type": "VariableOperation"
+                            },
+                            {
+                                "botMessages": [
+                                    {
+                                        "message": "Reschedule request processed. Status - {!Op_Status}"
+                                    }
+                                ],
+                                "type": "Message"
+                            },
+                            {
+                                "botNavigation": {
+                                    "botNavigationLinks": [
+                                        {
+                                            "targetBotDialog": "Main_Menu"
+                                        }
+                                    ],
+                                    "type": "Redirect"
+                                },
+                                "type": "Navigation"
+                            }
+                        ],
+                        "description": "Handles rescheduling booking",
+                        "developerName": "Reschedule_Booking",
+                        "label": "Reschedule Booking"
+                    },
+                    {
+                        "botDialogGroup": "Bookings",
+                        "botSteps": [
+                            {
+                                "botVariableOperation": {
+                                    "askCollectIfSet": true,
+                                    "autoSelectIfSingleChoice": true,
+                                    "botInvocation": {
+                                        "invocationActionName": "EmiratesFetchBookingIds",
+                                        "invocationActionType": "apex",
+                                        "invocationMappings": [
+                                            {
+                                                "parameterName": "profile_ids",
+                                                "type": "Input",
+                                                "variableName": "Profile_Id",
+                                                "variableType": "ConversationVariable"
+                                            },
+                                            {
+                                                "parameterName": "output",
+                                                "type": "Output"
+                                            }
+                                        ]
+                                    },
+                                    "botMessages": [
+                                        {
+                                            "message": "Choose a booking id to be cancelled"
+                                        }
+                                    ],
+                                    "botVariableOperands": [
+                                        {
+                                            "disableAutoFill": true,
+                                            "sourceName": "_Text",
+                                            "sourceType": "StandardMlSlotClass",
+                                            "targetName": "Selected_Booking_Id",
+                                            "targetType": "ConversationVariable"
+                                        }
+                                    ],
+                                    "invalidInputBotNavigation": {
+                                        "botNavigationLinks": [
+                                            {
+                                                "targetBotDialog": "Rich_Content_Error_Handling"
+                                            }
+                                        ],
+                                        "type": "Redirect"
+                                    },
+                                    "optionalCollect": false,
+                                    "quickReplyType": "Dynamic",
+                                    "quickReplyWidgetType": "Buttons",
+                                    "type": "Collect"
+                                },
+                                "type": "VariableOperation"
+                            },
+                            {
+                                "botVariableOperation": {
+                                    "botInvocation": {
+                                        "invocationActionName": "EmiratesCancelBooking",
+                                        "invocationActionType": "apex",
+                                        "invocationMappings": [
+                                            {
+                                                "parameterName": "booking_ids",
+                                                "type": "Input",
+                                                "variableName": "Selected_Booking_Id",
+                                                "variableType": "ConversationVariable"
+                                            },
+                                            {
+                                                "parameterName": "output",
+                                                "type": "Output",
+                                                "variableName": "Op_Status",
+                                                "variableType": "ConversationVariable"
+                                            }
+                                        ]
+                                    },
+                                    "type": "Set"
+                                },
+                                "type": "VariableOperation"
+                            },
+                            {
+                                "botMessages": [
+                                    {
+                                        "message": "Cancel request processed. Status - {!Op_Status}"
+                                    }
+                                ],
+                                "type": "Message"
+                            },
+                            {
+                                "botNavigation": {
+                                    "botNavigationLinks": [
+                                        {
+                                            "targetBotDialog": "Main_Menu"
+                                        }
+                                    ],
+                                    "type": "Redirect"
+                                },
+                                "type": "Navigation"
+                            }
+                        ],
+                        "description": "Handles booking cancellation",
+                        "developerName": "Cancel_booking",
+                        "label": "Cancel booking"
+                    },
+                    {
+                        "botDialogGroup": "Queries",
+                        "botSteps": [
+                            {
+                                "botStepConditions": [
+                                    {
+                                        "leftOperandName": "Profile_Id",
+                                        "leftOperandType": "ConversationVariable",
+                                        "operatorType": "IsNotSet"
+                                    }
+                                ],
+                                "botSteps": [
+                                    {
+                                        "botNavigation": {
+                                            "botNavigationLinks": [
+                                                {
+                                                    "targetBotDialog": "Fetch_Profile"
+                                                }
+                                            ],
+                                            "type": "Call"
+                                        },
+                                        "type": "Navigation"
+                                    }
+                                ],
+                                "type": "Group"
+                            },
+                            {
+                                "botMessages": [
+                                    {
+                                        "message": "Fetching your bookings.."
+                                    }
+                                ],
+                                "type": "Message"
+                            },
+                            {
+                                "botVariableOperation": {
+                                    "askCollectIfSet": true,
+                                    "autoSelectIfSingleChoice": true,
+                                    "botInvocation": {
+                                        "invocationActionName": "EmiratesFetchBookingIds",
+                                        "invocationActionType": "apex",
+                                        "invocationMappings": [
+                                            {
+                                                "parameterName": "profile_ids",
+                                                "type": "Input",
+                                                "variableName": "Profile_Id",
+                                                "variableType": "ConversationVariable"
+                                            },
+                                            {
+                                                "parameterName": "output",
+                                                "type": "Output"
+                                            }
+                                        ]
+                                    },
+                                    "botMessages": [
+                                        {
+                                            "message": "Select the booking id against which you have a baggage claim query"
+                                        }
+                                    ],
+                                    "botVariableOperands": [
+                                        {
+                                            "disableAutoFill": true,
+                                            "sourceName": "_Text",
+                                            "sourceType": "StandardMlSlotClass",
+                                            "targetName": "Selected_Booking_Id",
+                                            "targetType": "ConversationVariable"
+                                        }
+                                    ],
+                                    "invalidInputBotNavigation": {
+                                        "botNavigationLinks": [
+                                            {
+                                                "targetBotDialog": "Rich_Content_Error_Handling"
+                                            }
+                                        ],
+                                        "type": "Redirect"
+                                    },
+                                    "optionalCollect": false,
+                                    "quickReplyType": "Dynamic",
+                                    "quickReplyWidgetType": "Buttons",
+                                    "type": "Collect"
+                                },
+                                "type": "VariableOperation"
+                            },
+                            {
+                                "botMessages": [
+                                    {
+                                        "message": "Retrieving baggage status.."
+                                    }
+                                ],
+                                "type": "Message"
+                            },
+                            {
+                                "botVariableOperation": {
+                                    "botInvocation": {
+                                        "invocationActionName": "EmiratesFetchBaggageStatus",
+                                        "invocationActionType": "apex",
+                                        "invocationMappings": [
+                                            {
+                                                "parameterName": "booking_id",
+                                                "type": "Input",
+                                                "variableName": "Selected_Booking_Id",
+                                                "variableType": "ConversationVariable"
+                                            },
+                                            {
+                                                "parameterName": "profile_id",
+                                                "type": "Input",
+                                                "variableName": "Profile_Id",
+                                                "variableType": "ConversationVariable"
+                                            },
+                                            {
+                                                "parameterName": "output",
+                                                "type": "Output",
+                                                "variableName": "Baggage_Status",
+                                                "variableType": "ConversationVariable"
+                                            }
+                                        ]
+                                    },
+                                    "type": "Set"
+                                },
+                                "type": "VariableOperation"
+                            },
+                            {
+                                "botMessages": [
+                                    {
+                                        "message": "Your baggage status - {!Baggage_Status}"
+                                    }
+                                ],
+                                "type": "Message"
+                            },
+                            {
+                                "botNavigation": {
+                                    "botNavigationLinks": [
+                                        {
+                                            "targetBotDialog": "Main_Menu"
+                                        }
+                                    ],
+                                    "type": "Redirect"
+                                },
+                                "type": "Navigation"
+                            }
+                        ],
+                        "description": "Baggage claim issues",
+                        "developerName": "Baggage_Claims",
+                        "label": "Baggage Claims"
+                    },
+                    {
+                        "botDialogGroup": "Queries",
+                        "botSteps": [
+                            {
+                                "botVariableOperation": {
+                                    "askCollectIfSet": true,
+                                    "botMessages": [
+                                        {
+                                            "message": "Please enter the flight id you want to track."
+                                        }
+                                    ],
+                                    "botVariableOperands": [
+                                        {
+                                            "disableAutoFill": true,
+                                            "sourceName": "_Text",
+                                            "sourceType": "StandardMlSlotClass",
+                                            "targetName": "Flight_Id",
+                                            "targetType": "ConversationVariable"
+                                        }
+                                    ],
+                                    "optionalCollect": false,
+                                    "quickReplyWidgetType": "Buttons",
+                                    "type": "Collect"
+                                },
+                                "type": "VariableOperation"
+                            },
+                            {
+                                "botVariableOperation": {
+                                    "botInvocation": {
+                                        "invocationActionName": "EmiratesFetchFlightStatus",
+                                        "invocationActionType": "apex",
+                                        "invocationMappings": [
+                                            {
+                                                "parameterName": "flight_id",
+                                                "type": "Input",
+                                                "variableName": "Flight_Id",
+                                                "variableType": "ConversationVariable"
+                                            },
+                                            {
+                                                "parameterName": "output",
+                                                "type": "Output",
+                                                "variableName": "Flight_Tracking_Status",
+                                                "variableType": "ConversationVariable"
+                                            }
+                                        ]
+                                    },
+                                    "type": "Set"
+                                },
+                                "type": "VariableOperation"
+                            },
+                            {
+                                "botMessages": [
+                                    {
+                                        "message": "Current flight status is - {!Flight_Tracking_Status}"
+                                    }
+                                ],
+                                "type": "Message"
+                            },
+                            {
+                                "botNavigation": {
+                                    "botNavigationLinks": [
+                                        {
+                                            "targetBotDialog": "Main_Menu"
+                                        }
+                                    ],
+                                    "type": "Redirect"
+                                },
+                                "type": "Navigation"
+                            }
+                        ],
+                        "description": "Queries related to flight tracking",
+                        "developerName": "Flight_Tracking",
+                        "label": "Flight Tracking"
+                    },
+                    {
+                        "botDialogGroup": "Rewards",
+                        "botSteps": [
+                            {
+                                "botMessages": [
+                                    {
+                                        "message": "Fetching rewards.."
+                                    }
+                                ],
+                                "type": "Message"
+                            },
+                            {
+                                "botVariableOperation": {
+                                    "botInvocation": {
+                                        "invocationActionName": "EmiratesFetchRewards",
+                                        "invocationActionType": "apex",
+                                        "invocationMappings": [
+                                            {
+                                                "parameterName": "profile_ids",
+                                                "type": "Input",
+                                                "variableName": "Profile_Id",
+                                                "variableType": "ConversationVariable"
+                                            },
+                                            {
+                                                "parameterName": "points",
+                                                "type": "Output",
+                                                "variableName": "Rewards",
+                                                "variableType": "ConversationVariable"
+                                            }
+                                        ]
+                                    },
+                                    "type": "Set"
+                                },
+                                "type": "VariableOperation"
+                            },
+                            {
+                                "type": "Wait"
+                            }
+                        ],
+                        "description": "Fetches the rewards status",
+                        "developerName": "Fetch_Rewards",
+                        "label": "Fetch Rewards"
+                    },
+                    {
+                        "botDialogGroup": "Rewards",
+                        "botSteps": [
+                            {
+                                "botStepConditions": [
+                                    {
+                                        "leftOperandName": "Profile_Logged_In",
+                                        "leftOperandType": "ConversationVariable",
+                                        "operatorType": "Equals",
+                                        "rightOperandValue": "false"
+                                    }
+                                ],
+                                "botSteps": [
+                                    {
+                                        "botNavigation": {
+                                            "botNavigationLinks": [
+                                                {
+                                                    "targetBotDialog": "Fetch_Profile"
+                                                }
+                                            ],
+                                            "type": "Call"
+                                        },
+                                        "type": "Navigation"
+                                    }
+                                ],
+                                "type": "Group"
+                            },
+                            {
+                                "botStepConditions": [
+                                    {
+                                        "leftOperandName": "Profile_Rewards",
+                                        "leftOperandType": "ConversationVariable",
+                                        "operatorType": "IsNotSet"
+                                    }
+                                ],
+                                "botSteps": [
+                                    {
+                                        "botNavigation": {
+                                            "botNavigationLinks": [
+                                                {
+                                                    "targetBotDialog": "Fetch_Rewards"
+                                                }
+                                            ],
+                                            "type": "Call"
+                                        },
+                                        "type": "Navigation"
+                                    }
+                                ],
+                                "type": "Group"
+                            },
+                            {
+                                "botVariableOperation": {
+                                    "botInvocation": {
+                                        "invocationActionName": "EmiratesFetchMerchandiseUrl",
+                                        "invocationActionType": "apex",
+                                        "invocationMappings": [
+                                            {
+                                                "parameterName": "profile_id",
+                                                "type": "Input",
+                                                "variableName": "Profile_Id",
+                                                "variableType": "ConversationVariable"
+                                            },
+                                            {
+                                                "parameterName": "rewards",
+                                                "type": "Input",
+                                                "variableName": "Rewards",
+                                                "variableType": "ConversationVariable"
+                                            },
+                                            {
+                                                "parameterName": "output",
+                                                "type": "Output",
+                                                "variableName": "Merchandise_Url",
+                                                "variableType": "ConversationVariable"
+                                            }
+                                        ]
+                                    },
+                                    "type": "Set"
+                                },
+                                "type": "VariableOperation"
+                            },
+                            {
+                                "botMessages": [
+                                    {
+                                        "message": "Here's your customized merchandise url - {!Merchandise_Url}"
+                                    }
+                                ],
+                                "type": "Message"
+                            },
+                            {
+                                "botNavigation": {
+                                    "botNavigationLinks": [
+                                        {
+                                            "targetBotDialog": "Main_Menu"
+                                        }
+                                    ],
+                                    "type": "Redirect"
+                                },
+                                "type": "Navigation"
+                            }
+                        ],
+                        "description": "Shopping and Merchandise",
+                        "developerName": "Merchandise",
+                        "label": "Merchandise",
+                        "mlIntent": "Merchandise",
+                        "mlIntentTrainingEnabled": true
+                    },
+                    {
+                        "botDialogGroup": "Careers",
+                        "botSteps": [
+                            {
+                                "botMessages": [
+                                    {
+                                        "message": "Proceed to the provided link to apply for jobs - https://careers.emirates.com"
+                                    }
+                                ],
+                                "type": "Message"
+                            },
+                            {
+                                "botNavigation": {
+                                    "botNavigationLinks": [
+                                        {
+                                            "targetBotDialog": "Main_Menu"
+                                        }
+                                    ],
+                                    "type": "Redirect"
+                                },
+                                "type": "Navigation"
+                            }
+                        ],
+                        "description": "Handles job applications",
+                        "developerName": "Career_Application",
+                        "label": "Career Application",
+                        "mlIntent": "Career_Application",
+                        "mlIntentTrainingEnabled": true
+                    },
+                    {
+                        "botDialogGroup": "Queries",
+                        "botSteps": [
+                            {
+                                "botMessages": [
+                                    {
+                                        "message": "I can assist you with your query. Please select a category that your query belongs to."
+                                    }
+                                ],
+                                "type": "Message"
+                            },
+                            {
+                                "botNavigation": {
+                                    "botNavigationLinks": [
+                                        {
+                                            "targetBotDialog": "Baggage_Claims"
+                                        },
+                                        {
+                                            "targetBotDialog": "Flight_Tracking"
+                                        }
+                                    ],
+                                    "type": "Redirect"
+                                },
+                                "type": "Navigation"
+                            }
+                        ],
+                        "description": "Queries menu",
+                        "developerName": "Queries_Menu",
+                        "label": "Queries",
+                        "mlIntent": "Queries_Menu",
+                        "mlIntentTrainingEnabled": true
+                    },
+                    {
+                        "botDialogGroup": "Bookings",
+                        "botSteps": [
+                            {
+                                "botMessages": [
+                                    {
+                                        "message": "Great! Let's look at your bookings!"
+                                    }
+                                ],
+                                "type": "Message"
+                            },
+                            {
+                                "botStepConditions": [
+                                    {
+                                        "leftOperandName": "Profile_Logged_In",
+                                        "leftOperandType": "ConversationVariable",
+                                        "operatorType": "Equals",
+                                        "rightOperandValue": "false"
+                                    }
+                                ],
+                                "botSteps": [
+                                    {
+                                        "botNavigation": {
+                                            "botNavigationLinks": [
+                                                {
+                                                    "targetBotDialog": "Login_Profile"
+                                                }
+                                            ],
+                                            "type": "Call"
+                                        },
+                                        "type": "Navigation"
+                                    }
+                                ],
+                                "type": "Group"
+                            },
+                            {
+                                "botNavigation": {
+                                    "botNavigationLinks": [
+                                        {
+                                            "targetBotDialog": "Create_Booking"
+                                        },
+                                        {
+                                            "targetBotDialog": "Reschedule_Booking"
+                                        },
+                                        {
+                                            "targetBotDialog": "Cancel_booking"
+                                        }
+                                    ],
+                                    "type": "Redirect"
+                                },
+                                "type": "Navigation"
+                            }
+                        ],
+                        "description": "Bookings menu",
+                        "developerName": "Bookings_Menu",
+                        "label": "Bookings",
+                        "mlIntent": "Bookings_Menu",
+                        "mlIntentTrainingEnabled": true
+                    },
+                    {
+                        "botDialogGroup": "Profile_Management",
+                        "botSteps": [
+                            {
+                                "botVariableOperation": {
+                                    "askCollectIfSet": true,
+                                    "botMessages": [
+                                        {
+                                            "message": "Do you already have a profile with Emirates?"
+                                        }
+                                    ],
+                                    "botQuickReplyOptions": [
+                                        {
+                                            "literalValue": "Yes"
+                                        },
+                                        {
+                                            "literalValue": "No"
+                                        }
+                                    ],
+                                    "botVariableOperands": [
+                                        {
+                                            "disableAutoFill": true,
+                                            "sourceName": "_Text",
+                                            "sourceType": "StandardMlSlotClass",
+                                            "targetName": "Yes_No_Selection",
+                                            "targetType": "ConversationVariable"
+                                        }
+                                    ],
+                                    "optionalCollect": false,
+                                    "quickReplyType": "Static",
+                                    "quickReplyWidgetType": "Buttons",
+                                    "type": "Collect"
+                                },
+                                "type": "VariableOperation"
+                            },
+                            {
+                                "botStepConditions": [
+                                    {
+                                        "leftOperandName": "Yes_No_Selection",
+                                        "leftOperandType": "ConversationVariable",
+                                        "operatorType": "Equals",
+                                        "rightOperandValue": "Yes"
+                                    }
+                                ],
+                                "botSteps": [
+                                    {
+                                        "botNavigation": {
+                                            "botNavigationLinks": [
+                                                {
+                                                    "targetBotDialog": "Login_Profile"
+                                                }
+                                            ],
+                                            "type": "Call"
+                                        },
+                                        "type": "Navigation"
+                                    }
+                                ],
+                                "type": "Group"
+                            },
+                            {
+                                "botStepConditions": [
+                                    {
+                                        "leftOperandName": "Yes_No_Selection",
+                                        "leftOperandType": "ConversationVariable",
+                                        "operatorType": "Equals",
+                                        "rightOperandValue": "No"
+                                    }
+                                ],
+                                "botSteps": [
+                                    {
+                                        "botNavigation": {
+                                            "botNavigationLinks": [
+                                                {
+                                                    "targetBotDialog": "Register_Profile"
+                                                }
+                                            ],
+                                            "type": "Call"
+                                        },
+                                        "type": "Navigation"
+                                    }
+                                ],
+                                "type": "Group"
+                            },
+                            {
+                                "type": "Wait"
+                            }
+                        ],
+                        "description": "Fetches the user profile",
+                        "developerName": "Fetch_Profile",
+                        "label": "Fetch Profile"
+                    }
+                ],
+                "conversationSystemDialogs": [
+                    {
+                        "dialog": "Rich_Content_Error_Handling",
+                        "type": "ErrorHandling"
+                    },
+                    {
+                        "dialog": "No_Agent_Available",
+                        "type": "TransferFailed"
+                    },
+                    {
+                        "dialog": "Answer_Automation",
+                        "type": "KnowledgeFallback"
+                    }
+                ],
+                "conversationVariables": [
+                    {
+                        "dataType": "Boolean",
+                        "developerName": "AnswerFeedback",
+                        "label": "Answer Feedback"
+                    },
+                    {
+                        "dataType": "Object",
+                        "developerName": "AnswerSelectedResult",
+                        "label": "Answer Selected Result"
+                    },
+                    {
+                        "dataType": "Text",
+                        "developerName": "Baggage_Query",
+                        "label": "Baggage_Query"
+                    },
+                    {
+                        "dataType": "Text",
+                        "developerName": "Baggage_Status",
+                        "label": "Baggage_Status"
+                    },
+                    {
+                        "dataType": "Text",
+                        "developerName": "Booking_Date",
+                        "label": "Booking_Date"
+                    },
+                    {
+                        "dataType": "Text",
+                        "developerName": "Booking_Destination",
+                        "label": "Booking_Destination"
+                    },
+                    {
+                        "dataType": "Object",
+                        "developerName": "Booking_Flight",
+                        "label": "Booking_Flight"
+                    },
+                    {
+                        "dataType": "Text",
+                        "developerName": "Booking_Id",
+                        "label": "Booking_Id"
+                    },
+                    {
+                        "dataType": "Text",
+                        "developerName": "Booking_Source",
+                        "label": "Booking_Source"
+                    },
+                    {
+                        "dataType": "Text",
+                        "developerName": "Flight_Id",
+                        "label": "Flight_Id"
+                    },
+                    {
+                        "dataType": "Text",
+                        "developerName": "Flight_Tracking_Status",
+                        "label": "Flight_Tracking_Status"
+                    },
+                    {
+                        "dataType": "Text",
+                        "developerName": "Merchandise_Url",
+                        "label": "Merchandise_Url"
+                    },
+                    {
+                        "dataType": "Boolean",
+                        "developerName": "Op_Status",
+                        "label": "Op_Status"
+                    },
+                    {
+                        "dataType": "Text",
+                        "developerName": "Profile_Id",
+                        "label": "Profile_Id"
+                    },
+                    {
+                        "dataType": "Boolean",
+                        "developerName": "Profile_Logged_In",
+                        "label": "Profile_Logged_In"
+                    },
+                    {
+                        "dataType": "Text",
+                        "developerName": "Profile_Name",
+                        "label": "Profile_Name"
+                    },
+                    {
+                        "dataType": "Text",
+                        "developerName": "Profile_Password",
+                        "label": "Profile_Password"
+                    },
+                    {
+                        "dataType": "Object",
+                        "developerName": "Profile_Rewards",
+                        "label": "Profile_Rewards"
+                    },
+                    {
+                        "dataType": "Text",
+                        "developerName": "Profile_Username",
+                        "label": "Profile_Username"
+                    },
+                    {
+                        "dataType": "Number",
+                        "developerName": "Rewards",
+                        "label": "Rewards"
+                    },
+                    {
+                        "dataType": "Text",
+                        "developerName": "Selected_Booking_Id",
+                        "label": "Selected_Booking_Id"
+                    },
+                    {
+                        "dataType": "Text",
+                        "developerName": "Yes_No_Selection",
+                        "label": "Yes_No_Selection"
+                    }
+                ],
+                "entryDialog": "Welcome",
+                "mainMenuDialog": "Main_Menu",
+                "nlpProviders": [
+                    {
+                        "language": "en_US",
+                        "nlpProviderType": "EinsteinAi"
+                    }
+                ]
+            }
+        ],
+        "contextVariables": [
+            {
+                "dataType": "Id",
+                "developerName": "ContactId",
+                "label": "Contact Id"
+            },
+            {
+                "dataType": "Id",
+                "developerName": "EndUserId",
+                "label": "End User Id"
+            },
+            {
+                "dataType": "Id",
+                "developerName": "RoutableId",
+                "label": "Routable Id"
+            },
+            {
+                "dataType": "Id",
+                "developerName": "VoiceCallId",
+                "label": "Voice Call Id"
+            }
+        ],
+        "description": "A bot from scratch.",
+        "label": "emirates"
+    },
+    "availableAgentActions": {
+        "customActions": [],
+        "standardActions": [
+            {
+                "agentActionName": "EmployeeCopilot__AnswerQuestionsWithKnowledge",
+                "description": "Used to answer questions using Salesforce knowledge"
+            }
+        ]
+    },
+    "botInvocationsDescribeInfo": {
+        "apex": {
+            "EmiratesFetchFlights": {
+                "inputParameters": {
+                    "destination": {
+                        "type": "STRING",
+                        "required": true
+                    },
+                    "source": {
+                        "type": "STRING",
+                        "required": true
+                    }
+                },
+                "outputParameters": {
+                    "output": {
+                        "type": "OBJECT",
+                        "apexClass": "EmiratesFetchFlights$EmiratesFlight"
+                    }
+                }
+            },
+            "EmiratesFetchBaggageStatus": {
+                "inputParameters": {
+                    "booking_id": {
+                        "type": "STRING",
+                        "required": true
+                    },
+                    "profile_id": {
+                        "type": "STRING",
+                        "required": true
+                    }
+                },
+                "outputParameters": {
+                    "output": {
+                        "type": "STRING"
+                    }
+                }
+            },
+            "EmiratesCancelBooking": {
+                "inputParameters": {
+                    "booking_ids": {
+                        "type": "STRING"
+                    }
+                },
+                "outputParameters": {
+                    "output": {
+                        "type": "BOOLEAN"
+                    }
+                }
+            },
+            "EmiratesFetchRewards": {
+                "inputParameters": {
+                    "profile_ids": {
+                        "type": "STRING"
+                    }
+                },
+                "outputParameters": {
+                    "points": {
+                        "type": "INTEGER"
+                    },
+                    "profile_id": {
+                        "type": "STRING"
+                    }
+                }
+            },
+            "EmiratesFetchBookingIds": {
+                "inputParameters": {
+                    "profile_ids": {
+                        "type": "STRING"
+                    }
+                },
+                "outputParameters": {
+                    "output": {
+                        "type": "STRING"
+                    }
+                }
+            },
+            "EmiratesFetchAirports": {
+                "inputParameters": {},
+                "outputParameters": {
+                    "output": {
+                        "type": "STRING"
+                    }
+                }
+            },
+            "EmiratesLogoutProfile": {
+                "inputParameters": {
+                    "profile_ids": {
+                        "type": "STRING"
+                    }
+                },
+                "outputParameters": {
+                    "output": {
+                        "type": "BOOLEAN"
+                    }
+                }
+            },
+            "EmiratesLoginProfile": {
+                "inputParameters": {
+                    "name": {
+                        "type": "STRING",
+                        "required": true
+                    },
+                    "password": {
+                        "type": "STRING",
+                        "required": true
+                    },
+                    "username": {
+                        "type": "STRING",
+                        "required": true
+                    }
+                },
+                "outputParameters": {
+                    "name": {
+                        "type": "STRING"
+                    },
+                    "profile_id": {
+                        "type": "STRING"
+                    },
+                    "username": {
+                        "type": "STRING"
+                    }
+                }
+            },
+            "EmiratesCreateBooking": {
+                "inputParameters": {
+                    "booking_date": {
+                        "type": "STRING",
+                        "required": true
+                    },
+                    "destination": {
+                        "type": "STRING",
+                        "required": true
+                    },
+                    "flight": {
+                        "type": "OBJECT",
+                        "required": true,
+                        "apexClass": "EmiratesCreateBooking$EmiratesFlight"
+                    },
+                    "profile_id": {
+                        "type": "STRING",
+                        "required": true
+                    },
+                    "source": {
+                        "type": "STRING",
+                        "required": true
+                    }
+                },
+                "outputParameters": {
+                    "booking_date": {
+                        "type": "STRING"
+                    },
+                    "destination": {
+                        "type": "STRING"
+                    },
+                    "flight_id": {
+                        "type": "STRING"
+                    },
+                    "id": {
+                        "type": "STRING"
+                    },
+                    "profile_id": {
+                        "type": "STRING"
+                    },
+                    "source": {
+                        "type": "STRING"
+                    }
+                }
+            },
+            "EmiratesFetchFlightStatus": {
+                "inputParameters": {
+                    "booking_id": {
+                        "type": "STRING"
+                    },
+                    "flight_id": {
+                        "type": "STRING",
+                        "required": true
+                    }
+                },
+                "outputParameters": {
+                    "output": {
+                        "type": "STRING"
+                    }
+                }
+            },
+            "EmiratesRegisterProfile": {
+                "inputParameters": {
+                    "name": {
+                        "type": "STRING",
+                        "required": true
+                    },
+                    "password": {
+                        "type": "STRING",
+                        "required": true
+                    },
+                    "username": {
+                        "type": "STRING",
+                        "required": true
+                    }
+                },
+                "outputParameters": {
+                    "name": {
+                        "type": "STRING"
+                    },
+                    "profile_id": {
+                        "type": "STRING"
+                    },
+                    "username": {
+                        "type": "STRING"
+                    }
+                }
+            },
+            "EmiratesRescheduleBooking": {
+                "inputParameters": {
+                    "booking_id": {
+                        "type": "STRING",
+                        "required": true
+                    },
+                    "new_date": {
+                        "type": "STRING",
+                        "required": true
+                    }
+                },
+                "outputParameters": {
+                    "output": {
+                        "type": "BOOLEAN"
+                    }
+                }
+            },
+            "EmiratesFetchMerchandiseUrl": {
+                "inputParameters": {
+                    "profile_id": {
+                        "type": "STRING",
+                        "required": true
+                    },
+                    "rewards": {
+                        "type": "INTEGER",
+                        "required": true
+                    }
+                },
+                "outputParameters": {
+                    "output": {
+                        "type": "STRING"
+                    }
+                }
+            }
+        },
+        "flow": {}
+    },
+    "mlRelatedData": {}
+}
