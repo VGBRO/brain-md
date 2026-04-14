@@ -1,0 +1,350 @@
+# Agentscript generated from Einstein Bot: emirates
+# IMPORTANT: Update placeholders marked with # PLACEHOLDER comments
+
+system:
+    instructions: |
+        You are an AI-powered customer service agent for Emirates airline.
+        You can help with flight bookings, profile management, baggage queries,
+        flight tracking, rewards programs, merchandise shopping, and general inquiries.
+
+config:
+    agent_name: "agent_emirates_b6bcc051"
+    agent_id: "1"
+    agent_type: "AgentforceServiceAgent"
+    default_agent_user: "user@example.com"  # PLACEHOLDER
+
+variables:
+    ContactId: linked id
+        description: "Context variable: Contact Id"
+        source: context
+    EndUserId: linked id
+        description: "Context variable: End User Id"
+        source: context
+    RoutableId: linked id
+        description: "Context variable: Routable Id"
+        source: context
+    VoiceCallId: linked id
+        description: "Context variable: Voice Call Id"
+        source: context
+    AnswerFeedback: mutable boolean
+        description: "Conversation variable for storing answerfeedback"
+        source: custom
+    AnswerSelectedResult: mutable object
+        description: "Conversation variable for storing answerselectedresult"
+        source: custom
+    Baggage_Status: mutable string
+        description: "Conversation variable for storing baggage status"
+        source: custom
+    Booking_Date: mutable string
+        description: "Conversation variable for storing booking date"
+        source: custom
+    Booking_Destination: mutable string
+        description: "Conversation variable for storing booking destination"
+        source: custom
+    Booking_Flight: mutable object
+        description: "Conversation variable for storing booking flight"
+        source: custom
+    Booking_Id: mutable string
+        description: "Conversation variable for storing booking id"
+        source: custom
+    Booking_Source: mutable string
+        description: "Conversation variable for storing booking source"
+        source: custom
+    Flight_Id: mutable string
+        description: "Conversation variable for storing flight id"
+        source: custom
+    Flight_Tracking_Status: mutable string
+        description: "Conversation variable for storing flight tracking status"
+        source: custom
+    Merchandise_Url: mutable string
+        description: "Conversation variable for storing merchandise url"
+        source: custom
+    Op_Status: mutable boolean
+        description: "Conversation variable for storing op status"
+        source: custom
+    Profile_Id: mutable string
+        description: "Conversation variable for storing profile id"
+        source: custom
+    Profile_Name: mutable string
+        description: "Conversation variable for storing profile name"
+        source: custom
+    Profile_Password: mutable string
+        description: "Conversation variable for storing profile password"
+        source: custom
+    Profile_Username: mutable string
+        description: "Conversation variable for storing profile username"
+        source: custom
+    Rewards: mutable number
+        description: "Conversation variable for storing rewards"
+        source: custom
+
+start_agent agent_entrypoint:
+    description: "Entry point for the Emirates customer service agent. Handles initial greeting and routes to appropriate topics."
+
+    reasoning:
+        instructions: |
+            - Greet the user warmly and introduce yourself as the Emirates digital assistant.
+            - Ask how you can help them today with bookings, queries, profile management, or rewards.
+            - Based on user intent, transition to the appropriate topic.
+
+        actions:
+            route_to_topics: @utils.transition to @topic.topic_router
+                description: "Route to topic router for intent-based navigation"
+            route_to_profile: @utils.transition to @topic.profile_management
+                description: "Route directly to profile management"
+
+topic topic_router:
+    description: "Routes user requests to appropriate specialized topics based on their intent."
+
+    reasoning:
+        instructions: |
+            - Understand the user's intent from their input.
+            - Route to the appropriate topic:
+              * Bookings/flights -> booking_management
+              * Baggage/flight tracking -> flight_baggage_queries
+              * Profile/login/logout -> profile_management
+              * Rewards/merchandise/shopping -> rewards_merchandise
+              * Career/job applications -> Provide link to careers.emirates.com
+
+        actions:
+            to_bookings: @utils.transition to @topic.booking_management
+                description: "Route to booking management"
+            to_queries: @utils.transition to @topic.flight_baggage_queries
+                description: "Route to flight and baggage queries"
+            to_profile: @utils.transition to @topic.profile_management
+                description: "Route to profile management"
+            to_rewards: @utils.transition to @topic.rewards_merchandise
+                description: "Route to rewards and merchandise"
+
+
+    Selected_Booking_Id: mutable string
+        description: "Conversation variable for storing selected booking id"
+        source: custom
+
+topic profile_management:
+    description: "Manages user profile operations including registration, login, and logout. This topic handles user authentication and profile lifecycle management, allowing users to create new profiles, authenticate into existing profiles, and terminate sessions."
+
+    actions:
+        EmiratesRegisterProfile:
+            target: "apex://EmiratesRegisterProfile"
+            inputs:
+                name: string
+                    is_required: True
+                password: string
+                    is_required: True
+                username: string
+                    is_required: True
+            outputs:
+                name: string
+                profile_id: string
+                username: string
+
+        EmiratesLoginProfile:
+            target: "apex://EmiratesLoginProfile"
+            inputs:
+                name: string
+                    is_required: True
+                password: string
+                    is_required: True
+                username: string
+                    is_required: True
+            outputs:
+                name: string
+                profile_id: string
+                username: string
+
+        EmiratesLogoutProfile:
+            target: "apex://EmiratesLogoutProfile"
+            inputs:
+                profile_ids: string
+            outputs:
+                output: boolean
+
+
+    reasoning:
+        instructions: |
+            - Use EmiratesRegisterProfile to register a new user profile when the user wants to create an account.
+            - Use EmiratesLoginProfile to authenticate user when they want to log in.
+            - Use EmiratesLogoutProfile to log out the user from their profile.
+
+        actions:
+            use_emiratesregisterprofile: @actions.EmiratesRegisterProfile
+            use_emiratesloginprofile: @actions.EmiratesLoginProfile
+            use_emirateslogoutprofile: @actions.EmiratesLogoutProfile
+                available when: @variables.Profile_Id is not None
+
+topic booking_management:
+    description: "Handles all flight booking operations including creating new bookings, rescheduling existing bookings, canceling bookings, and retrieving booking information. This topic orchestrates the complete booking lifecycle from flight search to booking modification and cancellation."
+
+    actions:
+        EmiratesCreateBooking:
+            target: "apex://EmiratesCreateBooking"
+            inputs:
+                booking_date: string
+                    is_required: True
+                destination: string
+                    is_required: True
+                flight: object
+                    is_required: True
+                    complex_data_type_name: "EmiratesCreateBooking$EmiratesFlight"
+                profile_id: string
+                    is_required: True
+                source: string
+                    is_required: True
+            outputs:
+                booking_date: string
+                destination: string
+                flight_id: string
+                id: string
+                profile_id: string
+                source: string
+
+        EmiratesFetchBookingIds:
+            target: "apex://EmiratesFetchBookingIds"
+            inputs:
+                profile_ids: string
+            outputs:
+                output: string
+
+        EmiratesRescheduleBooking:
+            target: "apex://EmiratesRescheduleBooking"
+            inputs:
+                booking_id: string
+                    is_required: True
+                new_date: string
+                    is_required: True
+            outputs:
+                output: boolean
+
+        EmiratesCancelBooking:
+            target: "apex://EmiratesCancelBooking"
+            inputs:
+                booking_ids: string
+            outputs:
+                output: boolean
+
+        EmiratesFetchAirports:
+            target: "apex://EmiratesFetchAirports"
+            outputs:
+                output: string
+
+        EmiratesFetchFlights:
+            target: "apex://EmiratesFetchFlights"
+            inputs:
+                destination: string
+                    is_required: True
+                source: string
+                    is_required: True
+            outputs:
+                output: object
+                    complex_data_type_name: "EmiratesFetchFlights$EmiratesFlight"
+
+
+    reasoning:
+        instructions: |
+            - Use EmiratesCreateBooking to create a new flight booking after fetching airports and flights.
+            - Use EmiratesFetchBookingIds to retrieve user's existing bookings.
+            - Use EmiratesRescheduleBooking to modify an existing booking date.
+            - Use EmiratesCancelBooking to cancel an existing booking.
+            - Use EmiratesFetchAirports to retrieve available airports when user wants to book a flight.
+            - Use EmiratesFetchFlights to search for available flights between source and destination.
+
+        actions:
+            use_emiratescreatebooking: @actions.EmiratesCreateBooking
+                available when: @variables.Profile_Id is not None
+            use_emiratesfetchbookingids: @actions.EmiratesFetchBookingIds
+                available when: @variables.Profile_Id is not None
+            use_emiratesreschedulebooking: @actions.EmiratesRescheduleBooking
+            use_emiratescancelbooking: @actions.EmiratesCancelBooking
+            use_emiratesfetchairports: @actions.EmiratesFetchAirports
+            use_emiratesfetchflights: @actions.EmiratesFetchFlights
+
+topic flight_baggage_queries:
+    description: "Provides real-time information about flight status and baggage tracking. This topic assists users with tracking their flights and checking baggage claim status for their bookings."
+
+    actions:
+        EmiratesFetchFlightStatus:
+            target: "apex://EmiratesFetchFlightStatus"
+            inputs:
+                booking_id: string
+                flight_id: string
+                    is_required: True
+            outputs:
+                output: string
+
+        EmiratesFetchBaggageStatus:
+            target: "apex://EmiratesFetchBaggageStatus"
+            inputs:
+                booking_id: string
+                    is_required: True
+                profile_id: string
+                    is_required: True
+            outputs:
+                output: string
+
+        EmiratesFetchBookingIds:
+            target: "apex://EmiratesFetchBookingIds"
+            inputs:
+                profile_ids: string
+            outputs:
+                output: string
+
+
+    reasoning:
+        instructions: |
+            - Use EmiratesFetchFlightStatus to track flight status in real-time.
+            - Use EmiratesFetchBaggageStatus to check baggage status for a booking.
+            - Use EmiratesFetchBookingIds to retrieve user's existing bookings.
+
+        actions:
+            use_emiratesfetchflightstatus: @actions.EmiratesFetchFlightStatus
+            use_emiratesfetchbaggagestatus: @actions.EmiratesFetchBaggageStatus
+                available when: @variables.Profile_Id is not None
+            use_emiratesfetchbookingids: @actions.EmiratesFetchBookingIds
+                available when: @variables.Profile_Id is not None
+
+topic rewards_merchandise:
+    description: "Manages customer rewards programs and personalized merchandise shopping. This topic retrieves user reward points and generates customized merchandise shopping URLs based on available rewards."
+
+    actions:
+        EmiratesFetchRewards:
+            target: "apex://EmiratesFetchRewards"
+            inputs:
+                profile_ids: string
+            outputs:
+                points: integer
+                profile_id: string
+
+        EmiratesFetchMerchandiseUrl:
+            target: "apex://EmiratesFetchMerchandiseUrl"
+            inputs:
+                profile_id: string
+                    is_required: True
+                rewards: integer
+                    is_required: True
+            outputs:
+                output: string
+
+
+    reasoning:
+        instructions: |
+            - Use EmiratesFetchRewards to retrieve user reward points.
+            - Use EmiratesFetchMerchandiseUrl to generate personalized merchandise shopping URL.
+
+        actions:
+            use_emiratesfetchrewards: @actions.EmiratesFetchRewards
+                available when: @variables.Profile_Id is not None
+            use_emiratesfetchmerchandiseurl: @actions.EmiratesFetchMerchandiseUrl
+                available when: @variables.Profile_Id is not None
+
+topic knowledge_base_support:
+    description: "Provides automated answers from knowledge base articles and logs user feedback on answer quality. This topic handles information retrieval from the knowledge repository and tracks answer effectiveness."
+
+    actions:
+
+    reasoning:
+        instructions: |
+            - Handle knowledge base support related tasks.
+
+        actions:
+            use_generateknowledgelogdata: @actions.generateKnowledgeLogData
