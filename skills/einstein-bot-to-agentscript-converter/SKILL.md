@@ -11,3 +11,8 @@ allowed-tools: Write, Edit, Read, Glob
 # 3. Use the skill `generate-agentscript-topics` to pick the topics.
 
 # 4. Use the skill `generate-agentscript-from-topics-and-bot` to generate the agentscript.
+
+# 5. Use the skill `deploy-agentscript` to deploy the agentscript to the target org.
+
+# 6. Use the skill `deploy-agentscript` to  deploy the agentscript to the target org.
+
