@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Bot xmlns="http://soap.sforce.com/2006/04/metadata">
+    <agentDSLEnabled>false</agentDSLEnabled>
+    <botMlDomain>
+        <label>CMC Support Bot - Platform 2</label>
+        <mlIntents>
+            <developerName>CONNECT</developerName>
+            <label>CONNECT</label>
+            <relatedMlIntents>
+                <relatedMlIntent>Intent_V1.Connect_to_an_Agent</relatedMlIntent>
+            </relatedMlIntents>
+        </mlIntents>
+        <mlIntents>
+            <developerName>Knowledge_Action</developerName>
+            <label>Answer Questions with Knowledge</label>
+        </mlIntents>
+        <mlIntents>
+            <developerName>Transfer_To_Agent</developerName>
+            <label>Transfer to Agent</label>
+        </mlIntents>
+        <mlIntents>
+            <developerName>Welcome</developerName>
+            <label>Welcome</label>
+        </mlIntents>
+        <mlSlotClasses>
+            <dataType>Text</dataType>
+            <developerName>HumanConnect</developerName>
+            <extractionType>Value</extractionType>
+            <label>HumanConnect</label>
+        </mlSlotClasses>
+        <mlSlotClasses>
+            <dataType>Text</dataType>
+            <developerName>UserChoice</developerName>
+            <extractionType>Value</extractionType>
+            <label>User Choice</label>
+        </mlSlotClasses>
+        <name>CMC_Support_Bot_Platform_2</name>
+    </botMlDomain>
+    <botSource>None</botSource>
+    <botUser>salesforce.adminteam@cmcmarkets.com.fullcopy</botUser>
+    <contextVariables>
+        <contextVariableMappings>
+            <SObjectType>MessagingEndUser</SObjectType>
+            <fieldName>MessagingEndUser.ContactId</fieldName>
+            <messageType>EmbeddedMessaging</messageType>
+        </contextVariableMappings>
+        <dataType>Id</dataType>
+        <developerName>ContactId</developerName>
+        <includeInPrompt>false</includeInPrompt>
+        <label>Contact Id</label>
+    </contextVariables>
+    <contextVariables>
+        <contextVariableMappings>
+            <SObjectType>MessagingSession</SObjectType>
+            <fieldName>MessagingSession.MessagingEndUserId</fieldName>
+            <messageType>EmbeddedMessaging</messageType>
+        </contextVariableMappings>
+        <dataType>Id</dataType>
+        <developerName>EndUserId</developerName>
+        <includeInPrompt>true</includeInPrompt>
+        <label>End User Id</label>
+    </contextVariables>
+    <contextVariables>
+        <contextVariableMappings>
+            <SObjectType>MessagingSession</SObjectType>
+            <fieldName>MessagingSession.Id</fieldName>
+            <messageType>EmbeddedMessaging</messageType>
+        </contextVariableMappings>
+        <dataType>Id</dataType>
+        <developerName>RoutableId</developerName>
+        <includeInPrompt>true</includeInPrompt>
+        <label>Routable Id</label>
+    </contextVariables>
+    <defaultOutboundFlow>CMC_TransferToAgentOutboundWeb</defaultOutboundFlow>
+    <description>CMC Support Bot for Web [Platform]</description>
+    <label>CMC Knowledge Bot - Platform 2</label>
+    <logPrivateConversationData>true</logPrivateConversationData>
+    <richContentEnabled>true</richContentEnabled>
+    <sessionTimeout>480</sessionTimeout>
+    <type>Bot</type>
+</Bot>
