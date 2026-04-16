@@ -1,0 +1,12 @@
+{
+  "packageDirectories": [
+    {
+      "path": "data/sf-cli",
+      "default": true
+    }
+  ],
+  "name": "bot-to-agent-migration-dev",
+  "namespace": "",
+  "sfdcLoginUrl": "https://login.salesforce.com",
+  "sourceApiVersion": "66.0"
+}
