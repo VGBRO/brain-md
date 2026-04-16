@@ -28,12 +28,12 @@ Install all prerequisites with one command:
 
 **macOS/Linux:**
 ```bash
-curl -fsSL https://raw.githubusercontent.com/forward-deployed-engineering-emu/agentscript-migration/main/scripts/install-prerequisites.sh | bash
+curl -fsSL https://git.soma.salesforce.com/chatbots/bot-to-agent-migration-dev/raw/master/scripts/install-prerequisites.sh | bash
 ```
 
 **Windows (PowerShell):**
 ```powershell
-irm https://raw.githubusercontent.com/forward-deployed-engineering-emu/agentscript-migration/main/scripts/install-prerequisites.ps1 | iex
+irm https://git.soma.salesforce.com/chatbots/bot-to-agent-migration-dev/raw/master/scripts/install-prerequisites.ps1 | iex
 ```
 
 After installation, restart your terminal and authenticate to a Salesforce org:
