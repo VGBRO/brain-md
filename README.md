@@ -24,16 +24,16 @@ Before starting a migration, ensure you have the following installed:
 
 ### Quick Installation
 
-Install all prerequisites with one command:
+Install all prerequisites using the provided installation scripts:
 
 **macOS/Linux:**
 ```bash
-curl -fsSL https://git.soma.salesforce.com/chatbots/bot-to-agent-migration-dev/raw/master/scripts/install-prerequisites.sh | bash
+bash scripts/install-prerequisites.sh
 ```
 
 **Windows (PowerShell):**
 ```powershell
-irm https://git.soma.salesforce.com/chatbots/bot-to-agent-migration-dev/raw/master/scripts/install-prerequisites.ps1 | iex
+powershell -ExecutionPolicy Bypass -File scripts/install-prerequisites.ps1
 ```
 
 After installation, restart your terminal and authenticate to a Salesforce org:
@@ -49,6 +49,63 @@ sf org login web --alias my-sandbox --instance-url https://test.salesforce.com
 ## Migration Pipeline
 
 The migration follows a structured 6-step pipeline:
+
+```mermaid
+graph TD
+    Start([Start Migration]) --> Step0[Step 0: Start Migration<br/>Verify Prerequisites]
+    
+    Step0 -->|Prerequisites OK| Step1[Step 1: Retrieve Bot Metadata<br/>Process bot.json]
+    Step0 -->|Missing Tools| Install[Install Prerequisites<br/>& Restart]
+    Install --> Step0
+    
+    Step1 --> Artifact1[(migration-inventory.md<br/>preprocessed_bot.json<br/>intent_digest.json<br/>topic_classification.json)]
+    
+    Artifact1 --> Step2[Step 2: Process & Build Inventory<br/>Design Agent Architecture]
+    
+    Step2 --> Artifact2[(migration-architecture.md)]
+    
+    Artifact2 --> Step3[Step 3: Map Dialogs to Topics<br/>Scaffold AgentScript]
+    
+    Step3 --> Artifact3[(AgentName.agent<br/>Scaffolded)]
+    
+    Artifact3 --> Step4[Step 4: Generate AgentScript<br/>Migrate Topics]
+    
+    Step4 --> Artifact4[(AgentName.agent<br/>Complete)]
+    
+    Artifact4 --> Step5[Step 5: Compile AgentScript<br/>Self-Healing Validation]
+    
+    Step5 -->|Errors Found| Fix[Auto-Fix Errors]
+    Fix --> Step5
+    Step5 -->|Success| Artifact5[(AgentName.agent<br/>Validated)]
+    
+    Artifact5 --> Step6[Step 6: Deploy Agent<br/>Publish to Org]
+    
+    Step6 -->|Confirm?| Decision{User Confirms<br/>Deployment?}
+    Decision -->|Yes| Deploy[sf agent publish]
+    Decision -->|No| Cancel([Migration Stopped])
+    
+    Deploy -->|Success| Complete([✓ Agent Live in Org])
+    Deploy -->|Error| Heal[Self-Healing Loop]
+    Heal --> Deploy
+    
+    style Start fill:#e1f5ff
+    style Complete fill:#c8e6c9
+    style Cancel fill:#ffcdd2
+    style Step0 fill:#fff3e0
+    style Step1 fill:#fff3e0
+    style Step2 fill:#fff3e0
+    style Step3 fill:#fff3e0
+    style Step4 fill:#fff3e0
+    style Step5 fill:#fff3e0
+    style Step6 fill:#fff3e0
+    style Artifact1 fill:#e8eaf6
+    style Artifact2 fill:#e8eaf6
+    style Artifact3 fill:#e8eaf6
+    style Artifact4 fill:#e8eaf6
+    style Artifact5 fill:#e8eaf6
+```
+
+### Detailed Step Breakdown
 
 ### Step 0: Start Migration
 **Skill:** `00-start-migration`

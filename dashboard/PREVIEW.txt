@@ -1,0 +1,134 @@
+╔══════════════════════════════════════════════════════════════════════════════════╗
+║                                                                                  ║
+║                   🤖 Bot-to-NGA Agent Migration Pipeline                         ║
+║             Track your Einstein Bot migration to Salesforce NGA Agent            ║
+║                                                                                  ║
+╚══════════════════════════════════════════════════════════════════════════════════╝
+
+┌──────────────────────────────────────────────────────────────────────────────────┐
+│                              Overall Progress                                    │
+│                                                                                  │
+│  ████████████████████████░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░  33%     │
+│                        2 of 6 steps completed                                    │
+└──────────────────────────────────────────────────────────────────────────────────┘
+
+
+┌──────────────────────────────────────────────────────────────────────────────────┐
+│  [1]  Retrieve Bot Metadata                               ⏸️  PENDING           │
+├──────────────────────────────────────────────────────────────────────────────────┤
+│                                                                                  │
+│  Process Einstein Bot metadata JSON, extract dialog structure, intents,         │
+│  invocations, and generate comprehensive inventory.                              │
+│                                                                                  │
+│  ⚠️  Checkpoint: Select org and legacy bundle to migrate                        │
+│                                                                                  │
+│  [ ▶ Start Step ]  [ 📋 View Logs ]                                             │
+│                                                                                  │
+└──────────────────────────────────────────────────────────────────────────────────┘
+
+
+┌──────────────────────────────────────────────────────────────────────────────────┐
+│  [2]  Design Agent Architecture                           🔄  IN PROGRESS       │
+├──────────────────────────────────────────────────────────────────────────────────┤
+│                                                                                  │
+│  Map bot constructs (dialogs, intents, navigation) to AgentScript patterns      │
+│  (topics, reasoning, transitions) using AgentScript Rules guide.                 │
+│                                                                                  │
+│  ⚠️  Checkpoint: Review architecture design and agent name                      │
+│                                                                                  │
+│  [ ⟳ Running... ]  [ 📋 View Logs ]                                             │
+│                                                                                  │
+│  ─────────────────────────────────────────────────────────                      │
+│  📁 Generated Artifacts                                                          │
+│  [ 📄 migration-architecture.md ]                                                │
+│                                                                                  │
+└──────────────────────────────────────────────────────────────────────────────────┘
+
+
+┌──────────────────────────────────────────────────────────────────────────────────┐
+│  [3]  Scaffold AgentScript                                ✅  COMPLETED         │
+├──────────────────────────────────────────────────────────────────────────────────┤
+│                                                                                  │
+│  Create the .agent file with config, variables, system block (welcome), and     │
+│  entry-point routing.                                                            │
+│                                                                                  │
+│  [ ✓ Completed ]  [ 🔄 Re-run ]  [ 📋 View Logs ]                              │
+│                                                                                  │
+│  ─────────────────────────────────────────────────────────                      │
+│  📁 Generated Artifacts                                                          │
+│  [ 📄 agent-scaffold.agent ]                                                     │
+│                                                                                  │
+└──────────────────────────────────────────────────────────────────────────────────┘
+
+
+┌──────────────────────────────────────────────────────────────────────────────────┐
+│  [4]  Migrate Agent Topics                                ⏸️  PENDING           │
+├──────────────────────────────────────────────────────────────────────────────────┤
+│                                                                                  │
+│  Transform bot dialog steps into AgentScript topics with reasoning, actions,     │
+│  and transitions.                                                                │
+│                                                                                  │
+│  [ ▶ Start Step ]  [ 📋 View Logs ]                                             │
+│                                                                                  │
+└──────────────────────────────────────────────────────────────────────────────────┘
+
+
+┌──────────────────────────────────────────────────────────────────────────────────┐
+│  [5]  Compile AgentScript                                 ⏸️  PENDING           │
+├──────────────────────────────────────────────────────────────────────────────────┤
+│                                                                                  │
+│  Validate the .agent file locally in a self-healing loop that auto-diagnoses    │
+│  and fixes errors.                                                               │
+│                                                                                  │
+│  [ ▶ Start Step ]  [ 📋 View Logs ]                                             │
+│                                                                                  │
+└──────────────────────────────────────────────────────────────────────────────────┘
+
+
+┌──────────────────────────────────────────────────────────────────────────────────┐
+│  [6]  Deploy to Salesforce                                ⏸️  PENDING           │
+├──────────────────────────────────────────────────────────────────────────────────┤
+│                                                                                  │
+│  Deploy and publish to your Salesforce org with explicit confirmation before     │
+│  deployment.                                                                     │
+│                                                                                  │
+│  ⚠️  Checkpoint: Confirm deployment target org                                  │
+│                                                                                  │
+│  [ ▶ Start Step ]  [ 📋 View Logs ]                                             │
+│                                                                                  │
+└──────────────────────────────────────────────────────────────────────────────────┘
+
+
+                           🔄 Auto-refreshing every 5 seconds...
+
+
+═══════════════════════════════════════════════════════════════════════════════════
+
+LEGEND:
+  ⏸️  PENDING      → Not started yet (gray)
+  🔄  IN PROGRESS  → Currently running (orange, animated)
+  ✅  COMPLETED    → Successfully finished (green)
+  ❌  ERROR        → Failed with error message (red)
+  ⚠️  Checkpoint   → Requires user confirmation
+
+INTERACTIONS:
+  [ ▶ Start Step ]  → Begin execution
+  [ ⟳ Running... ]  → Step in progress (disabled)
+  [ ✓ Completed ]   → Step finished (disabled)
+  [ 🔄 Re-run ]     → Run again
+  [ 📋 View Logs ]  → Open detailed logs
+  [ 📄 filename ]   → View/download artifact
+
+═══════════════════════════════════════════════════════════════════════════════════
+
+The actual HTML dashboard features:
+  • Beautiful gradient purple/violet theme
+  • Smooth animations and transitions
+  • Hover effects on all cards and buttons
+  • Responsive design (works on mobile/tablet)
+  • Real-time progress bar
+  • Color-coded status borders
+  • Auto-refresh indicator
+  • REST API for programmatic access
+
+Open at: http://localhost:8080

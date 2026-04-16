@@ -1,0 +1,689 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bot-to-NGA Agent Migration Pipeline</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        .header h1 {
+            color: #2d3748;
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            color: #718096;
+            font-size: 16px;
+        }
+
+        .progress-overview {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        .master-controls {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+
+        .master-controls h2 {
+            color: #2d3748;
+            font-size: 20px;
+            margin-bottom: 15px;
+        }
+
+        .btn-master {
+            padding: 16px 40px;
+            font-size: 18px;
+            font-weight: 600;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-master:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.5);
+        }
+
+        .btn-master:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .master-status {
+            margin-top: 15px;
+            padding: 12px;
+            border-radius: 6px;
+            font-size: 14px;
+            display: none;
+        }
+
+        .master-status.running {
+            display: block;
+            background: #feebc8;
+            color: #744210;
+        }
+
+        .master-status.completed {
+            display: block;
+            background: #c6f6d5;
+            color: #22543d;
+        }
+
+        .master-status.error {
+            display: block;
+            background: #fed7d7;
+            color: #742a2a;
+        }
+
+        .progress-bar-container {
+            width: 100%;
+            height: 8px;
+            background: #e2e8f0;
+            border-radius: 4px;
+            overflow: hidden;
+            margin: 15px 0;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            transition: width 0.3s ease;
+        }
+
+        .progress-text {
+            text-align: center;
+            color: #4a5568;
+            font-size: 14px;
+            margin-top: 10px;
+        }
+
+        .pipeline {
+            display: grid;
+            gap: 20px;
+        }
+
+        .step {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+            transition: all 0.3s ease;
+            border-left: 4px solid #cbd5e0;
+        }
+
+        .step:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.12);
+        }
+
+        .step.pending {
+            border-left-color: #cbd5e0;
+        }
+
+        .step.in-progress {
+            border-left-color: #f6ad55;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        .step.completed {
+            border-left-color: #48bb78;
+        }
+
+        .step.error {
+            border-left-color: #f56565;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.8; }
+        }
+
+        .step-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 15px;
+        }
+
+        .step-title {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .step-number {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 18px;
+            background: #e2e8f0;
+            color: #4a5568;
+        }
+
+        .step.in-progress .step-number {
+            background: #fbd38d;
+            color: #744210;
+        }
+
+        .step.completed .step-number {
+            background: #9ae6b4;
+            color: #22543d;
+        }
+
+        .step.error .step-number {
+            background: #fc8181;
+            color: #742a2a;
+        }
+
+        .step-name {
+            font-size: 20px;
+            font-weight: 600;
+            color: #2d3748;
+        }
+
+        .step-status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        .step-status.pending {
+            background: #edf2f7;
+            color: #4a5568;
+        }
+
+        .step-status.in-progress {
+            background: #feebc8;
+            color: #744210;
+        }
+
+        .step-status.completed {
+            background: #c6f6d5;
+            color: #22543d;
+        }
+
+        .step-status.error {
+            background: #fed7d7;
+            color: #742a2a;
+        }
+
+        .step-description {
+            color: #718096;
+            margin-bottom: 15px;
+            line-height: 1.6;
+        }
+
+        .step-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn:hover {
+            transform: translateY(-1px);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: #edf2f7;
+            color: #4a5568;
+        }
+
+        .btn-secondary:hover {
+            background: #e2e8f0;
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .artifacts {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #e2e8f0;
+        }
+
+        .artifacts-title {
+            font-size: 13px;
+            font-weight: 600;
+            color: #4a5568;
+            margin-bottom: 8px;
+        }
+
+        .artifact-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .artifact {
+            padding: 6px 12px;
+            background: #f7fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 4px;
+            font-size: 13px;
+            color: #4a5568;
+            text-decoration: none;
+            transition: all 0.2s ease;
+        }
+
+        .artifact:hover {
+            background: #edf2f7;
+            border-color: #cbd5e0;
+        }
+
+        .status-icon {
+            width: 16px;
+            height: 16px;
+        }
+
+        .checkpoint {
+            background: #fff5cc;
+            border: 1px solid #ffd666;
+            padding: 12px;
+            border-radius: 6px;
+            margin-top: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 13px;
+            color: #744210;
+        }
+
+        .refresh-indicator {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: white;
+            padding: 12px 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            font-size: 13px;
+            color: #4a5568;
+            display: none;
+        }
+
+        .refresh-indicator.active {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🤖 Bot-to-NGA Agent Migration Pipeline</h1>
+            <p>Track your Einstein Bot migration to Salesforce NGA Agent in real-time</p>
+        </div>
+
+        <div class="master-controls">
+            <h2>🚀 Master Control</h2>
+            <button class="btn-master" id="masterButton" onclick="startFullMigration()">
+                ▶️ Start Full Migration
+            </button>
+            <div class="master-status" id="masterStatus">
+                <!-- Status messages will appear here -->
+            </div>
+        </div>
+
+        <div class="progress-overview">
+            <h3 style="color: #2d3748; margin-bottom: 15px;">Overall Progress</h3>
+            <div class="progress-bar-container">
+                <div class="progress-bar" id="overallProgress"></div>
+            </div>
+            <div class="progress-text" id="progressText">0 of 6 steps completed</div>
+        </div>
+
+        <div class="pipeline" id="pipeline">
+            <!-- Steps will be dynamically loaded here -->
+        </div>
+    </div>
+
+    <div class="refresh-indicator" id="refreshIndicator">
+        🔄 Checking for updates...
+    </div>
+
+    <script>
+        const steps = [
+            {
+                id: 1,
+                name: "01-retrieve-bots-metadata",
+                displayName: "Step 1: Retrieve Bot Metadata",
+                description: "Pre-processes an Einstein bot's structure to filter out noise, and retain relevant data necessary to convert the bot into an agentscript backing an AI agent.",
+                skill: "01-retrieve-bots-metadata",
+                checkpoint: true,
+                checkpointMsg: "Select org and legacy bundle to migrate",
+                artifacts: ["bot.json", "preprocessed_bot.json", "intent_digest.json"]
+            },
+            {
+                id: 2,
+                name: "02-process-and-build-inventory",
+                displayName: "Step 2: Process and Build Inventory",
+                description: "Generates the complete agentscript backing an AI agent from the full Einstein bot metadata/configuration. Builds comprehensive inventory of dialogs, actions, and transitions.",
+                skill: "02-process-and-build-inventory",
+                checkpoint: true,
+                checkpointMsg: "Review architecture design and agent name",
+                artifacts: ["migration-inventory.md", "migration-architecture.md"]
+            },
+            {
+                id: 3,
+                name: "03-map-dialogs-actions-to-topics",
+                displayName: "Step 3: Map Dialogs to Topics",
+                description: "Generates topics for the agentscript from the preprocessed Einstein bot data. Maps bot dialogs, actions, and intents to AgentScript topic structure.",
+                skill: "03-map-dialogs-actions-to-topics",
+                artifacts: ["topics-mapping.json"]
+            },
+            {
+                id: 4,
+                name: "04-generate-agentscript",
+                displayName: "Step 4: Generate AgentScript",
+                description: "Generates the complete agentscript backing an AI agent from the pre-generated topics and the full Einstein bot metadata/configuration.",
+                skill: "04-generate-agentscript",
+                artifacts: ["complete-agent.agent"]
+            },
+            {
+                id: 5,
+                name: "05-compile-agentscript",
+                displayName: "Step 5: Compile AgentScript",
+                description: "Runs the AgentScript compiler in a self-healing loop, automatically diagnosing and fixing syntax errors until the script compiles successfully.",
+                skill: "05-compile-agentscript",
+                artifacts: ["compiled-agent.agent", "compilation.log"]
+            },
+            {
+                id: 6,
+                name: "06-deploy-agent-to-org",
+                displayName: "Step 6: Deploy Agent to Org",
+                description: "Deploys the compiled AgentScript (aiAuthoringBundle) to a Salesforce org with mandatory human-in-the-loop confirmation and a self-healing publish loop.",
+                skill: "06-deploy-agent-to-org",
+                checkpoint: true,
+                checkpointMsg: "Confirm deployment target org",
+                artifacts: ["deployment.log"]
+            }
+        ];
+
+        function getStatusIcon(status) {
+            const icons = {
+                pending: '⏸️',
+                'in-progress': '🔄',
+                completed: '✅',
+                error: '❌'
+            };
+            return icons[status] || '⏸️';
+        }
+
+        function renderPipeline() {
+            const pipeline = document.getElementById('pipeline');
+            const status = loadStatus();
+
+            pipeline.innerHTML = steps.map(step => {
+                const stepStatus = status[step.id] || 'pending';
+                const artifacts = step.artifacts.filter(artifact =>
+                    status.artifacts && status.artifacts.includes(artifact)
+                );
+
+                return `
+                    <div class="step ${stepStatus}" data-step="${step.id}">
+                        <div class="step-header">
+                            <div class="step-title">
+                                <div class="step-number">${step.id}</div>
+                                <div>
+                                    <div class="step-name">${step.displayName}</div>
+                                    <div style="font-size: 12px; color: #718096; margin-top: 4px;">/${step.name}</div>
+                                </div>
+                            </div>
+                            <div class="step-status ${stepStatus}">
+                                <span class="status-icon">${getStatusIcon(stepStatus)}</span>
+                                <span>${stepStatus.replace('-', ' ').toUpperCase()}</span>
+                            </div>
+                        </div>
+                        <div class="step-description">${step.description}</div>
+
+                        ${step.checkpoint ? `
+                            <div class="checkpoint">
+                                ⚠️ <strong>Checkpoint:</strong> ${step.checkpointMsg}
+                            </div>
+                        ` : ''}
+
+                        <div class="step-actions">
+                            <button class="btn btn-primary" onclick="runStep(${step.id})"
+                                ${stepStatus === 'in-progress' || stepStatus === 'completed' ? 'disabled' : ''}>
+                                ${stepStatus === 'completed' ? '✓ Completed' : stepStatus === 'in-progress' ? '⟳ Running...' : '▶ Start Step'}
+                            </button>
+                            ${stepStatus === 'completed' ? `
+                                <button class="btn btn-secondary" onclick="runStep(${step.id})">
+                                    🔄 Re-run
+                                </button>
+                            ` : ''}
+                            ${artifacts.length > 0 ? `
+                                <button class="btn btn-secondary" onclick="viewLogs(${step.id})">
+                                    📋 View Logs
+                                </button>
+                            ` : ''}
+                        </div>
+
+                        ${artifacts.length > 0 ? `
+                            <div class="artifacts">
+                                <div class="artifacts-title">📁 Generated Artifacts</div>
+                                <div class="artifact-list">
+                                    ${artifacts.map(artifact => `
+                                        <a href="#" class="artifact" onclick="openArtifact('${artifact}'); return false;">
+                                            📄 ${artifact}
+                                        </a>
+                                    `).join('')}
+                                </div>
+                            </div>
+                        ` : ''}
+                    </div>
+                `;
+            }).join('');
+
+            updateProgress();
+        }
+
+        function updateProgress() {
+            const status = loadStatus();
+            const completed = Object.values(status).filter(s => s === 'completed').length;
+            const inProgress = Object.values(status).filter(s => s === 'in-progress').length;
+            const hasErrors = Object.values(status).filter(s => s === 'error').length;
+            const progress = (completed / steps.length) * 100;
+
+            document.getElementById('overallProgress').style.width = `${progress}%`;
+            document.getElementById('progressText').textContent = `${completed} of ${steps.length} steps completed`;
+
+            // Update master control button
+            const masterButton = document.getElementById('masterButton');
+            const masterStatus = document.getElementById('masterStatus');
+
+            if (completed === steps.length) {
+                masterButton.disabled = true;
+                masterButton.innerHTML = '✅ Migration Complete';
+                masterStatus.className = 'master-status completed';
+                masterStatus.textContent = '🎉 All steps completed successfully! Your agent is ready to deploy.';
+            } else if (hasErrors > 0) {
+                masterButton.disabled = false;
+                masterButton.innerHTML = '🔄 Retry Migration';
+                masterStatus.className = 'master-status error';
+                masterStatus.textContent = `⚠️ ${hasErrors} step(s) encountered errors. Fix and retry.`;
+            } else if (inProgress > 0) {
+                masterButton.disabled = true;
+                masterButton.innerHTML = '⟳ Migration Running...';
+                masterStatus.className = 'master-status running';
+                masterStatus.textContent = `🔄 Migration in progress... (${completed}/${steps.length} completed)`;
+            } else if (completed > 0 && completed < steps.length) {
+                masterButton.disabled = false;
+                masterButton.innerHTML = '▶️ Resume Migration';
+                masterStatus.className = 'master-status running';
+                masterStatus.textContent = `⏸️ Migration paused at step ${completed + 1}. Click to resume.`;
+            } else {
+                masterButton.disabled = false;
+                masterButton.innerHTML = '▶️ Start Full Migration';
+                masterStatus.className = 'master-status';
+                masterStatus.style.display = 'none';
+            }
+        }
+
+        function loadStatus() {
+            const saved = localStorage.getItem('pipelineStatus');
+            return saved ? JSON.parse(saved) : {};
+        }
+
+        function saveStatus(stepId, status) {
+            const currentStatus = loadStatus();
+            currentStatus[stepId] = status;
+            localStorage.setItem('pipelineStatus', JSON.stringify(currentStatus));
+            renderPipeline();
+        }
+
+        function startFullMigration() {
+            const masterButton = document.getElementById('masterButton');
+            const masterStatus = document.getElementById('masterStatus');
+
+            masterButton.disabled = true;
+            masterButton.innerHTML = '⟳ Migration Running...';
+
+            masterStatus.className = 'master-status running';
+            masterStatus.textContent = '🚀 Full migration started. Running all steps sequentially...';
+
+            // Show command to run
+            const command = '/00-start-migration';
+            alert(`To start the full migration, execute this command in your Claude Code CLI:\n\n${command}\n\nThe dashboard will track progress as each step completes automatically.`);
+
+            // Mark first step as in-progress
+            saveStatus(1, 'in-progress');
+
+            console.log('Starting full migration pipeline');
+        }
+
+        function runStep(stepId) {
+            const step = steps.find(s => s.id === stepId);
+            if (!step) return;
+
+            saveStatus(stepId, 'in-progress');
+
+            // Construct the command to run
+            const command = `/${step.skill}`;
+
+            alert(`To run this step, execute this command in your Claude Code CLI:\n\n${command}\n\nThe dashboard will auto-update when the step completes.`);
+
+            // In a real implementation, this would make an API call to trigger the step
+            console.log(`Running step ${stepId}: ${step.skill}`);
+        }
+
+        function viewLogs(stepId) {
+            alert(`Opening logs for step ${stepId}...`);
+            // In a real implementation, this would open a log viewer
+        }
+
+        function openArtifact(filename) {
+            alert(`Opening artifact: ${filename}\n\nPath: data/${filename}`);
+            // In a real implementation, this would open the file
+        }
+
+        function checkForUpdates() {
+            const indicator = document.getElementById('refreshIndicator');
+            indicator.classList.add('active');
+
+            // Simulate checking for updates
+            setTimeout(() => {
+                indicator.classList.remove('active');
+                renderPipeline();
+            }, 1000);
+        }
+
+        // Auto-refresh every 5 seconds
+        setInterval(checkForUpdates, 5000);
+
+        // Initial render
+        renderPipeline();
+
+        // Expose functions for external control
+        window.pipelineAPI = {
+            updateStepStatus: (stepId, status) => saveStatus(stepId, status),
+            addArtifact: (filename) => {
+                const currentStatus = loadStatus();
+                currentStatus.artifacts = currentStatus.artifacts || [];
+                if (!currentStatus.artifacts.includes(filename)) {
+                    currentStatus.artifacts.push(filename);
+                    localStorage.setItem('pipelineStatus', JSON.stringify(currentStatus));
+                    renderPipeline();
+                }
+            },
+            reset: () => {
+                localStorage.removeItem('pipelineStatus');
+                renderPipeline();
+            }
+        };
+    </script>
+</body>
+</html>

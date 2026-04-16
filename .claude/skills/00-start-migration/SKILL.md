@@ -1,14 +1,14 @@
 ---
 name: 00-start-migration
 description: >
-  Entry point for migrating an Einstein Bot to a Salesforce NGA (Next Generation AI) Agent
-  using AgentScript format. Verifies prerequisites, explains the 6-step migration pipeline,
-  and launches the first step. Start here when the user wants to migrate an Einstein Bot
-  to NGA Agent.
+   Entry point for migrating an Einstein Bot to a Salesforce NGA (Next Generation AI) Agent
+   using AgentScript format. Verifies prerequisites, explains the 6-step migration pipeline,
+   and launches the first step. Start here when the user wants to migrate an Einstein Bot
+   to NGA Agent.
 metadata:
-  author: salesforce-migration
-  version: "2.0-bot"
-  pipeline-order: "0"
+   author: salesforce-migration
+   version: "2.0-bot"
+   pipeline-order: "0"
 compatibility: Requires Node.js, Python 3.8+, Salesforce CLI (sf), uv package manager (which manages Python automatically), and network access to the Salesforce Nexus PyPI proxy.
 ---
 
@@ -30,7 +30,18 @@ Activate this skill when:
 
 ## Instructions
 
-### Step 1: Explain the Pipeline
+### Step 1: Launch Interactive Dashboard
+
+Before explaining the pipeline, launch the visual dashboard:
+
+```bash
+python3 dashboard/server.py &
+open http://localhost:8080
+```
+
+This opens an interactive web dashboard showing all 6 pipeline steps with real-time progress tracking.
+
+### Step 2: Explain the Pipeline
 
 Present the migration overview to the user:
 
@@ -83,7 +94,7 @@ You will be asked for confirmation at three checkpoints:
   - Step 6: The deployment target org (shown with full details)
 ```
 
-### Step 2: Verify Prerequisites
+### Step 3: Verify Prerequisites
 
 **IMPORTANT: You MUST wait for up to 5 minutes for ALL `sf` CLI commands to complete.** Do
 not cancel, retry, or re-run the same `sf` command without first giving it adequate time to
@@ -139,7 +150,7 @@ Verify at least one org is listed. If none:
 #### 2e: Compiler Dependencies (Network Access)
 
 ```bash
-uv run --refresh --native-tls 00-start-migration/scripts/compile_agentscript.py 2>&1 || true
+python3 skills/00-start-migration/scripts/compile_agentscript_nexus_ts.py 2>&1 || true
 ```
 
 If the output shows a network error reaching the Nexus PyPI proxy:
@@ -149,7 +160,7 @@ If the output shows a network error reaching the Nexus PyPI proxy:
 If the output shows `Usage:` or a missing-argument error, the compiler is accessible — this
 is a successful check.
 
-### Step 3: Report Readiness
+### Step 4: Report Readiness
 
 After all checks, display a summary:
 
@@ -172,16 +183,16 @@ If **any of checks 2a, 2b, or 2c fail** (Node.js, sf CLI, or uv missing), sugges
 run the appropriate one-line installer command:
 
 > "Some prerequisites are missing: [list missing tools].
-> You can install them automatically with one command:
+> You can install them automatically using the provided installation scripts:
 >
 > **macOS/Linux:**
 > ```
-> curl -fsSL https://raw.githubusercontent.com/forward-deployed-engineering-emu/agentscript-migration/main/scripts/install-prerequisites.sh | bash
+> bash scripts/install-prerequisites.sh
 > ```
 >
 > **Windows (PowerShell):**
 > ```
-> irm https://raw.githubusercontent.com/forward-deployed-engineering-emu/agentscript-migration/main/scripts/install-prerequisites.ps1 | iex
+> powershell -ExecutionPolicy Bypass -File scripts/install-prerequisites.ps1
 > ```
 >
 > After installing, please restart your terminal and re-run this skill."
