@@ -1,0 +1,64 @@
+{
+  "unevaluatedProperties" : false,
+  "properties" : {
+    "ActualDeliveryDate" : {
+      "title" : "ActualDeliveryDate",
+      "description" : "stores the actual delivery date from the shipment based on the order number",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isDisplayable" : true,
+      "copilotAction:isUsedByPlanner" : true,
+      "copilotAction:useHydratedPrompt" : false
+    },
+    "ExpectedDeliveryDate" : {
+      "title" : "ExpectedDeliveryDate",
+      "description" : "stores the expected delivery date from the shipment based on the order number",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isDisplayable" : true,
+      "copilotAction:isUsedByPlanner" : true,
+      "copilotAction:useHydratedPrompt" : false
+    },
+    "OrderProductSummaryItemList" : {
+      "title" : "OrderProductSummaryItemList",
+      "description" : "list the items included in the order product summary",
+      "maxItems" : 2000,
+      "items" : {
+        "lightning:type" : "lightning__textType"
+      },
+      "lightning:type" : "lightning__listType",
+      "lightning:isPII" : false,
+      "copilotAction:isDisplayable" : true,
+      "copilotAction:isUsedByPlanner" : true,
+      "copilotAction:useHydratedPrompt" : false
+    },
+    "OrderStatus" : {
+      "title" : "OrderStatus",
+      "description" : "The Order Status for output to Agentforce",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isDisplayable" : true,
+      "copilotAction:isUsedByPlanner" : true,
+      "copilotAction:useHydratedPrompt" : false
+    },
+    "OrderTrackingNumber" : {
+      "title" : "OrderTrackingNumber",
+      "description" : "Stored the tracking number of the order",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isDisplayable" : true,
+      "copilotAction:isUsedByPlanner" : true,
+      "copilotAction:useHydratedPrompt" : false
+    },
+    "OrderTrackingUrl" : {
+      "title" : "OrderTrackingUrl",
+      "description" : "Stores the order tracking url",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isDisplayable" : true,
+      "copilotAction:isUsedByPlanner" : true,
+      "copilotAction:useHydratedPrompt" : false
+    }
+  },
+  "lightning:type" : "lightning__objectType"
+}

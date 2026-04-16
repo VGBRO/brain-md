@@ -1,0 +1,42 @@
+{
+  "required" : [ "currentGuide", "currentStep", "userUtterance" ],
+  "unevaluatedProperties" : false,
+  "properties" : {
+    "currentGuide" : {
+      "title" : "currentGuide",
+      "description" : "Troubleshooting guide to follow",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : false
+    },
+    "currentStep" : {
+      "title" : "currentStep",
+      "description" : "Current step user following",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : false
+    },
+    "lastInstructions" : {
+      "title" : "lastInstructions",
+      "description" : "Instructions provided for the step executed by user previously",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : false
+    },
+    "previousSteps" : {
+      "title" : "previousSteps",
+      "description" : "trail of steps tried by the user",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : false
+    },
+    "userUtterance" : {
+      "title" : "userUtterance",
+      "description" : "user question",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : true
+    }
+  },
+  "lightning:type" : "lightning__objectType"
+}

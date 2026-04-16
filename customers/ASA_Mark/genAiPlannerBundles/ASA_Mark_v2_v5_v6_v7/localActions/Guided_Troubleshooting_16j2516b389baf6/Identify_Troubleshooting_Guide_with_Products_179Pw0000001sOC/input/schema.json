@@ -1,0 +1,21 @@
+{
+  "required" : [ "Utterance" ],
+  "unevaluatedProperties" : false,
+  "properties" : {
+    "Products" : {
+      "title" : "Products",
+      "description" : "Products identified and mentioned by the customer",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : false
+    },
+    "Utterance" : {
+      "title" : "Utterance",
+      "description" : "User Utterance",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : true
+    }
+  },
+  "lightning:type" : "lightning__objectType"
+}

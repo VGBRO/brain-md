@@ -1,0 +1,21 @@
+{
+  "required" : [ "customerCode" ],
+  "unevaluatedProperties" : false,
+  "properties" : {
+    "authenticationKey" : {
+      "title" : "authenticationKey",
+      "description" : "Stores the authentication key provided by the system",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : false
+    },
+    "customerCode" : {
+      "title" : "customerCode",
+      "description" : "Stores the user-provided verification code that's passed into the flow.",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : true
+    }
+  },
+  "lightning:type" : "lightning__objectType"
+}

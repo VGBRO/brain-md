@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<BotVersion xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>v4</fullName>
+    <articleAnswersGPTEnabled>false</articleAnswersGPTEnabled>
+    <botDialogs>
+        <botSteps>
+            <botMessages>
+                <message>Hi there, I&apos;m Mark, your AI Digital Assistant for reMarkable. What can I help you with today?
+Please note: at this time I can&apos;t process attachments/pictures.</message>
+                <messageIdentifier>ad9c3370-509a-4c9d-a0f1-1d38136ad601</messageIdentifier>
+            </botMessages>
+            <stepIdentifier>7c166664-b991-40a4-968c-d69f8622bb99</stepIdentifier>
+            <type>Message</type>
+        </botSteps>
+        <botSteps>
+            <stepIdentifier>05ad502b-8bd4-4570-a42d-cf037feb21bc</stepIdentifier>
+            <type>Wait</type>
+        </botSteps>
+        <developerName>Welcome</developerName>
+        <isPlaceholderDialog>false</isPlaceholderDialog>
+        <label>Hi! I&apos;m your helpful bot.</label>
+        <showInFooterMenu>false</showInFooterMenu>
+    </botDialogs>
+    <botDialogs>
+        <botSteps>
+            <botMessages>
+                <message>I&apos;m afraid I&apos;m not equipped with the tools to help you with this concern, do you want me to transfer you to a human?</message>
+                <messageIdentifier>2c8de1e4-659d-4760-8334-ed5cb2c4b19d</messageIdentifier>
+            </botMessages>
+            <stepIdentifier>1e8f0366-42d6-4ff7-989b-593e700b2e49</stepIdentifier>
+            <type>Message</type>
+        </botSteps>
+        <botSteps>
+            <stepIdentifier>4208a2a4-a41e-4a71-8a10-ea636748ecbd</stepIdentifier>
+            <type>Wait</type>
+        </botSteps>
+        <developerName>Error_Handling</developerName>
+        <isPlaceholderDialog>false</isPlaceholderDialog>
+        <label>Unfortunately, a system error occurred. Let us start again.</label>
+        <showInFooterMenu>false</showInFooterMenu>
+    </botDialogs>
+    <botDialogs>
+        <botSteps>
+            <botMessages>
+                <message>I&apos;ll now transfer you to a human agent. You&apos;ll be connected as soon as one is available. Thank you for your patience, and have a great day!</message>
+                <messageIdentifier>1b4dce20-6726-49a9-ac84-e6a6cf872575</messageIdentifier>
+            </botMessages>
+            <stepIdentifier>717f60f4-d87b-4446-9631-07fd42463daa</stepIdentifier>
+            <type>Message</type>
+        </botSteps>
+        <botSteps>
+            <conversationSystemMessage>
+                <type>Transfer</type>
+            </conversationSystemMessage>
+            <stepIdentifier>2aee3fab-e64e-4a8c-afeb-faed27a78321</stepIdentifier>
+            <type>SystemMessage</type>
+        </botSteps>
+        <developerName>Transfer_To_Agent</developerName>
+        <isPlaceholderDialog>false</isPlaceholderDialog>
+        <label>Transfer To Agent</label>
+        <showInFooterMenu>false</showInFooterMenu>
+    </botDialogs>
+    <citationsEnabled>false</citationsEnabled>
+    <company>reMarkable, founded in 2013 in Oslo, Norway, creates digital paper tablets with a paper-like feel. The company focuses on distraction-free writing, reading, and sketching to boost productivity and mindfulness.</company>
+    <conversationDefinitionPlanners>
+        <genAiPlannerName>ASA_Mark_v2_v4</genAiPlannerName>
+    </conversationDefinitionPlanners>
+    <conversationVariables>
+        <dataType>Text</dataType>
+        <description>The classified intent of the connect subscription issue based on the conversation context.</description>
+        <developerName>classified_intent</developerName>
+        <includeInPrompt>true</includeInPrompt>
+        <label>classified_intent</label>
+        <visibility>External</visibility>
+    </conversationVariables>
+    <conversationVariables>
+        <dataType>Boolean</dataType>
+        <description>True if the user has given consent to be contacted back</description>
+        <developerName>ContactConsentAsked</developerName>
+        <includeInPrompt>true</includeInPrompt>
+        <label>ContactConsentAsked</label>
+        <visibility>External</visibility>
+    </conversationVariables>
+    <conversationVariables>
+        <dataType>Boolean</dataType>
+        <developerName>isInBusinessHours</developerName>
+        <includeInPrompt>true</includeInPrompt>
+        <label>isInBusinessHours</label>
+        <visibility>Internal</visibility>
+    </conversationVariables>
+    <conversationVariables>
+        <dataType>Boolean</dataType>
+        <description>If the user is verified</description>
+        <developerName>isVerified</developerName>
+        <includeInPrompt>true</includeInPrompt>
+        <label>Verified</label>
+        <visibility>Internal</visibility>
+    </conversationVariables>
+    <conversationVariables>
+        <dataType>Text</dataType>
+        <description>Stores the device type that the customer is having issues with.</description>
+        <developerName>product</developerName>
+        <includeInPrompt>true</includeInPrompt>
+        <label>product</label>
+        <visibility>Internal</visibility>
+    </conversationVariables>
+    <conversationVariables>
+        <dataType>Text</dataType>
+        <description>essence of question</description>
+        <developerName>question</developerName>
+        <includeInPrompt>true</includeInPrompt>
+        <label>question</label>
+        <visibility>Internal</visibility>
+    </conversationVariables>
+    <conversationVariables>
+        <dataType>Text</dataType>
+        <description>This variable may also be referred to as VerifiedCustomerId</description>
+        <developerName>VerifiedCustomerId</developerName>
+        <includeInPrompt>true</includeInPrompt>
+        <label>Verified Customer ID</label>
+        <visibility>External</visibility>
+    </conversationVariables>
+    <entryDialog>Welcome</entryDialog>
+    <intentDisambiguationEnabled>false</intentDisambiguationEnabled>
+    <intentV3Enabled>false</intentV3Enabled>
+    <knowledgeActionEnabled>false</knowledgeActionEnabled>
+    <knowledgeFallbackEnabled>false</knowledgeFallbackEnabled>
+    <role>You are Mark, the digital assistant for reMarkable. You help users with product questions, account support, troubleshooting, and tips for effective note-taking and organization with reMarkable tablets and markers.</role>
+    <smallTalkEnabled>false</smallTalkEnabled>
+    <staticPromptsEnabled>false</staticPromptsEnabled>
+    <stopRecPrompts>false</stopRecPrompts>
+    <stopWelcomePrompts>false</stopWelcomePrompts>
+    <surfacesEnabled>false</surfacesEnabled>
+    <toneType>Casual</toneType>
+</BotVersion>

@@ -1,0 +1,22 @@
+{
+  "required" : [ "conversation_summary", "recordId" ],
+  "unevaluatedProperties" : false,
+  "properties" : {
+    "conversation_summary" : {
+      "title" : "conversation_summary",
+      "description" : "The summarized conversation with the AI agent",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : true
+    },
+    "recordId" : {
+      "title" : "recordId",
+      "description" : "The Messaging Session id",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : false
+    }
+  },
+  "lightning:type" : "lightning__objectType",
+  "lightning:textIndexed" : true
+}

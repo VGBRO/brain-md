@@ -1,0 +1,21 @@
+{
+  "required" : [ "Context", "recordId" ],
+  "unevaluatedProperties" : false,
+  "properties" : {
+    "Context" : {
+      "title" : "Context",
+      "description" : "Contextual information about image provided from the conversation",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : false
+    },
+    "recordId" : {
+      "title" : "recordId",
+      "description" : "Uses the current Messaging Session recordId variable as input.",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : false
+    }
+  },
+  "lightning:type" : "lightning__objectType"
+}
