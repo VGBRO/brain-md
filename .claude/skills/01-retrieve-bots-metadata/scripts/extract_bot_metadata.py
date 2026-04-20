@@ -354,6 +354,16 @@ def load_intent_set_json(intent_set_name: str, bot_dir: Path = None) -> Optional
     """Load Intent Set JSON file. Returns None if not found."""
     # Try custom folder first if bot_dir provided
     if bot_dir:
+        # Check jsons folder first
+        ml_domain_file = bot_dir / "jsons" / f"{intent_set_name}.json"
+        if ml_domain_file.exists():
+            try:
+                with open(ml_domain_file) as f:
+                    return json.load(f)
+            except Exception:
+                pass
+
+        # Then check mlDomains folder
         ml_domain_file = bot_dir / "mlDomains" / f"{intent_set_name}.json"
         if ml_domain_file.exists():
             try:
@@ -606,7 +616,7 @@ def main():
         missing_sets = []
 
         for intent_set_name, intent_names in intent_set_map.items():
-            intent_set_data = load_intent_set_json(intent_set_name)
+            intent_set_data = load_intent_set_json(intent_set_name, base_dir)
 
             if intent_set_data:
                 # Extract ONLY the referenced intents

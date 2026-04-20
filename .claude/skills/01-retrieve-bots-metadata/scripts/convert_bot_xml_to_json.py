@@ -41,7 +41,13 @@ def convert_bot_xml(xml_file: Path) -> dict:
     # Convert to dict
     bot_data = xml_to_dict(root)
 
-    return bot_data
+    # Wrap in appropriate key based on file type
+    if xml_file.name.endswith('.bot-meta.xml'):
+        return {"Bot": bot_data}
+    elif xml_file.name.endswith('.botVersion-meta.xml'):
+        return {"BotVersion": bot_data}
+    else:
+        return bot_data
 
 
 def main():
