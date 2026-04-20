@@ -122,8 +122,8 @@ From the preprocessed bot metadata, parse each action structure.
 - Show the details of topics in a tabular format. Columns:
     - Topic name
     - Topic description
-    - Dialogs
-    - Actions/Invocations mapped
+    - Dialog names
+    - Actions/Invocations names mapped
 
 # 6. Wait for user response and feedback, and incorporate any changes suggested.
 

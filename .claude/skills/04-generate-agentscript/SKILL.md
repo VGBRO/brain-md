@@ -314,13 +314,13 @@ Follow the below steps for each topic in the selected topics:
                       transition_to_target: @utils.transition to @topic.target_topic
                 ```
             - add an instruction in the topic asking to invoke this action. For example, "Invoke {!@actions.transition_to_target} to move to the target topic."
-        - If the bot step is of type `SystemMessage` with internal message type `Transfer` (which is intended to transfer the conversation to a human), then include a transition action with name `escalate` in the `reasoning.actions` list and include an instruction capturing when to invoke this action. For example,
+        - If the bot step is of type `SystemMessage` with internal message type `Transfer` (which is intended to transfer the conversation to a human), then include a transition action with name `escalate_to_human` in the `reasoning.actions` list and include an instruction capturing when to invoke this action. For example,
             ```
             reasoning:
                actions:
-                  escalate: @utils.escalate
+                  escalate_to_human: @utils.escalate
                instructions: ->
-                  | Invoke {!@actions.escalate} to escalate the conversation to a human agent.
+                  | Invoke {!@actions.escalate_to_human} to escalate the conversation to a human agent.
             ```
 
 ### 4.2 Create topics routing to pre-selected topics.
@@ -338,7 +338,7 @@ The einstein bot may also contain some logic/functionality outside the dialogs a
     - Generate a meaningful outbound_route_name based on what the bot does, and what transferring to an agent means, given the context.
     - Sample:
         ```
-        connection escalate:
+        connection escalate_to_human:
            escalation_message: "Let me connect you with one of our agents who can better assist you."
            outbound_route_type: "OmniChannelFlow"
            outbound_route_name: "Emirates_Customer_Service_Queue"
@@ -353,13 +353,13 @@ The einstein bot may also contain some logic/functionality outside the dialogs a
             - type=`intent_redirect`: this transition type means a possible transition to any of the intent enabled dialogs (depending on the user input). Stop here.
     - **Important Instruction** - Stop DFS when a dialog which was already a part of the pre-selected topics is seen. This means that the control should move to the already generated topic via a transition in agentscript.
     - **Important Instruction** - If `intent_redirect` type transition is seen in the conversational path flow, add a transition to the topic `topic_router`, and generate appropriate description.
-    - If a bot step of type `SystemMessage` with internal message type `Transfer` (which is intended to transfer the conversation to a human) is seen, then include a transition action with name `escalate` in the `reasoning.actions` list and include an instruction capturing when to invoke this action. For example,
+    - If a bot step of type `SystemMessage` with internal message type `Transfer` (which is intended to transfer the conversation to a human) is seen, then include a transition action with name `escalate_to_human` in the `reasoning.actions` list and include an instruction capturing when to invoke this action. For example,
             ```
             reasoning:
                actions:
-                  escalate: @utils.escalate
+                  escalate_to_human: @utils.escalate
                instructions: ->
-                  | Invoke {!@actions.escalate} to escalate the conversation to a human agent.
+                  | Invoke {!@actions.escalate_to_human} to escalate the conversation to a human agent.
             ```
     - Summarize each path (the steps in the path before another dialog which is already a part of the pre-selected topics is seen in the path). After covering all the paths, try to group these paths based on similarities. for example,
         - below are similar paths:
