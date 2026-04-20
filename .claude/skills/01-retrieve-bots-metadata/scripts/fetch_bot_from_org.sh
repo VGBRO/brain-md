@@ -65,8 +65,8 @@ echo ""
 echo "================================================================================"
 echo ""
 
-# Step 0: Ensure SF project exists
-echo "Step 0: Checking Salesforce DX project setup..."
+# Step 1.0: Ensure SF project exists
+echo "Step 1.0: Checking Salesforce DX project setup..."
 echo ""
 
 if [ ! -f "$PROJECT_ROOT/sfdx-project.json" ]; then
@@ -126,9 +126,9 @@ echo ""
 echo "================================================================================"
 echo ""
 
-# Step 0.5: Interactive bot selection (if enabled)
+# Step 1.1: Interactive bot selection (if enabled)
 if [ "$INTERACTIVE" = "true" ]; then
-    echo "Step 0.5: Interactive bot selection..."
+    echo "Step 1.1: Interactive bot selection..."
     echo ""
 
     # Run interactive bot selector - redirect only the SELECTED_BOT line to capture it
@@ -165,8 +165,8 @@ if [ "$INTERACTIVE" = "true" ]; then
     echo ""
 fi
 
-# Step 0.6: Get org ID and bot version to create folder name
-echo "Step 0.6: Getting org details and bot version..."
+# Step 1.2: Get org ID and bot version to create folder name
+echo "Step 1.2: Getting org details and bot version..."
 echo ""
 
 # Get org ID
@@ -221,8 +221,8 @@ echo ""
 echo "================================================================================"
 echo ""
 
-# Step 1: Retrieve bot metadata
-echo "Step 1: Retrieving bot metadata from Salesforce org..."
+# Step 1.3: Retrieve bot metadata
+echo "Step 1.3: Retrieving bot metadata from Salesforce org..."
 echo ""
 
 # Change to project root for SF CLI commands
@@ -248,12 +248,10 @@ if [ $? -ne 0 ]; then
 fi
 
 echo ""
-echo "================================================================================"
-echo ""
 
-# Step 2: Auto-discover ML domains from bot metadata (if not provided)
+# Step 1.4: Auto-discover ML domains from bot metadata (if not provided)
 if [ -z "$ML_DOMAIN" ]; then
-    echo "Step 2: Auto-discovering ML domains from bot metadata..."
+    echo "Step 1.4: Auto-discovering ML domains from bot metadata..."
     echo ""
 
     # Parse bot metadata to find relatedMlIntents (from default location)
@@ -280,17 +278,15 @@ if [ -z "$ML_DOMAIN" ]; then
         ML_DOMAINS_TO_FETCH=""
     fi
 else
-    echo "Step 2: Using provided ML domain: $ML_DOMAIN"
+    echo "Step 1.4: Using provided ML domain: $ML_DOMAIN"
     ML_DOMAINS_TO_FETCH="$ML_DOMAIN"
 fi
 
 echo ""
-echo "================================================================================"
-echo ""
 
-# Step 3: Retrieve ML training data
+# Step 1.5: Retrieve ML training data
 if [ -n "$ML_DOMAINS_TO_FETCH" ]; then
-    echo "Step 3: Retrieving ML training data from Salesforce org..."
+    echo "Step 1.5: Retrieving ML training data from Salesforce org..."
     echo ""
 
     # Ensure we're in project root for SF CLI commands
@@ -327,17 +323,14 @@ if [ -n "$ML_DOMAINS_TO_FETCH" ]; then
         echo "  Continuing with bot's internal mlDomain only..."
     fi
 else
-    echo "Step 3: Skipping ML domain retrieval (none specified or discovered)"
-    echo ""
+    echo "Step 1.5: Skipping ML domain retrieval (none specified or discovered)"
     ML_DOMAIN_RETRIEVED=false
 fi
 
 echo ""
-echo "================================================================================"
-echo ""
 
-# Step 3.5: Copy all retrieved files to custom organized folder
-echo "Step 3.5: Copying files to custom/${FOLDER_NAME}..."
+# Step 1.6: Copy all retrieved files to custom organized folder
+echo "Step 1.6: Copying files to custom/${FOLDER_NAME}..."
 echo ""
 
 # Create custom folder structure with subfolders
@@ -361,11 +354,9 @@ if [ -d "$DEFAULT_ML_DIR" ] && [ "$(ls -A $DEFAULT_ML_DIR 2>/dev/null)" ]; then
 fi
 
 echo ""
-echo "================================================================================"
-echo ""
 
-# Step 4: Convert bot XML to JSON
-echo "Step 4: Converting bot XML metadata to JSON..."
+# Step 1.7: Convert bot XML to JSON
+echo "Step 1.7: Converting bot XML metadata to JSON..."
 echo ""
 python3 "$SCRIPT_DIR/convert_bot_xml_to_json.py" "${BOT_NAME}" "${FOLDER_NAME}"
 
@@ -376,11 +367,9 @@ if [ $? -ne 0 ]; then
 fi
 
 echo ""
-echo "================================================================================"
-echo ""
 
-# Step 5: Extract bot data
-echo "Step 5: Extracting bot metadata to JSON..."
+# Step 1.8: Extract bot data
+echo "Step 1.8: Extracting bot metadata to JSON..."
 echo ""
 python3 "$SCRIPT_DIR/extract_bot_metadata.py" "${BOT_NAME}" --bot-dir "${BOT_DIR}"
 
@@ -391,12 +380,10 @@ if [ $? -ne 0 ]; then
 fi
 
 echo ""
-echo "================================================================================"
-echo ""
 
-# Step 6: Convert ML domain XML to JSON (if retrieved)
+# Step 1.9: Convert ML domain XML to JSON (if retrieved)
 if [ "$ML_DOMAIN_RETRIEVED" = true ]; then
-    echo "Step 6: Converting ML domain XML to JSON..."
+    echo "Step 1.9: Converting ML domain XML to JSON..."
     echo ""
 
     ML_DOMAIN_CONVERTED=false
@@ -427,18 +414,15 @@ if [ "$ML_DOMAIN_RETRIEVED" = true ]; then
         echo "  ⚠️  No ML domain XML files found or all conversions failed"
     fi
 else
-    echo "Step 6: Skipped (ML domain not retrieved)"
-    echo ""
+    echo "Step 1.9: Skipped (ML domain not retrieved)"
     ML_DOMAIN_CONVERTED=false
 fi
 
 echo ""
-echo "================================================================================"
-echo ""
 
-# Step 7: Merge ML data into bot JSON (if converted)
+# Step 1.10: Merge ML data into bot JSON (if converted)
 if [ "$ML_DOMAIN_CONVERTED" = true ]; then
-    echo "Step 7: Merging ML training data into bot JSON..."
+    echo "Step 1.10: Merging ML training data into bot JSON..."
     echo ""
     python3 "$SCRIPT_DIR/merge_ml_data.py" "${BOT_NAME}" "${FOLDER_NAME}"
 
