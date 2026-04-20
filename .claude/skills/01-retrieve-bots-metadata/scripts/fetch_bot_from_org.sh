@@ -297,16 +297,25 @@ if [ -n "$ML_DOMAINS_TO_FETCH" ]; then
     for DOMAIN in $ML_DOMAINS_TO_FETCH; do
         echo "  Fetching ML domain: $DOMAIN"
 
-        # Suppress ENOENT scandir warnings (known SF CLI issue with empty directories)
-        # Also suppress the full ENOENT error line that SF CLI outputs
+        # Capture stderr to temp file to avoid flooding console with progress spinner
+        TEMP_ERR=$(mktemp)
+
         if [ -z "$ORG" ]; then
             sf project retrieve start \
-                --metadata "MlDomain:${DOMAIN}" 2>&1 | grep -v -E "(ENOENT.*scandir|Error \(ENOENT\):)"
+                --metadata "MlDomain:${DOMAIN}" 2>"$TEMP_ERR"
+            EXIT_CODE=$?
         else
             sf project retrieve start \
                 --metadata "MlDomain:${DOMAIN}" \
-                --target-org "${ORG}" 2>&1 | grep -v -E "(ENOENT.*scandir|Error \(ENOENT\):)"
+                --target-org "${ORG}" 2>"$TEMP_ERR"
+            EXIT_CODE=$?
         fi
+
+        # Only show errors if command failed (ignore ENOENT scandir warnings)
+        if [ $EXIT_CODE -ne 0 ]; then
+            grep -v -E "(ENOENT.*scandir|Error \(ENOENT\):)" "$TEMP_ERR" || true
+        fi
+        rm -f "$TEMP_ERR"
 
         # Check if files were actually retrieved
         if [ -f "$PROJECT_ROOT/data/sf-cli/main/default/mlDomains/${DOMAIN}.mlDomain-meta.xml" ]; then
