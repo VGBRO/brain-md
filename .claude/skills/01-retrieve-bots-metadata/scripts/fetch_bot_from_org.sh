@@ -377,22 +377,9 @@ fi
 
 echo ""
 
-# Step 1.8: Extract bot data
-echo "Step 1.8: Extracting bot metadata to JSON..."
-echo ""
-python3 "$SCRIPT_DIR/extract_bot_metadata.py" "${BOT_NAME}" --bot-dir "${BOT_DIR}"
-
-if [ $? -ne 0 ]; then
-    echo ""
-    echo "Error: Failed to extract bot metadata"
-    exit 1
-fi
-
-echo ""
-
-# Step 1.9: Convert ML domain XML to JSON (if retrieved)
+# Step 1.8: Convert ML domain XML to JSON FIRST (before extraction needs it)
 if [ "$ML_DOMAIN_RETRIEVED" = true ]; then
-    echo "Step 1.9: Converting ML domain XML to JSON..."
+    echo "Step 1.8: Converting ML domain XML to JSON..."
     echo ""
 
     ML_DOMAIN_CONVERTED=false
@@ -423,8 +410,21 @@ if [ "$ML_DOMAIN_RETRIEVED" = true ]; then
         echo "  ⚠️  No ML domain XML files found or all conversions failed"
     fi
 else
-    echo "Step 1.9: Skipped (ML domain not retrieved)"
+    echo "Step 1.8: Skipped (ML domain not retrieved)"
     ML_DOMAIN_CONVERTED=false
+fi
+
+echo ""
+
+# Step 1.9: Extract bot data (now IntentSets.json is available if needed)
+echo "Step 1.9: Extracting bot metadata to JSON..."
+echo ""
+python3 "$SCRIPT_DIR/extract_bot_metadata.py" "${BOT_NAME}" --bot-dir "${BOT_DIR}"
+
+if [ $? -ne 0 ]; then
+    echo ""
+    echo "Error: Failed to extract bot metadata"
+    exit 1
 fi
 
 echo ""
