@@ -3,7 +3,7 @@ from pathlib import Path
 
 
 def get_data_path():
-    return str(Path(__file__).resolve().parent.parent.parent.parent) + '/data'
+    return str(Path(__file__).resolve().parent.parent.parent.parent.parent) + '/data'
 
 
 def run():

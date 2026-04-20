@@ -1,5 +1,5 @@
 ---
-name: 00-start-migration
+name: verify-bot-to-agent-migration-prerequisites
 description: >
    Entry point for migrating an Einstein Bot to a Salesforce NGA (Next Generation AI) Agent
    using AgentScript format. Verifies prerequisites, explains the 6-step migration pipeline,
@@ -89,7 +89,7 @@ Agent using AgentScript format in 6 steps:
           confirmation before any deployment).
 
 You will be asked for confirmation at three checkpoints:
-  - Step 1: Which org and which legacy bundle to migrate
+  - Step 1: Which org and which bot to migrate
   - Step 2: The architecture design and new agent name
   - Step 6: The deployment target org (shown with full details)
 ```

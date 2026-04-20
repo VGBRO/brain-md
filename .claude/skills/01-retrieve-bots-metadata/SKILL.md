@@ -1,5 +1,5 @@
 ---
-name: preprocess-einstein-bot
+name: retrieve-einstein-bot-metadata
 description: Pre-processes an einstein bot's structure to filter out noise, and retain relevant data necessary to convert the bot into an agentscript backing an AI agent (agentforce agent).
 allowed-tools: Write, Edit, Read, Glob
 ---
