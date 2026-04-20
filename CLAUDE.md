@@ -227,6 +227,12 @@ When user mentions bot migration, use:
 - **chatbots-domain-expert** — Salesforce Chatbots platform expert (Einstein Bots + Agentforce)
 - For architecture questions about Salesforce Chatbots platform, always prefer this skill
 
+## Data Directory
+data/ - Use this relative location as the data directory. This will store all required intermediate data files.
+
+## Resources Directory
+resources/ - Use this relative location as the resources directory to lookup any resources referenced in the skills/agents.
+
 ## Documentation
 
 - **README.md** — Quick start and pipeline overview

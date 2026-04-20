@@ -1,5 +1,5 @@
 ---
-name: 06-deploy-agentscript
+name: deploy-agentscript
 description: >
   Deploys the compiled AgentScript (aiAuthoringBundle) to a Salesforce org with mandatory
   human-in-the-loop confirmation and a self-healing publish loop. Shows org details before

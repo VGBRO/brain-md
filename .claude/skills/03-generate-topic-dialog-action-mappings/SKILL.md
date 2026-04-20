@@ -1,8 +1,14 @@
 ---
-name: generate-agentscript-topics
+name: generate-agentscript-topic-mappings
 description: Generates topics for the agentscript backing an AI agent (agentforce agent). These topics would be generated from the preprocessed einstein bot data.
 allowed-tools: Write, Edit, Read, Glob
 ---
+
+# 0. Prerequisite
+
+- If `topic_classification.json` file already exists in the data directory, ask the user explicitly if they want to skip this step. 
+    - If yes, then show a message to the user like 'Proceeding to the next step..'. And give back the control.
+    - If not, proceed to the next step.
 
 # 1. Einstein bot concepts:
 
@@ -109,3 +115,49 @@ From the preprocessed bot metadata, parse each action structure.
     }
 }
 ```
+
+# 5. Show Topic and Dialog/Action mapping summary.
+
+- Provide information about the data. Inform the user that the following topics are generated based on the actions/invocations in the source bot, and the corresponding information is mapped into different topics based on their relevance, proximity (based on different criteria) and other similarities.
+- Show the details of topics in a tabular format. Columns:
+    - Topic name
+    - Topic description
+    - Dialog names
+    - Actions/Invocations names mapped
+
+# 6. Wait for user response and feedback, and incorporate any changes suggested.
+
+- Ask if they would like to add/edit/delete the topics and their corresponding dialogs or actions OR proceed to the next step.
+    - Provide a few suggestions for making changes. Like -
+        - Delete the topic `topic_name` and all the logic in it.
+        - Why is the topic `topic_name` included in the generated list of topics?
+        - Remove the dialog `dialog_name` from the topic `topic_name`.
+        - Move the dialog `dialog_name` from the topic `topic_name` to topic `topic_name`.
+- Restrict the user operations in this phase to only CRUD operations on the topics. Below are the operations:
+    - User can add a new topic.
+        - In this scenario, ask for the associated actions and dialogs. Provide a list of available actions and dialogs.
+            - If the list of dialogs is too large (more than 30 dialogs), then inform the user about this and ask them to provide the dialog names directly. And then validate that the dialog actually exists in the bot. If not, nudge the user to provide the correct dialog name.
+        - Check if the provided dialogs or actions are already part of another topic (that has been generated). If so, then ask the user for confirmation to add it to the new topic.
+        - While adding a new topic to the generated list of topics, verify the new topic configuration with the validations mentioned below (in step #7).
+    - User can delete a topic.
+        - In this scenario, ask for a confirmation before deleting the topic.
+            - Provide info that the associated actions and dialogs would also be removed. And the corresponding logic might not be captured in the generated agentforce agent (agentscript).
+            - Provide an alternate option to move the dialogs/actions to other topics first (if the logic is to be retained), and then delete the topic.
+            - Provide another alternate option to merge multiple topics together.
+            - If the user still wants to delete the topic, then move the topic (along with its associated actions and dialogs) to `deleted_topics` section in the `topic_classification.json` file.
+    - User can edit a topic.
+        - In this scenario, inform the user that they can move actions/invocations between topics. And the associated dialogs would be automatically moved to maintain consistency.
+            - Associated dialog to an action can be found based on `action_dialog_mapping` within each topic.
+        - When the user selects a topic, show the associated actions and ask to select which one should be moved. And then select the destination topic, and move the action/invocation along with associated dialog.
+        - After all the changes are done, verify the new topic configuration with the validations mentioned below (in step #7).
+- If the user question/query is out of the scope of these operations, then inform the user that the question is out of scope and reiterate the operations that you can perform and provide sample questions mentioned above.
+- After every modification made by the user, print the updated table (maintain the same format as mentioned in step #5) and ask the user what they want to do.
+- If the user wants to proceed to the next step, proceed to step #7.
+
+# 7. Validate the topic-dialog-action mappings.
+
+- Validate that the final mappings in `topic_classification.json` is valid.
+    - For every action included in a topic, there should be at least one dialog included, which has the action invocation in the original bot.
+    - Every dialog that is included in the topic should have invoked at least one action (that is included in the topic) in the original bot.
+    - Verify that the `action_dialog_mapping` for every topic is valid.
+- Finally, provide a message to the user like 'Proceeding to the next step..'. And stop here. And give back the control.

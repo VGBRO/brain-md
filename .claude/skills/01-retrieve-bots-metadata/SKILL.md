@@ -10,7 +10,6 @@ metadata:
    pipeline-order: "1"
    ux-spec: "Einstein Bots → Agentscript Converter - Step 1"
 compatibility: Requires Salesforce CLI (sf), Python 3.7+, authenticated org access
----
 
 # Step 1 — Retrieve Bot Metadata from SF Org
 

@@ -1,5 +1,5 @@
 ---
-name: 05-compile-agentscript
+name: generate-bot-to-agent-roi
 description: >
   Runs the AgentScript compiler (00-start-migration/scripts/compile_agentscript.py) in a self-healing loop, automatically
   diagnosing and fixing syntax, structural, and semantic errors until compilation succeeds or

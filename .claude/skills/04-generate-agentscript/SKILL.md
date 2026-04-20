@@ -1,8 +1,14 @@
 ---
-name: generate-agentscript-from-topics-and-bot
+name: generate-full-agentscript
 description: Generates the complete agentscript backing an AI agent (agentforce agent) from the pre-generated topics and the full einstein bot metadata/configuration. The topics and the bot data would be provided as input to this skill.
 allowed-tools: Write, Edit, Read, Glob
 ---
+
+# 0. Prerequisite
+
+- If `agentscript.txt` file already exists in the data directory, ask the user explicitly if they want to skip this step.
+    - If yes, then show a message to the user like 'Proceeding to the next step..'. And give back the control.
+    - If not, proceed to the next step.
 
 # 1. Understand the agentscript/agentforce syntax.
 
@@ -148,6 +154,16 @@ Read the file `topic_classification.json` from the data directory. This file has
                 <action_name>: [<dialog_list>]
             }
         }
+    },
+    "deleted_topics": {
+        <topic_name>: {
+            description: "",
+            associated_dialogs: [],
+            associated_actions: [],
+            action_dialog_mapping: {
+                <action_name>: [<dialog_list>]
+            }
+        }
     }
 }
 ```
@@ -157,6 +173,7 @@ Below is the interpretation of this structure:
 2. Each topic has an associated list of actions/tools. These are the ones that the final topic/subagent will have access to.
 3. Each topic has an associated list of bot dialogs. These are the dialogs from whose functionality the topic has been selected.
 4. Each topic also has a mapping of action/tool name to a dialog list. This signifies that this topic/subagent should represent the execution behavior of the action in this set of dialogs (among the dialogs that are associated with the topic). Instructions for this topic should be generated based on the execution logic of these actions.
+5. **Consider the deleted topics the same as the topics for which the agent configuration would be generated.**
 
 # 6. Understand the intent digest.
 
@@ -176,11 +193,17 @@ Intent digest contains a summary/overview of the intent of every dialog for whic
 
 Follow the below steps to generate the final agentscript:
 
-## 1. Retain context variables.
+## 1. Generate system section in agentscript.
 
-Context variables are present in bot metadata at the json path `Bot.contextVariables`. Translate them as-is into `linked` variables in agentscript. Refer agentscript syntax to do this.
+Format:
+```
+system:
+    instructions: "You are a helpful customer service representative"
+```
 
-**IMPORTANT - Make sure to align with the agentscript syntax**
+Generate a generic system instruction that reflects the following:
+- The agent is an AI powered orchestrator
+- The agent will help with a summary of all the topic descriptions combined
 
 ## 2. Generate config section in agentscript.
 
@@ -196,7 +219,13 @@ config:
 - Generate the `agent_name` from a hash of a combination of botId (bot metadata json path `Bot.fullName`), botVersionId (bot metadata json path `Bot.botVersions[0].fullName`). Format of agent_name: `agent_<bot_name>_<hash>`.
 - Leave the `default_agent_user` field as-is, to capture the placeholder value. Add a comment in the agentscript (as per the agentscript syntax) to inform the user that this field should be populated before using the agent.
 
-## 3. Generate knowledge section in agentscript.
+## 3. Retain context variables.
+
+Context variables are present in bot metadata at the json path `Bot.contextVariables`. Translate them as-is into `linked` variables in agentscript. Refer agentscript syntax to do this.
+
+**IMPORTANT - Make sure to align with the agentscript syntax**
+
+## 4. Generate knowledge section in agentscript.
 
 Knowledge base in bot is used to lookup a user text, in case none of the intents configured in the bot match the query. This is more like a backup to serve the user better and acts like a catch-all cushion.
 
@@ -211,7 +240,22 @@ knowledge:
    citations_url: "https://help.example.com"
 ```
 
-## 4. Generate topics.
+## 5. Generate language section.
+
+1. Language block format in agentscript :
+```
+language:
+   default_locale: "en_US"
+   additional_locales: "en_GB,de,fr"
+   all_additional_locales: False
+```
+2. Iterate through `nlpProviders` (bot metadata json path `Bot.botVersions[0].nlpProviders`).
+    - Capture the values in `language` field within each nlpProvider.
+    - Filter this list of languages to include the ones that the agent supports. Agent supports the following locales:
+        - de,fr,en_GB,en_AU,it,es,es_MX,ja,pt_PT,pt_BR,fr_CA,ca,nl_NL,da,no,sv,fi,zh_CN,zh_TW,ko
+    - Exclude en_US from the list of languages.
+
+## 6. Generate topics.
 
 ### 4.1 Create topics from pre-selected topics.
 
@@ -235,8 +279,11 @@ Follow the below steps for each topic in the selected topics:
             - The natural language input provided by the user matching an intent from the `intent_digest`
                 - for example, user enters "I want to return a product", which matches with the intent digest of a dialog "Process_Return". So, the intent of redirection to this dialog was to "return a product/item"
         - Based on this logical flow of conversation:
-            - Prepare an instruction containing 1-2 line summary of what the action does, when to use this action/tool and add it in the `instructions` section within reasoning block.
-                - This instruction should capture the intent behind the logical conversational flow and the conditions for this flow to happen.
+            - Prepare a list of instructions providing a summary of what the action does, when to use this action/tool and the steps involved, and add it in the `instructions` section within reasoning block. These instructions
+                - should capture the intent behind the logical conversational flow.
+                - MUST capture the conditions (if any) for this flow to happen.
+                - if invoking an action, **MUST** have the reference to action in the format `{!@actions.<action_name>}`.
+                - Example of an instruction with a condition and an action reference: "If the user wants to login to their account, invoke {!@actions.user_login}".
             - Generate an action corresponding to this particular action/tool, and add it in the `actions` section within reasoning block.
                 - Map input and output variables to these actions. Two possibilities here:
                     - if the value of the variable is required to be stored in conversational state, add an explicit variable for this (in the `variables` section in agentscript), and pass it as an input to the action. for example,
@@ -245,16 +292,58 @@ Follow the below steps for each topic in the selected topics:
                     - if the value of the variable is not necessary for further conversation processing, then the subagent (via LLM) would automatically handle passing this variable value via user input. for example, 
                         - if the action input only requires something entered by the user for this particular step, then do not create a variable for this in the agentscript (as the agent can handle this on its own).
                         - a clear example of this would be: the booking id to be selected for cancellation (this would not be accessed across the conversation, and is only necessary until the cancellation is complete).
+                - Do NOT assign state variables as inputs to actions, if they are not previously set by any action output explicitly.
                 - Generate conditions for the tool to be available (`available when` in agentscript syntax). Two possibilities here:
                     - if the tool accepts a complex input that cannot be entered directly by the user, then this tool should only be available if the corresponding conversational variable holding this value in agentscript is populated.
                         - for example, a tool named `list_user_bookings`, which accepts logged-in user info, should only be populated if the variable corresponding to the logged-in user is populated.
                     - in all the possible logical conversational flows in the bot, if the tool/action is invoked only after a certain variable is set, then this tool should only be available if the corresponding conversational variable holding this value in agentscript is populated.
+                - Update the state variables (mutable variables) in the agent based on the outputs of the action and the variables written by that particular action (this can be obtained from `preprocessed_bot.json`) by using `set` statement in the action definition.
+                - A sample:
+                    ```
+                    reasoning:
+                       actions:
+                          profile_login: @actions.profile_login
+                             available when @variables.user_profile is None
+                             set @variables.user_profile = @outputs.logged_in_profile
+                    ```
+        - If the bot step contains a transition to another dialog which is part of another topic,
+            - capture this as a tool in the reasoning section of the topic with signature `@utils.transition to @topic.<target_topic_name>`. For example,
+                ```
+                reasoning:
+                   actions:
+                      transition_to_target: @utils.transition to @topic.target_topic
+                ```
+            - add an instruction in the topic asking to invoke this action. For example, "Invoke {!@actions.transition_to_target} to move to the target topic."
+        - If the bot step is of type `SystemMessage` with internal message type `Transfer` (which is intended to transfer the conversation to a human), then include a transition action with name `escalate_to_human` in the `reasoning.actions` list and include an instruction capturing when to invoke this action. For example,
+            ```
+            reasoning:
+               actions:
+                  escalate_to_human: @utils.escalate
+               instructions: ->
+                  | Invoke {!@actions.escalate_to_human} to escalate the conversation to a human agent.
+            ```
 
 ### 4.2 Create topics routing to pre-selected topics.
 
 The einstein bot may also contain some logic/functionality outside the dialogs attached to the pre-defined topics. So, in order to stitch everything together, follow the below steps:
 1. Create a topic (mark it as `start_agent` in agentscript) to indicate the start of conversation. Name of the topic should be `agent_entrypoint`. Generate an appropriate description for this topic.
-2. Parse through the `intent_digest`. If the bot has intent enabled dialogs, create a topic with the name `topic_router`, corresponding to the intent routing. Generate an appropriate description for the topic indicating that this topic routes the conversation according to the user's intention.
+2. Parse through the `intent_digest`. If the bot has intent enabled dialogs,
+    - create a topic with the name `topic_router`, corresponding to the intent routing.
+    - Generate an appropriate description for the topic indicating that this topic routes the conversation according to the user's intention.
+    - Add an outbound transition from `topic_router` to every other topic that has at least one dialog which has intent enabled (add the target topic's description as the description of the transition).
+3. If the bot has at least one bot step of type `SystemMessage` with internal message type `Transfer` (which is intended to transfer the conversation to a human), then
+    - create a connection with the name `escalate_to_human`, corresponding to transferring conversation to a human.
+    - Generate an appropriate escalation_message for the connection indicating that this topic transfers conversation to a human.
+    - outbound_route_type should be `OmniChannelFlow`.
+    - Generate a meaningful outbound_route_name based on what the bot does, and what transferring to an agent means, given the context.
+    - Sample:
+        ```
+        connection escalate_to_human:
+           escalation_message: "Let me connect you with one of our agents who can better assist you."
+           outbound_route_type: "OmniChannelFlow"
+           outbound_route_name: "Emirates_Customer_Service_Queue"
+           adaptive_response_allowed: True
+        ```
 3. Start traversing the bot metadata (in a DFS manner) starting from the `Welcome` dialog in the bot. Follow the below steps:
     - DFS graph structure:
         - Nodes are Bot Dialogs
@@ -264,20 +353,31 @@ The einstein bot may also contain some logic/functionality outside the dialogs a
             - type=`intent_redirect`: this transition type means a possible transition to any of the intent enabled dialogs (depending on the user input). Stop here.
     - **Important Instruction** - Stop DFS when a dialog which was already a part of the pre-selected topics is seen. This means that the control should move to the already generated topic via a transition in agentscript.
     - **Important Instruction** - If `intent_redirect` type transition is seen in the conversational path flow, add a transition to the topic `topic_router`, and generate appropriate description.
+    - If a bot step of type `SystemMessage` with internal message type `Transfer` (which is intended to transfer the conversation to a human) is seen, then include a transition action with name `escalate_to_human` in the `reasoning.actions` list and include an instruction capturing when to invoke this action. For example,
+            ```
+            reasoning:
+               actions:
+                  escalate_to_human: @utils.escalate
+               instructions: ->
+                  | Invoke {!@actions.escalate_to_human} to escalate the conversation to a human agent.
+            ```
     - Summarize each path (the steps in the path before another dialog which is already a part of the pre-selected topics is seen in the path). After covering all the paths, try to group these paths based on similarities. for example,
         - below are similar paths:
             - a path where user selects an option "modify profile", and enters "I want to update my password" in the next step
             - a path where user selects an option "modify profile", and enters "I want to update my phone" in the next step
     - For every meaningful group, create a topic in agentscript, with appropriate transitions (as `reasoning.actions`) and the instructions on when to use these transitions.
+        - For example,
+        ```
+        reasoning:
+           actions:
+              transition_to_target: @utils.transition to @topic.target_topic
+           instructions: ->
+              | Invoke the tool {!@actions.transition_to_target} to transition to the target topic.
+        ```
     - **Important Instruction** - Follow the agentscript syntax according to the grammar files.
+4. **Important Instruction** - All the action references should be in the format `{!@actions.<action_name>}`. Modify the instructions to ensure this, if necessary.
 
-### 4.3 Create before_reasoning and after_reasoning sections.
-
-`before_reasoning` and `after_reasoning` sections in agentscript would be executed by the subagent only once (either before or after reasoning). So, for every topic generated, 
-    - if there are actions/tools to be executed before any decision making (via LLM) is involved, move them to `before_reasoning`
-    - if there are actions/tools to be executed after all decision making (via LLM) is complete, move them to `after_reasoning`
-
-### 4.4 Topic consolidation.
+### 4.3 Topic consolidation.
 
 Among the generated topics, try to merge the topics if (highest criteria first):
 - the topic is not a pre-generated topic.
@@ -286,27 +386,131 @@ Among the generated topics, try to merge the topics if (highest criteria first):
     - underlying entity on which the topics/subagents are supposed to work on
     - underlying intention
 
-## 5. Generate system section.
-
-Format:
-```
-system:
-    instructions: "You are a helpful customer service representative"
-```
-
-Generate a generic system instruction that reflects the following:
-- The agent is an AI powered orchestrator
-- The agent will help with a summary of all the topic descriptions combined
+Delete the topics generated corresponding to the `deleted_topics` in the `topic_classification.json` file. And delete any transition references to these topics in the rest of the agentscript.
 
 # 8. Validations.
 
 1. **Important Instruction** - Ensure that the final agentforce configuration (agentscript) adheres to the syntax of the agentscript as per the provided antlr files.
-2. Ensure that the transitions in the agentscript do not point to non-existent topics. If so, either modify the transition to point to the right topic or delete the transition and corresponding instructions.
-3. Consolidate all the comments at the start of the agentscript. Comment starts with '#'.
-4. Ensure that comments are added to explain every placeholder entry in the agentscript.
-5. Ensure that all actions have correct input and output mappings in the right expected variable formats. If not, fix the problem by matching the format with `botInvocationsDescribeInfo` in bot metadata.
-6. The agent execution starts from the topic labelled `start_agent`. Make sure that every other topic is reachable in any path via transitions. If a topic is not reachable, delete that topic.
+2. **Important Instruction** - Read through the rules provided at `00-start-migration/assets/AGENT_SCRIPT_RULES.md` and align the generated agentscript to strictly follow these rules.
+3. Ensure that the transitions in the agentscript do not point to non-existent topics. If so, either modify the transition to point to the right topic or delete the transition and corresponding instructions.
+4. Consolidate all the comments at the start of the agentscript. Comment starts with '#'.
+5. Ensure that comments are added to explain every placeholder entry in the agentscript.
+6. Ensure that all actions have correct input and output mappings in the right expected variable formats. If not, fix the problem by matching the format with `botInvocationsDescribeInfo` in bot metadata.
+7. The agent execution starts from the topic labelled `start_agent`. Make sure that every other topic is reachable in any path via transitions. If a topic is not reachable, delete that topic.
 
-# 9. Output the agentscript
+# 9. Wait for user response and feedback, and incorporate any changes suggested.
 
-Write the generated agentscript to `agentscript.txt` in the data directory.
+Do this in a phased manner, as the content that has been generated is large and dumping all the content on the user at once will lead to confusion and missing detail. Go through the below steps to finalise the agentscript after incorporating any changes.
+
+## 1. Review `system` section in agentscript.
+
+- Print ONLY the system section in the generated agentscript.
+- Inform the user that the instructions in this section would apply to the entire agent in general. And help them update the instructions as per their requirements.
+- If the user wants to do anything else, inform them that it is out of the scope for now.
+- If the user wants to move to the next section, go to the next step.
+
+## 2. Review `config` section in agentscript.
+
+- Print ONLY the config section in the generated agentscript.
+- Inform that they can modify the name of the agent if they want. And help them do it.
+- **Important Instruction** - The user CANNOT modify `agent_type`. This should always be `AgentforceServiceAgent`. If they want to edit this, inform the user that this is a standard value provided for all agentforce service agents.
+- Inform the user that they would have to create a new user with agentforce service user permissions OR assign an existing user with those permissions, in the field `default_agent_user` before deploying the agent. Help them update this value if necessary.
+- If the user wants to do anything else, inform them that it is out of the scope for now.
+- If the user wants to move to the next section, go to the next step.
+
+## 3. Review `variables` section in agentscript.
+
+- **Important Instruction** - User CANNOT delete the variables which are referenced in the agentscript.
+- **Important Instruction** - User CANNOT modify the existing variables which are referenced in the agentscript.
+- User can add more variables if necessary. Help them add new variables, and make sure they will align with the agentscript syntax.
+- If the user wants to do anything else, inform them that it is out of the scope for now.
+- If the user wants to move to the next section, go to the next step.
+
+## 4. Review `knowledge` section in agentscript.
+
+- Print ONLY the knowledge section in the generated agentscript.
+- User can edit any field in this section. Help user update this section.
+- If the user wants to do anything else, inform them that it is out of the scope for now.
+- If the user wants to move to the next section, go to the next step.
+
+## 5. Review `language` section in agentscript.
+
+- Print ONLY the language section in the generated agentscript.
+- User behavior for the three fields in this section:
+    - `default_locale` - value should be one of the locales supported (that are mentioned above). This field is mandatory and hence should be populated.
+    - `additional_locales` - comma separated list of supported locales.
+    - `all_additional_locales` - Boolean (true/false) indicating if all locales should be supported.
+- Provide the user the list of locales that can be added in each field.
+- After user updates this section, validate that the locales provided in the fields are all valid.
+
+## 6. Review topics in agentscript.
+
+- First, provide the user with information about topics and what can be done with those. Like -
+    - Each topic has a name, a description, a list of associated actions and a set of natural language instructions.
+    - All of these are editable. And I will help you review each topic and update them whenever necessary.
+- User will review topics (marked as `topic` OR `start_agent`). Show the user one topic per step, and ask for modifications.
+- Start with `start_agent` topic and continue to other topics. For every topic, do the following:
+1. Print the following data:
+    - topic configuration in a tabular format. Columns:
+        - Topic Details
+            - Contains topic name with topic description in braces.
+        - Instructions
+            - Contains an ordered list of natural language instructions for that particular topic.
+            - **Print one instruction per line along with the instruction number.**
+    - action configuration (`reasoning.actions`) in a tabular format. Columns:
+        - Action name
+        - Action type
+            - `action` or `transition` or `variable_update`
+        - Action condition
+            - the variable condition. for example, `abc == 2`
+        - State updates
+            - state variable (mutable variable) updates after the action is performed
+2. **Important Instruction** - Ordering of instructions is crucial as the LLM (GenAI agent) would later process the instructions in the same order as configured.
+3. Ask the user if they want to edit any instructions or actions. **This is the most crucial step**. Provide the user with the below options along with a one line description as suggested below.
+    - Reorder instructions (Instructions order can be changed based on the order in the numbered list provided)
+    - Delete instructions (Instructions can be deleted based on the order in the numbered list provided)
+    - Add instructions (Instructions can be added based on the order in the numbered list provided)
+    - Consolidate instructions (Instructions can be merged based on the order in the numbered list provided)
+    - Make instruction deterministic (Any action invocation or variable assignment or transition to other topics are eligible)
+    - Move instructions to `before_reasoning` (if there are actions/tools to be executed before any decision making via LLM is involved in the topic execution - like any setup actions)
+    - Move instructions to `after_reasoning` (if there are actions/tools to be executed after all decision making via LLM is complete in the topic execution - like any cleanup actions)
+    - Update variable based conditions to reasoning actions
+    - Update state updates post action execution
+4. Maintain the instruction order whenever an instruction is added/updated/deleted. If necessary, ask the user where they want to insert/delete an instruction.
+5. Allow adding, reordering, deleting and merging instructions. Help the user form a more meaningful instruction that can be understood by an AI agent.
+6. If the user wants to make an instruction deterministic, follow the below steps:
+    - The instruction is eligible for this operation only if it has an action invocation (like `{!@actions.<action_name>}`) or a variable assignment (like `{!@variables.<variable_name>}`) or a transition via action execution (like invoking an action which has the signature `@utils.transition to @topic.<topic_name>`).
+    - Deterministic instruction format:
+        - Conditional action invocation sample:
+            ```
+               if @variables.<variable_name> == False:
+                  run @actions.<action_name>
+            ```
+        - Conditional variable assignment sample:
+            ```
+               if @variables.<variable_name> is None:
+                  set @variables.<variable_name> = 0
+            ```
+        - Conditional transition sample:
+            ```
+               if @variables.<variable_name> is not None:
+                  @utils.transition to @topic.<topic_name>
+            ```
+    - If the instruction is not eligible for this conversion, inform the user about this, and ask them what to do next.
+    - Convert the natural language instruction to a deterministic instruction. **Capturing the condition is very important to retain the logic exactly**.
+    - **Important Instruction** - Conditional deterministic instruction is only supported over variable conditions (like `@variables.xyz == 1` or `@variables.xyz is not None` or `@variables.xyz == True`). If the condition is a natural language instruction and cannot be converted into an equivalent variable condition, ask the user to provide an equivalent variable condition. If this is not possible, inform the user that the instruction cannot be converted into a deterministic instruction.
+    - Help user to modify the instruction if necessary. For example, user can ask - "Add a condition for the variable value xyz to be equal to 5, to execute this instruction".
+    - Ask the user if they want to move this instruction to `before_reasoning` or `after_reasoning`. If they want to do so, move this particular instruction to the corresponding section in the topic.
+7. If the user wants to move the instruction to `before_reasoning` or `after_reasoning`, move this particular instruction to the corresponding section in the topic.
+8. If the user wants to modify any action conditions OR state updates post action execution, help them do so, and validate that the conditions and updates are based on the variables (can be mutable variables or linked variables).
+7. If the user edits instructions - at every step, print the updated instruction list for that particular topic (along with `before_reasoning` and `after_reasoning` sections if applicable).
+8. Before updating the instructions list, make sure that there are no references to actions that are not actually attached to the topic. If there are any such references, inform the user and ask them what to do about it.
+9. **Important Instruction** - Maintain the indentation while editing instructions, so that the agentscript syntax is adhered to.
+10. Before updating the final topic, ask the user for confirmation by showing the final instruction list for that particular topic.
+
+- Once all the topics have been reviewed, inform the user that you would be saving the final agentscript.
+
+# 10. Output the agentscript
+
+- Write the generated agentscript to `agentscript.txt` in the data directory.
+- Finally, provide a message to the user like 'Proceeding to the next step..'. And stop here. And give back the control.
