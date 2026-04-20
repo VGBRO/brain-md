@@ -429,17 +429,9 @@ fi
 
 echo ""
 
-# Step 1.10: Merge ML data into bot JSON (if converted)
-if [ "$ML_DOMAIN_CONVERTED" = true ]; then
-    echo "Step 1.10: Merging ML training data into bot JSON..."
-    echo ""
-    python3 "$SCRIPT_DIR/merge_ml_data.py" "${BOT_NAME}" "${FOLDER_NAME}"
-
-    if [ $? -ne 0 ]; then
-        echo ""
-        echo "Warning: Failed to merge ML data"
-    fi
-fi
+# Step 1.10: Removed (merge_ml_data.py is obsolete)
+# extract_bot_metadata.py now handles ML intent extraction correctly by parsing
+# relatedMlIntents and extracting ONLY the referenced intents from Intent Sets.
 
 # Final file is always in jsons directory with bot name
 FINAL_FILE="${BOT_DIR}/jsons/${BOT_NAME}.json"

@@ -11,11 +11,36 @@ from pathlib import Path
 
 def xml_to_dict(element):
     """Recursively convert XML element to dictionary"""
+    # Fields that should ALWAYS be arrays, even with single element
+    ALWAYS_ARRAY_FIELDS = {
+        'mlSlotClasses', 'nlpProviders', 'botVariableOperands',
+        'mlIntentUtterances', 'invocationMappings', 'botStepConditions',
+        'botSteps', 'conversationVariables', 'botDialogs', 'contextVariables',
+        'mlIntents', 'botDialogGroups', 'conversationSystemDialogs',
+        'relatedMlIntents', 'botNavigationLinks', 'botMessages',
+        'conversationRecordLookupFields', 'lookupFields', 'conditions'
+    }
+
+    # Fields that should be converted from string to boolean
+    BOOLEAN_FIELDS = {
+        'mlIntentTrainingEnabled', 'showInFooterMenu', 'isPlaceholderDialog',
+        'optionalCollect', 'articleAnswersGPTEnabled', 'citationsEnabled',
+        'intentDisambiguationEnabled', 'knowledgeActionEnabled',
+        'knowledgeFallbackEnabled', 'smallTalkEnabled', 'staticPromptsEnabled'
+    }
+
     result = {}
+    tag_name = element.tag.split('}')[-1]  # Remove namespace
 
     # Add text content if present
     if element.text and element.text.strip():
-        return element.text.strip()
+        text = element.text.strip()
+
+        # Convert boolean strings
+        if tag_name in BOOLEAN_FIELDS:
+            return text.lower() == 'true'
+
+        return text
 
     # Process child elements
     for child in element:
@@ -28,7 +53,11 @@ def xml_to_dict(element):
                 result[tag] = [result[tag]]
             result[tag].append(child_data)
         else:
-            result[tag] = child_data
+            # Check if this field should always be an array
+            if tag in ALWAYS_ARRAY_FIELDS:
+                result[tag] = [child_data]
+            else:
+                result[tag] = child_data
 
     return result
 

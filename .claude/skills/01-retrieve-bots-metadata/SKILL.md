@@ -604,9 +604,10 @@ Use these formatting patterns consistently:
 ├── scripts/
 │   ├── fetch_bot_from_org.sh        # Main wrapper
 │   ├── list_bots_interactive.py     # Bot selector
-│   ├── extract_bot_metadata.py      # Extraction engine
-│   ├── convert_ml_domain.py         # ML converter
-│   └── merge_ml_data.py             # ML merger
+│   ├── extract_bot_metadata.py      # Extraction engine (handles ML intents)
+│   ├── convert_ml_domain.py         # ML domain XML converter
+│   ├── convert_bot_xml_to_json.py   # Bot XML converter
+│   └── compare_bot_jsons.py         # Validation tool
 └── assets/
     └── SF_CLI_COMMANDS.md           # SF CLI reference
 

@@ -61,15 +61,16 @@ def infer_sobject_type_from_label(label: str) -> Optional[str]:
     return None
 
 
-def map_salesforce_data_type(sf_type: str) -> str:
+def map_salesforce_data_type(sf_type: str, param_name: str = "") -> str:
     """
     Map Salesforce data types to API parameter types.
     Uses standard Salesforce type mappings.
+    For Number type, infers INTEGER vs NUMBER based on parameter name.
     """
     type_mapping = {
         "Text": "STRING",
         "LongText": "STRING",
-        "Number": "NUMBER",
+        "Number": "NUMBER",  # May be overridden below
         "Boolean": "BOOLEAN",
         "Date": "DATE",
         "DateTime": "DATETIME",
@@ -84,7 +85,17 @@ def map_salesforce_data_type(sf_type: str) -> str:
         "Object": "SOBJECT",  # Generic object
     }
 
-    return type_mapping.get(sf_type, "STRING")
+    result = type_mapping.get(sf_type, "STRING")
+
+    # For Number type, check if it should be INTEGER
+    if sf_type == "Number" and param_name:
+        param_lower = param_name.lower()
+        # These patterns suggest integers
+        integer_patterns = ["days", "count", "quantity", "index", "page", "limit"]
+        if any(pattern in param_lower for pattern in integer_patterns):
+            result = "INTEGER"
+
+    return result
 
 
 def infer_parameter_type_generic(
@@ -101,8 +112,8 @@ def infer_parameter_type_generic(
         var_info = var_type_map[variable_name]
         data_type = var_info["dataType"]
 
-        # Map to API type
-        api_type = map_salesforce_data_type(data_type)
+        # Map to API type (pass param_name for Number type inference)
+        api_type = map_salesforce_data_type(data_type, param_name)
 
         result = {"type": api_type}
 
@@ -338,12 +349,21 @@ def parse_related_ml_intents(bot_meta: Dict) -> Dict[str, List[str]]:
         if not isinstance(intent, dict):
             continue
 
-        related_ml = intent.get("relatedMlIntents", {})
-        if isinstance(related_ml, dict):
-            related_intent = related_ml.get("relatedMlIntent", "")
+        related_ml = intent.get("relatedMlIntents")
 
+        # Handle both array and dict formats
+        if isinstance(related_ml, list):
+            # Array format: [{"relatedMlIntent": "IntentSetName.IntentName"}]
+            for item in related_ml:
+                if isinstance(item, dict):
+                    related_intent = item.get("relatedMlIntent", "")
+                    if related_intent and '.' in related_intent:
+                        intent_set_name, intent_name = related_intent.split('.', 1)
+                        intent_set_map[intent_set_name].append(intent_name)
+        elif isinstance(related_ml, dict):
+            # Dict format: {"relatedMlIntent": "IntentSetName.IntentName"}
+            related_intent = related_ml.get("relatedMlIntent", "")
             if related_intent and '.' in related_intent:
-                # Format: "IntentSetName.IntentName"
                 intent_set_name, intent_name = related_intent.split('.', 1)
                 intent_set_map[intent_set_name].append(intent_name)
 
