@@ -192,16 +192,54 @@ fi
 
 log "  ✓ Bot Version: $BOT_VERSION"
 
-# Define custom folder path (separate from SF CLI's default structure)
-FOLDER_NAME="${ORG_ID}_${BOT_NAME}_v${BOT_VERSION}"
-BOT_DIR="$PROJECT_ROOT/data/sf-cli/custom/${FOLDER_NAME}"
+# Define new directory structure with lowercase paths
+# Convert to lowercase for directory paths
+ORG_ID_LOWER=$(echo "$ORG_ID" | tr '[:upper:]' '[:lower:]')
+BOT_NAME_LOWER=$(echo "$BOT_NAME" | tr '[:upper:]' '[:lower:]')
 
-log "  ℹ️  Will organize files into: custom/${FOLDER_NAME}"
+# Define paths
+BOT_VERSION_DIR="$PROJECT_ROOT/data/bots/${ORG_ID_LOWER}/${BOT_NAME_LOWER}/v${BOT_VERSION}"
+STEP1_DIR="${BOT_VERSION_DIR}/step1"
+FINAL_OUTPUT_FILE="${BOT_VERSION_DIR}/${BOT_NAME}.json"
 
-# Clean custom folder from previous runs to avoid SF CLI reporting duplicates
-if [ -d "$BOT_DIR" ]; then
-    log "  🗑️  Cleaning previous run: $BOT_DIR"
-    rm -rf "$BOT_DIR"
+log "  ℹ️  Will organize files into: bots/${ORG_ID_LOWER}/${BOT_NAME_LOWER}/v${BOT_VERSION}"
+
+# Check if bot metadata already exists
+if [ -d "$BOT_VERSION_DIR" ]; then
+    echo ""
+    echo "⚠️  ${BOT_NAME}.json already exists for version ${BOT_VERSION}"
+    echo ""
+    echo "Do you want to overwrite the existing data?"
+    echo ""
+    echo "  [yes]  Overwrite and re-retrieve metadata"
+    echo "  [no]   Skip retrieval (use existing data)"
+    echo ""
+    read -p "Your choice: " OVERWRITE_CHOICE
+
+    case "${OVERWRITE_CHOICE,,}" in
+        yes|y)
+            log "  🗑️  Cleaning previous run: $BOT_VERSION_DIR"
+            rm -rf "$BOT_VERSION_DIR"
+            echo ""
+            ;;
+        no|n|skip)
+            echo ""
+            echo "✅ Skipping retrieval. Using existing ${BOT_NAME}.json"
+            echo ""
+            echo "File location:"
+            echo "  ${FINAL_OUTPUT_FILE}"
+            echo ""
+            echo "Next Step:"
+            echo "  /02-process-and-build-inventory"
+            echo ""
+            exit 0
+            ;;
+        *)
+            echo ""
+            echo "❌ Invalid choice. Please run again and choose 'yes' or 'no'."
+            exit 1
+            ;;
+    esac
 fi
 
 log ""
@@ -341,28 +379,29 @@ fi
 
 log ""
 
-# Step 1.5.1: Copy all retrieved files to custom organized folder
-log "Step 1.5.1: Copying files to custom/${FOLDER_NAME}..."
+# Step 1.5.1: Copy all retrieved files to step1 organized folder
+log "Step 1.5.1: Copying files to step1 folder..."
 log ""
 
-# Create custom folder structure with subfolders
-mkdir -p "$BOT_DIR/bots"
-mkdir -p "$BOT_DIR/jsons"
+# Create step1 folder structure
+mkdir -p "$STEP1_DIR/xml/bots"
+mkdir -p "$STEP1_DIR/xml/mlDomains"
+mkdir -p "$STEP1_DIR/json"
+mkdir -p "$STEP1_DIR/apex-invocations/classes"
 
-# Copy bot XML files to bots subfolder
+# Copy bot XML files to step1/xml/bots/
 DEFAULT_BOT_DIR="$PROJECT_ROOT/data/sf-cli/main/default/bots/${BOT_NAME}"
 if [ -d "$DEFAULT_BOT_DIR" ]; then
-    cp -r "$DEFAULT_BOT_DIR"/*.bot-meta.xml "$BOT_DIR/bots/" 2>/dev/null || true
-    cp -r "$DEFAULT_BOT_DIR"/*.botVersion-meta.xml "$BOT_DIR/bots/" 2>/dev/null || true
-    log "  ✓ Bot XML files copied to bots/"
+    cp -r "$DEFAULT_BOT_DIR"/*.bot-meta.xml "$STEP1_DIR/xml/bots/" 2>/dev/null || true
+    cp -r "$DEFAULT_BOT_DIR"/*.botVersion-meta.xml "$STEP1_DIR/xml/bots/" 2>/dev/null || true
+    log "  ✓ Bot XML files copied to step1/xml/bots/"
 fi
 
-# Copy ML domain XML files to mlDomains subfolder
+# Copy ML domain XML files to step1/xml/mlDomains/
 DEFAULT_ML_DIR="$PROJECT_ROOT/data/sf-cli/main/default/mlDomains"
 if [ -d "$DEFAULT_ML_DIR" ] && [ "$(ls -A $DEFAULT_ML_DIR 2>/dev/null)" ]; then
-    mkdir -p "$BOT_DIR/mlDomains"
-    cp -r "$DEFAULT_ML_DIR"/*.mlDomain-meta.xml "$BOT_DIR/mlDomains/" 2>/dev/null || true
-    log "  ✓ ML domain XML files copied to mlDomains/"
+    cp -r "$DEFAULT_ML_DIR"/*.mlDomain-meta.xml "$STEP1_DIR/xml/mlDomains/" 2>/dev/null || true
+    log "  ✓ ML domain XML files copied to step1/xml/mlDomains/"
 fi
 
 log ""
@@ -372,9 +411,9 @@ log "Step 1.6: Converting bot XML to JSON..."
 log ""
 
 if [ "$VERBOSE" = "true" ] || [ "$VERBOSE" = "1" ]; then
-    python3 "$SCRIPT_DIR/convert_bot_xml_to_json.py" "${BOT_NAME}" "${FOLDER_NAME}"
+    python3 "$SCRIPT_DIR/convert_bot_xml_to_json.py" "${BOT_NAME}" "${STEP1_DIR}"
 else
-    python3 "$SCRIPT_DIR/convert_bot_xml_to_json.py" "${BOT_NAME}" "${FOLDER_NAME}" >/dev/null 2>&1
+    python3 "$SCRIPT_DIR/convert_bot_xml_to_json.py" "${BOT_NAME}" "${STEP1_DIR}" >/dev/null 2>&1
 fi
 
 if [ $? -ne 0 ]; then
@@ -392,8 +431,8 @@ if [ "$ML_DOMAIN_RETRIEVED" = true ]; then
 
     ML_DOMAIN_CONVERTED=false
 
-    # Convert all retrieved ML domain XML files in custom folder
-    for ML_XML_FILE in "$BOT_DIR/mlDomains"/*.mlDomain-meta.xml; do
+    # Convert all retrieved ML domain XML files in step1 folder
+    for ML_XML_FILE in "$STEP1_DIR/xml/mlDomains"/*.mlDomain-meta.xml; do
         if [ -f "$ML_XML_FILE" ]; then
             log "  Converting: $(basename "$ML_XML_FILE")"
 
@@ -405,11 +444,11 @@ if [ "$ML_DOMAIN_RETRIEVED" = true ]; then
 
             if [ $? -eq 0 ]; then
                 log "    ✓ Converted successfully"
-                # Move JSON from mlDomains to jsons folder
+                # Move JSON from xml/mlDomains to json folder
                 JSON_FILE="${ML_XML_FILE%.mlDomain-meta.xml}.json"
                 if [ -f "$JSON_FILE" ]; then
-                    mv "$JSON_FILE" "$BOT_DIR/jsons/"
-                    log "    ✓ Moved to jsons/"
+                    mv "$JSON_FILE" "$STEP1_DIR/json/"
+                    log "    ✓ Moved to json/"
                 fi
                 ML_DOMAIN_CONVERTED=true
             else
@@ -434,9 +473,9 @@ log "Step 1.6.2: Extracting bot metadata to JSON..."
 log ""
 
 if [ "$VERBOSE" = "true" ] || [ "$VERBOSE" = "1" ]; then
-    python3 "$SCRIPT_DIR/extract_bot_metadata.py" "${BOT_NAME}" --bot-dir "${BOT_DIR}"
+    python3 "$SCRIPT_DIR/extract_bot_metadata.py" "${BOT_NAME}" --step1-dir "${STEP1_DIR}"
 else
-    python3 "$SCRIPT_DIR/extract_bot_metadata.py" "${BOT_NAME}" --bot-dir "${BOT_DIR}" >/dev/null 2>&1
+    python3 "$SCRIPT_DIR/extract_bot_metadata.py" "${BOT_NAME}" --step1-dir "${STEP1_DIR}" >/dev/null 2>&1
 fi
 
 if [ $? -ne 0 ]; then
@@ -451,8 +490,8 @@ log ""
 log "Step 1.7: Fetching real Apex class signatures from org..."
 log ""
 
-# Temporary file before Apex parsing
-TEMP_BOT_FILE="${BOT_DIR}/jsons/${BOT_NAME}.json"
+# Temporary file before Apex parsing (in step1/json)
+TEMP_BOT_FILE="${STEP1_DIR}/json/${BOT_NAME}.json"
 
 # Check if bot JSON exists
 if [ ! -f "$TEMP_BOT_FILE" ]; then
@@ -461,7 +500,7 @@ if [ ! -f "$TEMP_BOT_FILE" ]; then
 fi
 
 # Run fetch and parse invocations script
-APEX_OUTPUT_DIR="${BOT_DIR}/apex-invocations"
+APEX_OUTPUT_DIR="${STEP1_DIR}/apex-invocations"
 
 if [ "$VERBOSE" = "true" ] || [ "$VERBOSE" = "1" ]; then
     bash "$SCRIPT_DIR/fetch_and_parse_invocations.sh" \
@@ -483,12 +522,17 @@ if [ $APEX_EXIT_CODE -ne 0 ]; then
     log "⚠️  Warning: Failed to fetch Apex invocations from org"
     log "    Continuing with inferred types (may be incorrect)"
     log ""
+    # Move temp file to final location without Apex updates
+    mv "$TEMP_BOT_FILE" "$FINAL_OUTPUT_FILE"
 else
-    # Replace the original file with the updated one
+    # Replace the temp file with the updated one, then move to final location
     UPDATED_BOT_FILE="${TEMP_BOT_FILE%.json}_with_parsed_invocations.json"
     if [ -f "$UPDATED_BOT_FILE" ]; then
-        mv "$UPDATED_BOT_FILE" "$TEMP_BOT_FILE"
-        log "✅ Bot JSON updated with real Apex signatures"
+        mv "$UPDATED_BOT_FILE" "$FINAL_OUTPUT_FILE"
+        log "✅ Bot JSON updated with real Apex signatures and moved to root"
+    else
+        # If no update file, move original
+        mv "$TEMP_BOT_FILE" "$FINAL_OUTPUT_FILE"
     fi
 fi
 
@@ -498,11 +542,9 @@ log ""
 # extract_bot_metadata.py now handles ML intent extraction correctly by parsing
 # relatedMlIntents and extracting ONLY the referenced intents from Intent Sets.
 
-# Final file is always in jsons directory with bot name
-FINAL_FILE="${BOT_DIR}/jsons/${BOT_NAME}.json"
-
-if [ ! -f "$FINAL_FILE" ]; then
-    echo "Error: Final bot JSON not found at $FINAL_FILE"
+# Check final file exists at root of bot version directory
+if [ ! -f "$FINAL_OUTPUT_FILE" ]; then
+    echo "Error: Final bot JSON not found at $FINAL_OUTPUT_FILE"
     exit 1
 fi
 
@@ -514,7 +556,7 @@ echo ""
 echo "Bot metadata successfully retrieved and saved."
 echo ""
 echo "Final JSON location:"
-echo "  data/sf-cli/custom/${FOLDER_NAME}/jsons/${BOT_NAME}.json"
+echo "  data/bots/${ORG_ID_LOWER}/${BOT_NAME_LOWER}/v${BOT_VERSION}/${BOT_NAME}.json"
 echo ""
 echo "Next Step:"
 echo "  /02-process-and-build-inventory"

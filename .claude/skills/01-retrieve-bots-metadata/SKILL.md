@@ -80,7 +80,7 @@ Proceed to Phase 1.2.
 ❌  Could not connect to Salesforce org.
 
     Reason : <error detail, e.g. "Auth token expired" or "Org not found">
-    Fix    : Re-authenticate using:  sf org login web --alias <alias>
+    Fix    : Re-authenticate using:  sf org login web --instance-url <instance-url> --alias <alias>
              Then re-run:            /01-retrieve-bots-metadata
 ```
 

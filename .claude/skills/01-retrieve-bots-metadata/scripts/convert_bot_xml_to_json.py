@@ -81,30 +81,28 @@ def convert_bot_xml(xml_file: Path) -> dict:
 
 def main():
     if len(sys.argv) < 2:
-        print("Usage: python3 convert_bot_xml_to_json.py <bot_name> [folder_name]")
+        print("Usage: python3 convert_bot_xml_to_json.py <bot_name> <step1_dir>")
         print("\nExample:")
-        print("  python3 convert_bot_xml_to_json.py MyBot")
-        print("  python3 convert_bot_xml_to_json.py MyBot 00Dxx000000xxxx_MyBot_v1")
+        print("  python3 convert_bot_xml_to_json.py MyBot /path/to/step1")
         sys.exit(1)
 
     bot_name = sys.argv[1]
-    folder_name = sys.argv[2] if len(sys.argv) > 2 else bot_name
+    step1_dir = Path(sys.argv[2]) if len(sys.argv) > 2 else Path("step1")
 
-    # Custom folder structure: data/sf-cli/custom/{folder_name}
-    bot_dir = Path(f"data/sf-cli/custom/{folder_name}")
-    bots_dir = bot_dir / "bots"
-    jsons_dir = bot_dir / "jsons"
+    # New structure: step1/xml/bots and step1/json
+    bots_dir = step1_dir / "xml" / "bots"
+    jsons_dir = step1_dir / "json"
 
-    # Create jsons subdirectory
-    jsons_dir.mkdir(exist_ok=True)
+    # Create json subdirectory
+    jsons_dir.mkdir(parents=True, exist_ok=True)
 
-    # Convert bot-meta.xml (look in bots subfolder)
+    # Convert bot-meta.xml (look in xml/bots subfolder)
     bot_xml = bots_dir / f"{bot_name}.bot-meta.xml"
     if bot_xml.exists():
         print(f"Converting {bot_xml}...")
         bot_data = convert_bot_xml(bot_xml)
 
-        # Save to jsons directory
+        # Save to json directory
         jsons_output = jsons_dir / f"{bot_name}.bot-meta.json"
         with open(jsons_output, 'w') as f:
             json.dump(bot_data, f, indent=2)
@@ -113,12 +111,12 @@ def main():
         print(f"Error: {bot_xml} not found")
         sys.exit(1)
 
-    # Convert botVersion XML files (look in bots subfolder)
+    # Convert botVersion XML files (look in xml/bots subfolder)
     for version_xml in bots_dir.glob("*.botVersion-meta.xml"):
         print(f"Converting {version_xml}...")
         version_data = convert_bot_xml(version_xml)
 
-        # Save to jsons directory
+        # Save to json directory
         jsons_output = jsons_dir / version_xml.with_suffix('.json').name
         with open(jsons_output, 'w') as f:
             json.dump(version_data, f, indent=2)

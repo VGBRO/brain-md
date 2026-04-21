@@ -9,13 +9,12 @@ The compiler dependencies are hosted on the Salesforce internal Nexus PyPI proxy
 Authenticate first:
 
 ```bash
-sf org login web --alias my-org --instance-url https://login.salesforce.com
+sf org login web --instance-url <ORG_LOGIN_URL> --alias <CUSTOM_NAME>
 ```
 
-For sandboxes:
-
+**Example:**
 ```bash
-sf org login web --alias my-sandbox --instance-url https://test.salesforce.com
+sf org login web --instance-url https://orgfarm-7532d67587.test1.my.pc-rnd.salesforce.com/ --alias orgfarm-epic
 ```
 
 ## Compilation succeeds but publish fails

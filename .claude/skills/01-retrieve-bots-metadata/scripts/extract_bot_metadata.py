@@ -103,12 +103,12 @@ def parse_related_ml_intents(bot_meta: Dict) -> Dict[str, List[str]]:
     return dict(intent_set_map)
 
 
-def load_intent_set_json(intent_set_name: str, bot_dir: Path = None) -> Optional[Dict]:
+def load_intent_set_json(intent_set_name: str, step1_dir: Path = None) -> Optional[Dict]:
     """Load Intent Set JSON file. Returns None if not found."""
-    # Try custom folder first if bot_dir provided
-    if bot_dir:
-        # Check jsons folder first
-        ml_domain_file = bot_dir / "jsons" / f"{intent_set_name}.json"
+    # Try step1 folder first if step1_dir provided
+    if step1_dir:
+        # Check json folder first
+        ml_domain_file = step1_dir / "json" / f"{intent_set_name}.json"
         if ml_domain_file.exists():
             try:
                 with open(ml_domain_file) as f:
@@ -116,8 +116,8 @@ def load_intent_set_json(intent_set_name: str, bot_dir: Path = None) -> Optional
             except Exception:
                 pass
 
-        # Then check mlDomains folder
-        ml_domain_file = bot_dir / "mlDomains" / f"{intent_set_name}.json"
+        # Then check xml/mlDomains folder
+        ml_domain_file = step1_dir / "xml" / "mlDomains" / f"{intent_set_name}.json"
         if ml_domain_file.exists():
             try:
                 with open(ml_domain_file) as f:
@@ -290,26 +290,26 @@ def main():
         description="Extract bot JSON from metadata files (generic, works with any bot)"
     )
     parser.add_argument("bot_name", help="Bot developer name")
-    parser.add_argument("--output", "-o", help="Output file path")
-    parser.add_argument("--bot-dir", help="Bot directory path (default: data/sf-cli/main/default/bots/{bot_name})")
+    parser.add_argument("--output", "-o", help="Output file path for final JSON (defaults to step1/json/<bot_name>.json)")
+    parser.add_argument("--step1-dir", help="Step1 directory path (default: data/sf-cli/main/default/bots/{bot_name})")
 
     args = parser.parse_args()
 
     bot_name = args.bot_name
 
-    if args.bot_dir:
-        base_dir = Path(args.bot_dir)
+    if args.step1_dir:
+        step1_dir = Path(args.step1_dir)
     else:
-        base_dir = Path(f"data/sf-cli/main/default/bots/{bot_name}")
+        step1_dir = Path(f"data/sf-cli/main/default/bots/{bot_name}")
 
     print("="*80)
     print(f"Extracting Bot JSON from Metadata (Generic): {bot_name}")
     print("="*80)
 
-    # Load metadata files from jsons directory
+    # Load metadata files from json directory
     print("\n  Loading metadata files...")
-    jsons_dir = base_dir / "jsons"
-    bot_meta_file = jsons_dir / f"{bot_name}.bot-meta.json"
+    json_dir = step1_dir / "json"
+    bot_meta_file = json_dir / f"{bot_name}.bot-meta.json"
 
     if not bot_meta_file.exists():
         print(f"Error: {bot_meta_file} not found", file=sys.stderr)
@@ -317,10 +317,10 @@ def main():
 
     bot_meta = load_json_file(bot_meta_file)
 
-    # Find botVersion file in jsons directory
-    version_files = list(jsons_dir.glob("*.botVersion-meta.json"))
+    # Find botVersion file in json directory
+    version_files = list(json_dir.glob("*.botVersion-meta.json"))
     if not version_files:
-        print(f"Error: No botVersion-meta.json found in {jsons_dir}", file=sys.stderr)
+        print(f"Error: No botVersion-meta.json found in {json_dir}", file=sys.stderr)
         sys.exit(1)
 
     bot_version = load_json_file(version_files[0])
@@ -336,12 +336,11 @@ def main():
     rebuilt = normalize_retry_messages(rebuilt)
     print("    ✓ All retryMessages normalized to arrays")
 
-    # Create jsons subdirectory
-    jsons_dir = base_dir / "jsons"
-    jsons_dir.mkdir(exist_ok=True)
+    # Create json subdirectory if it doesn't exist
+    json_dir.mkdir(parents=True, exist_ok=True)
 
     # Save initial version (temporary)
-    temp_file = base_dir / "generated_temp.json"
+    temp_file = step1_dir / "generated_temp.json"
     with open(temp_file, 'w', encoding='utf-8') as f:
         json.dump(rebuilt, f, indent=2, ensure_ascii=False)
 
@@ -363,7 +362,7 @@ def main():
         missing_sets = []
 
         for intent_set_name, intent_names in intent_set_map.items():
-            intent_set_data = load_intent_set_json(intent_set_name, base_dir)
+            intent_set_data = load_intent_set_json(intent_set_name, step1_dir)
 
             if intent_set_data:
                 # Extract ONLY the referenced intents
@@ -393,8 +392,12 @@ def main():
             # Replace mlRelatedData with the extracted intents
             rebuilt["mlRelatedData"] = ml_related_data
 
-            # Save final version to jsons directory with bot name
-            output_file = jsons_dir / f"{bot_name}.json"
+            # Determine output file location
+            if args.output:
+                output_file = Path(args.output)
+            else:
+                output_file = json_dir / f"{bot_name}.json"
+
             with open(output_file, 'w', encoding='utf-8') as f:
                 json.dump(rebuilt, f, indent=2, ensure_ascii=False)
 
@@ -406,8 +409,12 @@ def main():
                 temp_file.unlink()
                 print(f"    ✓ Cleaned up temporary file: {temp_file}")
         else:
-            # No ML related data, save to jsons directory with bot name
-            output_file = jsons_dir / f"{bot_name}.json"
+            # No ML related data, save with determined output location
+            if args.output:
+                output_file = Path(args.output)
+            else:
+                output_file = json_dir / f"{bot_name}.json"
+
             with open(output_file, 'w', encoding='utf-8') as f:
                 json.dump(rebuilt, f, indent=2, ensure_ascii=False)
 
@@ -426,8 +433,12 @@ def main():
     else:
         print(f"  ℹ  No relatedMlIntents found - using bot's internal ML domain only")
 
-        # Save to jsons directory with bot name
-        output_file = jsons_dir / f"{bot_name}.json"
+        # Determine output file location
+        if args.output:
+            output_file = Path(args.output)
+        else:
+            output_file = json_dir / f"{bot_name}.json"
+
         with open(output_file, 'w', encoding='utf-8') as f:
             json.dump(rebuilt, f, indent=2, ensure_ascii=False)
 

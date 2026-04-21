@@ -180,15 +180,19 @@ And skip to Step 2 of the migration pipeline.
 Before fetching, authenticate to your Salesforce org:
 
 ```bash
-# Production or Developer org
-sf org login web --alias my-org
-
-# Sandbox org
-sf org login web --alias my-sandbox --instance-url https://test.salesforce.com
-
-# Orgfarm org (Salesforce internal)
-sf org login web --alias orgfarm-epic --instance-url https://orgfarm-xxxx.test1.my.pc-rnd.salesforce.com/
+sf org login web --instance-url <ORG_LOGIN_URL> --alias <CUSTOM_NAME>
 ```
+
+**Example:**
+```bash
+sf org login web --instance-url https://orgfarm-7532d67587.test1.my.pc-rnd.salesforce.com/ --alias orgfarm-epic
+# Username: epic.out.32f02a30b2d1@orgfarm.salesforce.com
+```
+
+**Common instance URLs:**
+- Production: `https://login.salesforce.com`
+- Sandbox: `https://test.salesforce.com`
+- Orgfarm: `https://orgfarm-xxxx.test1.my.pc-rnd.salesforce.com/`
 
 **Verify authentication:**
 ```bash
