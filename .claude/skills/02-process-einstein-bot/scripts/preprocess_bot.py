@@ -1,14 +1,8 @@
 import json
 from pathlib import Path
 
-
-def get_data_path():
-    return str(Path(__file__).resolve().parent.parent.parent.parent.parent) + '/data'
-
-
-def run():
-    data_path = get_data_path()
-    with open(data_path + '/bot.json', 'r') as f:
+def run(data_directory):
+    with open(data_directory + '/bot.json', 'r') as f:
         bot_json = json.loads(f.read())
     
     bot = bot_json.get('Bot', {})
@@ -96,6 +90,6 @@ def run():
         'dialogs': dialogs,
         'actions': actions,
     }
-    with open(data_path + '/preprocessed_bot.json', 'w') as f:
+    with open(data_directory + '/preprocessed_bot.json', 'w') as f:
         f.write(json.dumps(bot_output, indent=4))
         f.flush()

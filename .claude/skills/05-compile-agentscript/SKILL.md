@@ -28,21 +28,20 @@ loop to diagnose and fix errors. The compiler validates syntax (via ANTLR parser
 - tree-sitter-cli installed globally: `npm install -g tree-sitter-cli`
 - @agentscript/cli from Nexus: `npm install --legacy-peer-deps --ignore-scripts`
 - Network access to Nexus npm registry (for verification)
-- The compiler script: `skills/00-start-migration/scripts/compile_agentscript_nexus_ts.py`
+- The compiler script: `skills/00-verify-prerequisites/scripts/compile_agentscript_nexus_ts.py`
 
 **Note:** The compiler automatically checks all prerequisites and provides installation instructions if anything is missing.
 
 ## Authoritative Rules Reference
 
 **Before diagnosing or fixing ANY compilation error, you MUST read and internalize
-`00-start-migration/assets/AGENT_SCRIPT_RULES.md`.** This is the authoritative source of truth
+`rules/AGENT_SCRIPT_RULES.md` from resources directory.** This is the authoritative source of truth
 for all AgentScript syntax, structure, naming, types, block ordering, and validation rules. It
 is dynamic and may change between runs — always read its current contents.
 
 When fixing errors, consult the rules file for the correct syntax, then check
-`00-start-migration/assets/AGENT_SCRIPT_RECIPES.xml` for working examples if needed.
-**Precedence order** (highest to lowest): `04-migrate-agent-topics/SKILL.md` and its
-`assets/` files > `AGENT_SCRIPT_RULES.md` > `AGENT_SCRIPT_RECIPES.xml`. The migration
+`recipes/AGENT_SCRIPT_RECIPES.xml` from resources directory for working examples if needed.
+**Precedence order** (highest to lowest): `AGENT_SCRIPT_RULES.md` > `AGENT_SCRIPT_RECIPES.xml`. The migration
 skill files contain overrides and refinements that take precedence over the general-purpose
 rules file.
 
@@ -53,7 +52,7 @@ the most common mistakes and their correct alternatives.
 
 ### Step 1: Copy AgentScript to Target Location
 
-Before compilation, copy the generated `agentscript.txt` from the data directory to the proper Salesforce CLI structure:
+Before compilation, copy the generated `agentscript.agent` from the data directory to the proper Salesforce CLI structure:
 
 1. **Read `migration-architecture.md`** to extract the agent name (stored as `AGENT_NAME`).
 

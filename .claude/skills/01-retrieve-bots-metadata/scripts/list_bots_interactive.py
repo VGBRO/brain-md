@@ -39,6 +39,7 @@ def list_bots(org: Optional[str] = None) -> List[Dict]:
         BotDefinition.MasterLabel,
         BotDefinition.Description,
         BotDefinition.Type,
+        BotDefinition.Type,
         VersionNumber,
         Status,
         LastModifiedDate

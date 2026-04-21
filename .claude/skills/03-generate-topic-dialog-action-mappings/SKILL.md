@@ -120,7 +120,7 @@ From the preprocessed bot metadata, parse each action structure.
 
 # 5. Show Topic and Dialog/Action mapping summary.
 
-- Provide information about the data. Inform the user that the following topics are generated based on the actions/invocations in the source bot, and the corresponding information is mapped into different topics based on their relevance, proximity (based on different criteria) and other similarities.
+- Provide information about the data. Inform the user that the following topics are generated based on their relevance, proximity (based on different criteria) and other similarities.
 - Show the details of topics in a tabular format. Columns:
     - Topic name
     - Topic description
@@ -163,4 +163,4 @@ From the preprocessed bot metadata, parse each action structure.
     - For every action included in a topic, there should be at least one dialog included, which has the action invocation in the original bot.
     - Every dialog that is included in the topic should have invoked at least one action (that is included in the topic) in the original bot.
     - Verify that the `action_dialog_mapping` for every topic is valid.
-- Finally, provide a message to the user like 'Proceeding to the next step..'. And stop here. And give back the control.
+- Finally, provide a message to the user like 'Proceeding to the next step..'.
