@@ -46,11 +46,11 @@ This skill activates when the user:
 
 ## Conversational Flow
 
-### Phase 1.1: Org Connection
+### Phase 1.1: Org Connection & Selection
 
-**Automatic Entry**
+**Never automatically select an org. Always show user the list of available orgs.**
 
-When this skill activates, immediately display the Step 1 header and attempt org connection:
+When this skill activates, display the Step 1 header and check for authenticated orgs:
 
 ```
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -58,7 +58,7 @@ When this skill activates, immediately display the Step 1 header and attempt org
   Retrieve Bot Metadata
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-Connecting to Salesforce org...
+Checking authenticated orgs...
 ```
 
 **Check org authentication:**
@@ -66,25 +66,83 @@ Connecting to Salesforce org...
 sf org list --json
 ```
 
-**Success Path:**
+**If orgs are found, display list:**
 ```
-✅  Connected to: <OrgName>  (<username@example.com>)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  AUTHENTICATED ORGS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  #   Org Alias           Username                              Status
+  ─   ─────────────────   ───────────────────────────────────   ──────────
+  1   orgfarm-epic        epic.out.b9fcfa00@orgfarm.sf.com     Connected
+  2   my-sandbox          user@company.com.sandbox              Connected
+  3   production          user@company.com                      Connected
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Would you like to use one of these orgs or login to a different org?
+
+  [1-N]   Select an org from the list
+  [login] Login to a different org
+  [quit]  Exit
+```
+
+**Natural Language Understanding:**
+
+Accept:
+- "1" / "select 1" / "use orgfarm-epic" / "orgfarm-epic"
+- "login" / "new" / "different" / "authenticate to new org"
+- "quit" / "exit"
+
+**If user selects a number:**
+```
+✅  Selected: orgfarm-epic (epic.out.b9fcfa00@orgfarm.sf.com)
 
 Fetching available bots...
 ```
 
 Proceed to Phase 1.2.
 
-**Failure Path:**
+**If user types "login" or wants to authenticate to different org:**
 ```
-❌  Could not connect to Salesforce org.
+To authenticate to a new Salesforce org, run this command:
 
-    Reason : <error detail, e.g. "Auth token expired" or "Org not found">
-    Fix    : Re-authenticate using:  sf org login web --instance-url <instance-url> --alias <alias>
-             Then re-run:            /01-retrieve-bots-metadata
+  sf org login web --instance-url <ORG_LOGIN_URL> --alias <CUSTOM_NAME>
+
+Example:
+  sf org login web --instance-url https://orgfarm-7532d67587.test1.my.pc-rnd.salesforce.com/ --alias my-new-org
+
+After authenticating, re-run: /01-retrieve-bots-metadata
 ```
 
-Do not proceed. Wait for user to fix authentication and re-invoke skill.
+**User can change their mind:**
+If user says "wait, use existing org" or "show me the orgs again" or "back":
+- Re-display the org list from Phase 1.1
+- Let them select from existing orgs
+- Continue to Phase 1.2 with selected org
+
+**After user authenticates:**
+When user re-invokes the skill after running `sf org login web`:
+- Check `sf org list --json` again
+- Display updated org list (including the newly authenticated org)
+- Ask them to select an org
+- Continue to Phase 1.2 with selected org
+
+**If no orgs found:**
+```
+❌  No authenticated Salesforce orgs found.
+
+To authenticate to a Salesforce org, run:
+
+  sf org login web --instance-url <ORG_LOGIN_URL> --alias <CUSTOM_NAME>
+
+Example:
+  sf org login web --instance-url https://orgfarm-7532d67587.test1.my.pc-rnd.salesforce.com/ --alias orgfarm-epic
+
+After authenticating, re-run: /01-retrieve-bots-metadata
+```
+
+Exit the skill and wait for user to authenticate and re-invoke.
 
 ---
 
@@ -297,43 +355,93 @@ Run the existing infrastructure:
 bash .claude/skills/01-retrieve-bots-metadata/scripts/fetch_bot_from_org.sh <BOT_NAME> <ORG_ALIAS>
 ```
 
+**Check for existing metadata first:**
+
+If metadata already exists for this bot+version:
+```
+⚠️  CustomerServiceBot.json already exists for version v4
+
+Do you want to overwrite the existing data?
+
+  [yes]  Overwrite and re-retrieve metadata
+  [no]   Skip retrieval (use existing data)
+
+Your choice:
+```
+
+If user chooses "no":
+```
+✅ Skipping retrieval. Using existing CustomerServiceBot.json
+
+File location:
+  data/bots/00dvw0000075wif2ai/customerservicebot/v4/CustomerServiceBot.json
+
+Next Step:
+  /02-process-and-build-inventory
+```
+
 **Show simplified progress (hide intermediate steps unless errors occur):**
 ```
 Downloading metadata for CustomerServiceBot v4...
 
-✅  Metadata saved to: 
-    data/sf-cli/custom/00DVW...CustomerServiceBot_v4/jsons/CustomerServiceBot.json
+✅  Metadata saved successfully!
 ```
 
-**Internal steps (Steps 1.1-1.7) run silently:**
+**Internal steps (Steps 1.1-1.7) run silently unless DEBUG=1:**
 - 1.1: Checking Salesforce DX project setup
-- 1.2: Getting org details and bot version
+- 1.2: Getting org details and bot version  
 - 1.3: Retrieving bot metadata from org
 - 1.4: Auto-discovering ML domains
 - 1.5: Retrieving ML training data (if available)
-- 1.6: Copying files to custom folder
-- 1.7: Converting and extracting metadata (includes two-phase Apex parsing)
+- 1.5.1: Copying files to step1 folder
+- 1.6: Converting bot XML to JSON
+- 1.6.1: Converting ML domain XML to JSON (if retrieved)
+- 1.6.2: Extracting bot metadata to JSON
+- 1.7: Fetching real Apex class signatures from org (two-phase: extract params → parse signatures → merge)
 
-**Only show step details if an error occurs at any step.**
+**Only show SF CLI output and errors. Hide internal logging unless DEBUG=1.**
 
 **Example error output:**
 ```
 Downloading metadata for CustomerServiceBot v4...
-  Step 1.3: Retrieving bot metadata...
-  ❌ Error in Step 1.3: Failed to retrieve bot metadata
-     Reason: Bot not found in org
+❌ Error: Failed to extract bot metadata
 ```
 
 **Success outcome:**
 ```
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  Step 1 complete.
-  Ready to proceed to Step 2: Parse Bot Metadata & Inventory.
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+════════════════════════════════════════════════════════════
+✅  STEP 1 COMPLETE
+════════════════════════════════════════════════════════════
 
-  [yes]   Proceed to Step 2
-  [quit]  Exit  (resume later: /02-process-and-build-inventory)
+Bot metadata successfully retrieved and saved.
+
+Final JSON location:
+  data/bots/00dvw0000075wif2ai/customerservicebot/v4/CustomerServiceBot.json
+
+════════════════════════════════════════════════════════════
 ```
+
+**After successful completion, ask user what they want to do next:**
+```
+We just completed fetching metadata for <BotName> <VersionNumber>.
+
+Would you like to:
+
+  [1] Continue to Step 2 with <BotName> (recommended)
+  [2] Fetch a different bot from the same org (<OrgAlias>)
+  [3] Fetch a bot from a different org
+  [4] Re-fetch the same bot (<BotName> <VersionNumber>)
+
+Which option would you prefer?
+```
+
+**Handle user responses:**
+- **Option 1**: Proceed to `/02-process-and-build-inventory`
+- **Option 2**: Return to Phase 1.2 (bot list) with same org
+- **Option 3**: Return to Phase 1.1 (org selection)
+- **Option 4**: Ask for confirmation, then re-fetch same bot (will overwrite existing data)
+
+**Important**: Replace `<BotName>`, `<VersionNumber>`, and `<OrgAlias>` with actual values from the completed fetch.
 
 **Failure outcome:**
 ```
