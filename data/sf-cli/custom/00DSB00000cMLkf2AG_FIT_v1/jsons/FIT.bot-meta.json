@@ -1,0 +1,153 @@
+{
+  "Bot": {
+    "agentDSLEnabled": "false",
+    "botMlDomain": {
+      "label": "FIT",
+      "mlIntents": [
+        {
+          "description": "This is a menu for all booking related operations",
+          "developerName": "Booking_Menu",
+          "label": "Booking Menu",
+          "mlIntentUtterances": [
+            {
+              "language": "en_US",
+              "utterance": "Booking"
+            },
+            {
+              "language": "en_US",
+              "utterance": "Booking details"
+            },
+            {
+              "language": "en_US",
+              "utterance": "Query about booking"
+            },
+            {
+              "language": "de",
+              "utterance": "Anfrage zur Buchung"
+            },
+            {
+              "language": "de",
+              "utterance": "Buchung"
+            },
+            {
+              "language": "de",
+              "utterance": "Buchungsdetails"
+            },
+            {
+              "language": "en_US",
+              "utterance": "I want to cancel my booking"
+            }
+          ]
+        },
+        {
+          "description": "This is a menu for all complaint related operations",
+          "developerName": "Complaint_Menu",
+          "label": "Complaint Menu",
+          "mlIntentUtterances": [
+            {
+              "language": "en_US",
+              "utterance": "Complaint"
+            },
+            {
+              "language": "en_US",
+              "utterance": "Complaint details"
+            },
+            {
+              "language": "en_US",
+              "utterance": "Query about Complaint"
+            },
+            {
+              "language": "de",
+              "utterance": "Details der Beschwerde"
+            },
+            {
+              "language": "de",
+              "utterance": "Beschwerde"
+            },
+            {
+              "language": "de",
+              "utterance": "Anfrage zur Beschwerde"
+            }
+          ]
+        },
+        {
+          "developerName": "Subscription_Menu",
+          "label": "Subscription Menu",
+          "mlIntentUtterances": [
+            {
+              "language": "en_US",
+              "utterance": "Query about subscription"
+            },
+            {
+              "language": "en_US",
+              "utterance": "Subscription details"
+            },
+            {
+              "language": "en_US",
+              "utterance": "Subscription"
+            },
+            {
+              "language": "de",
+              "utterance": "Abonnement"
+            },
+            {
+              "language": "de",
+              "utterance": "Abonnementdetails"
+            },
+            {
+              "language": "de",
+              "utterance": "Anfrage zum Abonnement"
+            }
+          ]
+        }
+      ],
+      "name": "FIT"
+    },
+    "botSource": "None",
+    "contextVariables": [
+      {
+        "contextVariableMappings": {
+          "SObjectType": "MessagingEndUser",
+          "fieldName": "MessagingEndUser.ContactId",
+          "messageType": "EmbeddedMessaging"
+        },
+        "dataType": "Id",
+        "description": "This variable may also be referred to as MessagingEndUser ContactId",
+        "developerName": "ContactId",
+        "includeInPrompt": "false",
+        "label": "Contact Id"
+      },
+      {
+        "contextVariableMappings": {
+          "SObjectType": "MessagingSession",
+          "fieldName": "MessagingSession.MessagingEndUserId",
+          "messageType": "EmbeddedMessaging"
+        },
+        "dataType": "Id",
+        "description": "This variable may also be referred to as MessagingEndUser Id",
+        "developerName": "EndUserId",
+        "includeInPrompt": "true",
+        "label": "End User Id"
+      },
+      {
+        "contextVariableMappings": {
+          "SObjectType": "MessagingSession",
+          "fieldName": "MessagingSession.Id",
+          "messageType": "EmbeddedMessaging"
+        },
+        "dataType": "Id",
+        "description": "This variable may also be referred to as MessagingSession Id",
+        "developerName": "RoutableId",
+        "includeInPrompt": "true",
+        "label": "Routable Id"
+      }
+    ],
+    "defaultOutboundFlow": "RouteToAgent",
+    "description": "A bot from scratch.",
+    "label": "FIT",
+    "logPrivateConversationData": "true",
+    "richContentEnabled": "true",
+    "sessionTimeout": "0",
+    "type": "Bot"
+  }
+}

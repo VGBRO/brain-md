@@ -6,9 +6,21 @@ allowed-tools: Write, Edit, Read, Glob
 
 # 0. Prerequisite
 
-- If `agentscript.txt` file already exists in the data directory, ask the user explicitly if they want to skip this step.
-    - If yes, then show a message to the user like 'Proceeding to the next step..'. And give back the control.
-    - If not, proceed to the next step.
+- If `agentscript.agent` file already exists in the data directory and the user has opted to reuse the existing artifacts in all the previous steps in the full conversion process,
+    - ask the user explicitly if they want to skip this step. Something like - "You have opted to use the preprocessed artifacts in all the previous steps, and it looks like the agentscript was already generated for this bot version previously. Do you want to continue reusing the same output or do you want to generate the agentscript again?"
+    - **DO NOT mention the file names or paths in question or do not expose the file names/paths to the user.**
+    - If the user wants to use the existing output from a previously initiated conversion process, then show a message to the user like 'Proceeding to the next step..'. And give back the control.
+    - If not, proceed to step #1 below.
+
+- As this is a complex task, if this requires creation of an agent internally, provide the below message about what the agent would do to execute this task:
+    ```
+    1. Read through the output of bot preprocessing
+    2. Understand the conversational flows in bot
+    3. Understand the intent digest
+    4. Reference pregenerated topics
+    5. Generate full agentscript
+    6. Validate the generated agentscript
+    ```
 
 # 1. Understand the agentscript/agentforce syntax.
 
@@ -18,7 +30,7 @@ An agentforce agent is an orchestrator AI agent working on top of a group of sub
 
 ## Agentforce agent Configuration schema (Agentscript language structure/syntax).
 
-- First, lookup and understand `AgentScriptLexer.g4` and `AgentScriptParser.g4` files in the available resources. These are antlr files that define the structure and grammar of the agentscript language.
+- First, lookup and understand `AgentScriptLexer.g4` and `AgentScriptParser.g4` files in the `grammar` folder in available resources. These are antlr files (lexer and parser) that define the structure and grammar of the agentscript language.
 - `system` section captures system consumed values.
 - `config` section provides configuration values and settings.
 - `variables` section captures the configuration runtime variables used to store the session state.
@@ -391,21 +403,38 @@ Delete the topics generated corresponding to the `deleted_topics` in the `topic_
 # 8. Validations.
 
 1. **Important Instruction** - Ensure that the final agentforce configuration (agentscript) adheres to the syntax of the agentscript as per the provided antlr files.
-2. **Important Instruction** - Read through the rules provided at `00-start-migration/assets/AGENT_SCRIPT_RULES.md` and align the generated agentscript to strictly follow these rules.
-3. Ensure that the transitions in the agentscript do not point to non-existent topics. If so, either modify the transition to point to the right topic or delete the transition and corresponding instructions.
-4. Consolidate all the comments at the start of the agentscript. Comment starts with '#'.
-5. Ensure that comments are added to explain every placeholder entry in the agentscript.
-6. Ensure that all actions have correct input and output mappings in the right expected variable formats. If not, fix the problem by matching the format with `botInvocationsDescribeInfo` in bot metadata.
-7. The agent execution starts from the topic labelled `start_agent`. Make sure that every other topic is reachable in any path via transitions. If a topic is not reachable, delete that topic.
+2. **Important Instruction** - Read through the rules provided at `rules/AGENT_SCRIPT_RULES.md` in the available resources and align the generated agentscript to strictly follow these rules.
+3. If necessary, try fixing any syntax alignment issues by looking at examples in `recipes/AGENT_SCRIPT_RECIPES.xml` in the available resources.
+4. Ensure that the transitions in the agentscript do not point to non-existent topics. If so, either modify the transition to point to the right topic or delete the transition and corresponding instructions.
+5. Consolidate all the comments at the start of the agentscript. Comment starts with '#'.
+6. Ensure that comments are added to explain every placeholder entry in the agentscript.
+7. Ensure that all actions have correct input and output mappings in the right expected variable formats. If not, fix the problem by matching the format with `botInvocationsDescribeInfo` in bot metadata.
+8. The agent execution starts from the topic labelled `start_agent`. Make sure that every other topic is reachable in any path via transitions. If a topic is not reachable, delete that topic.
+9. Ensure that all the instructions that are referencing action invocations have the format {!@actions.<action_name>}.
+10. Ensure that all the instructions that are referencing variables have the format {!@variables.<variable_name>}.
 
 # 9. Wait for user response and feedback, and incorporate any changes suggested.
 
-Do this in a phased manner, as the content that has been generated is large and dumping all the content on the user at once will lead to confusion and missing detail. Go through the below steps to finalise the agentscript after incorporating any changes.
+First, inform the user that the agentscript has been generated successfully. Then, provide a 1-2 line summary of the following sections in generated agentscript:
+    - system
+    - config
+    - variables
+    - knowledge
+    - language
+    - topics
+
+Then, inform the user that you will help them review each section. And inform them that they also have an option to directly navigate to a particular section if they want to.
+**Important Instruction** - Allow user to stop/skip reviewing the generated agentscript at any point in the review process and move on to the next step. If the user does this, move on the step #10.
+**Important Instruction** - At any point in the entire review process, allow the user to review any section of the agentscript. If the user does this, then help them review the sections that they would like and keep asking for their inputs on what they would like to do next.
+
+Help the user review the agentscript in a phased manner, as the content that has been generated is large and dumping all the content on the user at once will lead to confusion and missing detail. Go through the below steps to finalise the agentscript after incorporating any changes.
 
 ## 1. Review `system` section in agentscript.
 
 - Print ONLY the system section in the generated agentscript.
 - Inform the user that the instructions in this section would apply to the entire agent in general. And help them update the instructions as per their requirements.
+- If the user wants to update the error or welcome messages, help them do so.
+    - User cannot delete these entries, as they are mandatory fields in an agentscript.
 - If the user wants to do anything else, inform them that it is out of the scope for now.
 - If the user wants to move to the next section, go to the next step.
 
@@ -414,7 +443,9 @@ Do this in a phased manner, as the content that has been generated is large and 
 - Print ONLY the config section in the generated agentscript.
 - Inform that they can modify the name of the agent if they want. And help them do it.
 - **Important Instruction** - The user CANNOT modify `agent_type`. This should always be `AgentforceServiceAgent`. If they want to edit this, inform the user that this is a standard value provided for all agentforce service agents.
-- Inform the user that they would have to create a new user with agentforce service user permissions OR assign an existing user with those permissions, in the field `default_agent_user` before deploying the agent. Help them update this value if necessary.
+- Inform the user that they would have to create a new user in their salesforce org with agentforce service user permissions OR assign an existing user with those permissions, in the field `default_agent_user` before deploying the agent. Help them update this value if necessary.
+- If the user wants to update the description, help them do so.
+- User cannot delete any of these fields as they are all mandatory.
 - If the user wants to do anything else, inform them that it is out of the scope for now.
 - If the user wants to move to the next section, go to the next step.
 
@@ -430,6 +461,7 @@ Do this in a phased manner, as the content that has been generated is large and 
 
 - Print ONLY the knowledge section in the generated agentscript.
 - User can edit any field in this section. Help user update this section.
+- User cannot add new fields in this section.
 - If the user wants to do anything else, inform them that it is out of the scope for now.
 - If the user wants to move to the next section, go to the next step.
 
@@ -442,12 +474,14 @@ Do this in a phased manner, as the content that has been generated is large and 
     - `all_additional_locales` - Boolean (true/false) indicating if all locales should be supported.
 - Provide the user the list of locales that can be added in each field.
 - After user updates this section, validate that the locales provided in the fields are all valid.
+- User cannot add new fields in this section.
 
 ## 6. Review topics in agentscript.
 
 - First, provide the user with information about topics and what can be done with those. Like -
     - Each topic has a name, a description, a list of associated actions and a set of natural language instructions.
     - All of these are editable. And I will help you review each topic and update them whenever necessary.
+- **Important Instruction** - User cannot add/delete any topic. They can only edit/update topics.
 - User will review topics (marked as `topic` OR `start_agent`). Show the user one topic per step, and ask for modifications.
 - Start with `start_agent` topic and continue to other topics. For every topic, do the following:
 1. Print the following data:
@@ -512,5 +546,6 @@ Do this in a phased manner, as the content that has been generated is large and 
 
 # 10. Output the agentscript
 
-- Write the generated agentscript to `agentscript.txt` in the data directory.
+- Validate that the agentscript follows all the rules mentioned in step # 8.
+- Write the generated agentscript to `agentscript.agent` in the data directory.
 - Finally, provide a message to the user like 'Proceeding to the next step..'. And stop here. And give back the control.

@@ -6,9 +6,11 @@ allowed-tools: Write, Edit, Read, Glob
 
 # 0. Prerequisite
 
-- If both `preprocessed_bot.json` and `intent_digest.json` files already exists in the data directory, ask the user explicitly if they want to skip this step.
-    - If yes, then show a message to the user like 'Proceeding to the next step..'. And give back the control.
-    - If not, proceed to the next step.
+- If both `preprocessed_bot.json` and `intent_digest.json` files already exists in the data directory,
+    - ask the user explicitly if they want to skip this step. Something like - "It looks like this version of the bot has already been processed before. Do you want to reuse the same output or do you want to process the bot again?"
+    - **DO NOT mention the file names or paths in question or do not expose the file names/paths to the user.**
+    - If the user wants to use the existing output from a previously initiated conversion process, then show a message to the user like 'Proceeding to the next step..'. And give back the control.
+    - If not, proceed to step #1 below.
 
 # 1. Reformat and refine the bot structure.
 
@@ -31,9 +33,22 @@ preprocess_bot.run()
     - value: A 2-3 sentence description/summary of the user's intent. This description would later be used by a generative AI agent as a subagent's context to match against the user's intent.
 - Save the intent digest to `intent_digest.json` file in the data directory.
 
-# 3. Show Bot Summary.
+# 3. Show Bot Details.
 
-- Show a tabular summary of the processed bot to the user. Include bot name, bot version name, total number of dialogs, total number of actions, total number of intents and total number of context variables.
+Show the bot details in a tabular format as suggested below:
+
+1. Show action/invocation details.
+=======================================
+ACTIONS
+=======================================
+| <action_name> | <action_target> |
+
+2. Show dialogs containing at least one action, and a comma-separated list of actions in the dialog.
+=======================================
+DIALOGS WITH ACTIONS
+=======================================
+| <dialog_name> | <list_of_actions_in_the_dialog> |
+
 - Do not show the generated files or file paths to the user.
 
 # 4. Wait for user response.
@@ -47,7 +62,7 @@ preprocess_bot.run()
 - If the user has any questions, look for the answers from the content in the generated files (`intent_digest.json` or `preprocessed_bot.json`) or the original `bot.json` file.
     - If the question is out of the scope of these files, then inform the user that the question is out of scope and inform them that you can answer questions related to the bot configuration and provide examples of questions about dialogs, actions, dialog to action mappings etc.
     - If the user asks questions about all the dialogs, and if there are too many dialogs in the bot (more than 20), nudge user towards a more specific question instead of displaying all the dialogs at once.
-    - User CANNOT ask to modify/update any information about the bot. And hence, the generated files and the original bot json file cannot be modified via user interactions at this point.
+    - User CANNOT ask to modify/update any information about the bot. And hence, the generated files and the original bot json file cannot be modified via user interactions at this point. This is only an informational interaction with the user and not intended to take any feedback from the user.
 - If the user wants to proceed to the next step, provide a message to the user like 'Proceeding to the next step..'. And stop here. And give back the control.
 
 ** IMPORTANT INSTRUCTION ** - Do not make any changes to `bot.json` or `preprocessed_bot.json` or `intent_digest.json` files while interacting with the user.

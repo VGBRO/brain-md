@@ -1,0 +1,2113 @@
+{
+  "Bot": {
+    "fullName": "FIT",
+    "botMlDomain": {
+      "label": "FIT",
+      "mlIntents": [
+        {
+          "description": "This is a menu for all booking related operations",
+          "developerName": "Booking_Menu",
+          "label": "Booking Menu",
+          "mlIntentUtterances": [
+            {
+              "language": "en_US",
+              "utterance": "Booking"
+            },
+            {
+              "language": "en_US",
+              "utterance": "Booking details"
+            },
+            {
+              "language": "en_US",
+              "utterance": "Query about booking"
+            },
+            {
+              "language": "de",
+              "utterance": "Anfrage zur Buchung"
+            },
+            {
+              "language": "de",
+              "utterance": "Buchung"
+            },
+            {
+              "language": "de",
+              "utterance": "Buchungsdetails"
+            },
+            {
+              "language": "en_US",
+              "utterance": "I want to cancel my booking"
+            }
+          ]
+        },
+        {
+          "description": "This is a menu for all complaint related operations",
+          "developerName": "Complaint_Menu",
+          "label": "Complaint Menu",
+          "mlIntentUtterances": [
+            {
+              "language": "en_US",
+              "utterance": "Complaint"
+            },
+            {
+              "language": "en_US",
+              "utterance": "Complaint details"
+            },
+            {
+              "language": "en_US",
+              "utterance": "Query about Complaint"
+            },
+            {
+              "language": "de",
+              "utterance": "Details der Beschwerde"
+            },
+            {
+              "language": "de",
+              "utterance": "Beschwerde"
+            },
+            {
+              "language": "de",
+              "utterance": "Anfrage zur Beschwerde"
+            }
+          ]
+        },
+        {
+          "developerName": "Subscription_Menu",
+          "label": "Subscription Menu",
+          "mlIntentUtterances": [
+            {
+              "language": "en_US",
+              "utterance": "Query about subscription"
+            },
+            {
+              "language": "en_US",
+              "utterance": "Subscription details"
+            },
+            {
+              "language": "en_US",
+              "utterance": "Subscription"
+            },
+            {
+              "language": "de",
+              "utterance": "Abonnement"
+            },
+            {
+              "language": "de",
+              "utterance": "Abonnementdetails"
+            },
+            {
+              "language": "de",
+              "utterance": "Anfrage zum Abonnement"
+            }
+          ]
+        }
+      ],
+      "name": "FIT"
+    },
+    "contextVariables": [
+      {
+        "dataType": "Id",
+        "developerName": "ContactId",
+        "label": "Contact Id"
+      },
+      {
+        "dataType": "Id",
+        "developerName": "EndUserId",
+        "label": "End User Id"
+      },
+      {
+        "dataType": "Id",
+        "developerName": "RoutableId",
+        "label": "Routable Id"
+      }
+    ],
+    "description": "A bot from scratch.",
+    "label": "FIT",
+    "botVersions": [
+      {
+        "fullName": "v1",
+        "articleAnswersGPTEnabled": false,
+        "botDialogGroups": [
+          {
+            "developerName": "Booking",
+            "label": "Booking"
+          },
+          {
+            "developerName": "Complaint",
+            "label": "Complaint"
+          },
+          {
+            "developerName": "Subscription",
+            "label": "Subscription"
+          }
+        ],
+        "botDialogs": [
+          {
+            "botSteps": [
+              {
+                "botMessages": [
+                  {
+                    "message": "Hi, I'm FIT, a digital assistant",
+                    "messageIdentifier": "24d46ffc-fa38-4804-b77c-b90dc55c7a38"
+                  }
+                ],
+                "stepIdentifier": "0742dc92-5211-4f25-9261-5295fcff2d1d",
+                "type": "Message"
+              },
+              {
+                "botNavigation": {
+                  "botNavigationLinks": [
+                    {
+                      "targetBotDialog": "Main_Menu"
+                    }
+                  ],
+                  "type": "Redirect"
+                },
+                "stepIdentifier": "4d807229-1ca3-442f-aadb-98390a0fc058",
+                "type": "Navigation"
+              }
+            ],
+            "developerName": "Welcome",
+            "isPlaceholderDialog": false,
+            "label": "Welcome",
+            "showInFooterMenu": false
+          },
+          {
+            "botSteps": [
+              {
+                "botMessages": [
+                  {
+                    "message": "How may I assist you? What do you need help with?",
+                    "messageIdentifier": "855eda06-6810-bf80-4b56-a40820e873cc"
+                  }
+                ],
+                "stepIdentifier": "a3eaa798-b703-4b61-bf12-d24777e27507",
+                "type": "Message"
+              },
+              {
+                "stepIdentifier": "b1eb377a-0165-41f0-9537-f80f6db4d978",
+                "type": "Wait"
+              }
+            ],
+            "developerName": "Main_Menu",
+            "isPlaceholderDialog": false,
+            "label": "Main Menu",
+            "showInFooterMenu": false
+          },
+          {
+            "botSteps": [
+              {
+                "conversationSystemMessage": {
+                  "type": "Transfer"
+                },
+                "stepIdentifier": "59f24f67-ab25-468b-835f-e18c762716a6",
+                "type": "SystemMessage"
+              }
+            ],
+            "developerName": "Transfer_To_Agent",
+            "isPlaceholderDialog": false,
+            "label": "Transfer To Agent",
+            "showInFooterMenu": false
+          },
+          {
+            "botSteps": [
+              {
+                "botMessages": [
+                  {
+                    "message": "Thanks for taking the time to chat. I’ve ended the conversation. To start a new conversation, enter some text.",
+                    "messageIdentifier": "edd000fd-a515-4ffe-8192-904c8f0d76ab"
+                  }
+                ],
+                "stepIdentifier": "2f9239b2-1928-4c3e-8ac3-fa887d6bcf40",
+                "type": "Message"
+              },
+              {
+                "botSteps": [
+                  {
+                    "conversationSystemMessage": {
+                      "type": "EndChat"
+                    },
+                    "stepIdentifier": "28c19fe2-23a8-4cef-95d3-52e19b34641f",
+                    "type": "SystemMessage"
+                  }
+                ],
+                "stepIdentifier": "5e8070db-ba68-47a1-b7e2-8354dd6d7d10",
+                "type": "Group"
+              },
+              {
+                "stepIdentifier": "396d09bf-3cf2-470e-a535-2cd0e445d4ae",
+                "type": "Wait"
+              }
+            ],
+            "developerName": "Rich_Content_End_Chat",
+            "isPlaceholderDialog": false,
+            "label": "End Chat",
+            "showInFooterMenu": false
+          },
+          {
+            "botSteps": [
+              {
+                "botMessages": [
+                  {
+                    "message": "Sorry, I didn't understand that.",
+                    "messageIdentifier": "59bedbc0-6a6a-4582-99f4-8f1b11648d9a"
+                  }
+                ],
+                "stepIdentifier": "43ffe835-03e2-4c6d-b637-d37cbc08c851",
+                "type": "Message"
+              },
+              {
+                "stepIdentifier": "cdd2536d-9a60-4e69-9dce-ae4a40c84426",
+                "type": "Wait"
+              }
+            ],
+            "developerName": "Confused",
+            "isPlaceholderDialog": false,
+            "label": "Confused",
+            "showInFooterMenu": false
+          },
+          {
+            "botSteps": [
+              {
+                "botMessages": [
+                  {
+                    "message": "Unfortunately, there are no agents available at the moment",
+                    "messageIdentifier": "0b76b2c0-2f3f-42d0-9892-b5a5a3165bbb"
+                  }
+                ],
+                "stepIdentifier": "5b5d0d5e-3e73-40ed-95b3-730206e546e7",
+                "type": "Message"
+              },
+              {
+                "stepIdentifier": "1bbbf309-56e2-4e5b-8f5f-c3ba818a0388",
+                "type": "Wait"
+              }
+            ],
+            "developerName": "No_Agent_Available",
+            "isPlaceholderDialog": false,
+            "label": "No Agent",
+            "showInFooterMenu": false
+          },
+          {
+            "botSteps": [
+              {
+                "botMessages": [
+                  {
+                    "message": "Unfortunately, a system error occurred. Let us start again.",
+                    "messageIdentifier": "4ddf0b03-f62f-4716-b7bd-9c90aa1c7702"
+                  }
+                ],
+                "stepIdentifier": "27d6f8bc-0bf6-4241-8d68-c7239fdaa3c7",
+                "type": "Message"
+              },
+              {
+                "botNavigation": {
+                  "botNavigationLinks": [
+                    {
+                      "targetBotDialog": "Main_Menu"
+                    }
+                  ],
+                  "type": "Redirect"
+                },
+                "stepIdentifier": "f28ffdf1-ba63-45b0-b57e-caee571aa749",
+                "type": "Navigation"
+              }
+            ],
+            "developerName": "Rich_Content_Error_Handling",
+            "isPlaceholderDialog": false,
+            "label": "Error Handler",
+            "showInFooterMenu": false
+          },
+          {
+            "botDialogGroup": "Subscription",
+            "botSteps": [
+              {
+                "botVariableOperation": {
+                  "askCollectIfSet": "true",
+                  "botMessages": [
+                    {
+                      "message": "Please select an option",
+                      "messageIdentifier": "0341f710-576b-d3ac-ff7b-e9c29f0bc806"
+                    }
+                  ],
+                  "botQuickReplyOptions": [
+                    {
+                      "literalValue": "Create Subscription",
+                      "quickReplyOptionIdentifier": "6195117d-261e-e873-5e93-d164fecd37ae"
+                    },
+                    {
+                      "literalValue": "Get Subscription Details",
+                      "quickReplyOptionIdentifier": "dfc4e6f6-ec91-8e4e-1585-2cf796a1178e"
+                    },
+                    {
+                      "literalValue": "Cancel Subscription",
+                      "quickReplyOptionIdentifier": "222cd19a-cfad-ca17-7904-e02c90f78a7f"
+                    }
+                  ],
+                  "botVariableOperands": [
+                    {
+                      "disableAutoFill": "true",
+                      "sourceName": "_Text",
+                      "sourceType": "StandardMlSlotClass",
+                      "targetName": "Subscription_Menu_Selection",
+                      "targetType": "ConversationVariable"
+                    }
+                  ],
+                  "ignoreIntentRecognition": "false",
+                  "optionalCollect": false,
+                  "quickReplyType": "Static",
+                  "quickReplyWidgetType": "Buttons",
+                  "type": "Collect",
+                  "variableOperationIdentifier": "8e3ccde5-64df-d193-cae2-1fc6f3c7b63d"
+                },
+                "stepIdentifier": "ffd7b4f9-f9b5-47fb-a5b4-78577a8cbacc",
+                "type": "VariableOperation"
+              },
+              {
+                "botStepConditions": [
+                  {
+                    "leftOperandName": "Subscription_Menu_Selection",
+                    "leftOperandType": "ConversationVariable",
+                    "operatorType": "Equals",
+                    "rightOperandValue": "Create Subscription"
+                  }
+                ],
+                "botSteps": [
+                  {
+                    "botNavigation": {
+                      "botNavigationLinks": [
+                        {
+                          "targetBotDialog": "Create_Subscription"
+                        }
+                      ],
+                      "type": "Redirect"
+                    },
+                    "stepIdentifier": "1e10b9c6-d8bd-4749-be49-eb7ce6d1d3c4",
+                    "type": "Navigation"
+                  }
+                ],
+                "conditionLogicType": "And",
+                "stepIdentifier": "916a54fd-e353-4cef-81ef-fe49fed1f9dd",
+                "type": "Group"
+              },
+              {
+                "botStepConditions": [
+                  {
+                    "leftOperandName": "Subscription_Menu_Selection",
+                    "leftOperandType": "ConversationVariable",
+                    "operatorType": "Equals",
+                    "rightOperandValue": "Get Subscription Details"
+                  }
+                ],
+                "botSteps": [
+                  {
+                    "botNavigation": {
+                      "botNavigationLinks": [
+                        {
+                          "targetBotDialog": "Get_Subscription_Details"
+                        }
+                      ],
+                      "type": "Redirect"
+                    },
+                    "stepIdentifier": "2c969da9-c6f7-4b6f-b822-a5ca17095e2b",
+                    "type": "Navigation"
+                  }
+                ],
+                "conditionLogicType": "And",
+                "stepIdentifier": "a5b4160a-84ff-4f34-88aa-e37019b905a1",
+                "type": "Group"
+              },
+              {
+                "botStepConditions": [
+                  {
+                    "leftOperandName": "Subscription_Menu_Selection",
+                    "leftOperandType": "ConversationVariable",
+                    "operatorType": "Equals",
+                    "rightOperandValue": "Cancel Subscription"
+                  }
+                ],
+                "botSteps": [
+                  {
+                    "botNavigation": {
+                      "botNavigationLinks": [
+                        {
+                          "targetBotDialog": "Cancel_Subscription"
+                        }
+                      ],
+                      "type": "Redirect"
+                    },
+                    "stepIdentifier": "09c94fc2-3656-4e3b-a420-f1aaece35aeb",
+                    "type": "Navigation"
+                  }
+                ],
+                "conditionLogicType": "And",
+                "stepIdentifier": "f344f5da-3b8b-41ae-a413-f027a331655b",
+                "type": "Group"
+              },
+              {
+                "stepIdentifier": "bcf86495-fed0-4c03-a65e-3faca6221d8b",
+                "type": "Wait"
+              }
+            ],
+            "description": "This is a menu for all subscription related operations",
+            "developerName": "Subscription_Menu",
+            "isPlaceholderDialog": false,
+            "label": "Subscription Menu",
+            "mlIntent": "Subscription_Menu",
+            "mlIntentTrainingEnabled": true,
+            "showInFooterMenu": false
+          },
+          {
+            "botDialogGroup": "Subscription",
+            "botSteps": [
+              {
+                "botVariableOperation": {
+                  "askCollectIfSet": "true",
+                  "botMessages": [
+                    {
+                      "message": "Please enter your phone number",
+                      "messageIdentifier": "016eff71-9f73-b6ca-2faf-eb6c4188cd3f"
+                    }
+                  ],
+                  "botVariableOperands": [
+                    {
+                      "disableAutoFill": "true",
+                      "sourceName": "_Text",
+                      "sourceType": "StandardMlSlotClass",
+                      "targetName": "Phone_Number",
+                      "targetType": "ConversationVariable"
+                    }
+                  ],
+                  "optionalCollect": false,
+                  "quickReplyWidgetType": "Buttons",
+                  "type": "Collect",
+                  "variableOperationIdentifier": "1e69ea75-8d99-474f-9163-0fbf21a1723b"
+                },
+                "stepIdentifier": "f01a80ea-e8ae-4ef3-8b7c-bad7873cb47a",
+                "type": "VariableOperation"
+              },
+              {
+                "botVariableOperation": {
+                  "askCollectIfSet": "true",
+                  "botMessages": [
+                    {
+                      "message": "Please select a plan",
+                      "messageIdentifier": "bb3bd440-d6b9-91ba-c497-5e26cfc6b648"
+                    }
+                  ],
+                  "botQuickReplyOptions": [
+                    {
+                      "literalValue": "Standard",
+                      "quickReplyOptionIdentifier": "2e3c3565-318e-4b32-98a1-37ab3a13dec1"
+                    },
+                    {
+                      "literalValue": "Premium",
+                      "quickReplyOptionIdentifier": "ba341e02-20f8-20e3-aa3c-981dcb2742b2"
+                    },
+                    {
+                      "literalValue": "Elite",
+                      "quickReplyOptionIdentifier": "5ed2947f-4fcd-041f-0216-e978a81c7769"
+                    }
+                  ],
+                  "botVariableOperands": [
+                    {
+                      "disableAutoFill": "true",
+                      "sourceName": "_Text",
+                      "sourceType": "StandardMlSlotClass",
+                      "targetName": "FIT_Plan",
+                      "targetType": "ConversationVariable"
+                    }
+                  ],
+                  "ignoreIntentRecognition": "false",
+                  "optionalCollect": false,
+                  "quickReplyType": "Static",
+                  "quickReplyWidgetType": "Buttons",
+                  "type": "Collect",
+                  "variableOperationIdentifier": "f5dd6691-fe58-03d3-8b98-05bb05075c4e"
+                },
+                "stepIdentifier": "6c3ae347-e8a0-4cc4-b869-96c6a07e1ea5",
+                "type": "VariableOperation"
+              },
+              {
+                "botVariableOperation": {
+                  "askCollectIfSet": "true",
+                  "botMessages": [
+                    {
+                      "message": "Enter your start date in YYYY-MM-DD format",
+                      "messageIdentifier": "0b37a69c-a0df-ddab-e46b-13bb5c355396"
+                    }
+                  ],
+                  "botVariableOperands": [
+                    {
+                      "disableAutoFill": "true",
+                      "sourceName": "_Text",
+                      "sourceType": "StandardMlSlotClass",
+                      "targetName": "Subscription_Start_Date",
+                      "targetType": "ConversationVariable"
+                    }
+                  ],
+                  "optionalCollect": false,
+                  "quickReplyWidgetType": "Buttons",
+                  "type": "Collect",
+                  "variableOperationIdentifier": "4d77e917-131a-555c-e284-44b43204b3bd"
+                },
+                "stepIdentifier": "fbafbbb5-5321-4c5d-ae41-8475ba3e05b9",
+                "type": "VariableOperation"
+              },
+              {
+                "botVariableOperation": {
+                  "askCollectIfSet": "true",
+                  "botMessages": [
+                    {
+                      "message": "Enter your end date in YYYY-MM-DD format",
+                      "messageIdentifier": "d769e2b6-0d2d-d02f-3c43-c97ed173bf71"
+                    }
+                  ],
+                  "botVariableOperands": [
+                    {
+                      "disableAutoFill": "true",
+                      "sourceName": "_Text",
+                      "sourceType": "StandardMlSlotClass",
+                      "targetName": "Subscription_End_Date",
+                      "targetType": "ConversationVariable"
+                    }
+                  ],
+                  "optionalCollect": false,
+                  "quickReplyWidgetType": "Buttons",
+                  "type": "Collect",
+                  "variableOperationIdentifier": "546ad5d4-f143-129e-d6dc-8ea712bc6781"
+                },
+                "stepIdentifier": "8d1df92e-3c1b-4858-a061-60ded3e76a0e",
+                "type": "VariableOperation"
+              },
+              {
+                "botVariableOperation": {
+                  "botInvocation": {
+                    "invocationActionName": "FIT_Create_Subscription",
+                    "invocationActionType": "apex",
+                    "invocationMappings": [
+                      {
+                        "parameterName": "plan",
+                        "type": "Input",
+                        "variableName": "FIT_Plan",
+                        "variableType": "ConversationVariable"
+                      },
+                      {
+                        "parameterName": "endDate",
+                        "type": "Input",
+                        "variableName": "Subscription_End_Date",
+                        "variableType": "ConversationVariable"
+                      },
+                      {
+                        "parameterName": "phone",
+                        "type": "Input",
+                        "variableName": "Phone_Number",
+                        "variableType": "ConversationVariable"
+                      },
+                      {
+                        "parameterName": "startDate",
+                        "type": "Input",
+                        "variableName": "Subscription_Start_Date",
+                        "variableType": "ConversationVariable"
+                      },
+                      {
+                        "parameterName": "output",
+                        "type": "Output",
+                        "variableName": "Subscription_Id",
+                        "variableType": "ConversationVariable"
+                      }
+                    ]
+                  },
+                  "type": "Set",
+                  "variableOperationIdentifier": "96f92b5c-25bd-4eda-8a2e-379a851f34fe"
+                },
+                "stepIdentifier": "127fbff1-8d0e-4b51-b7e2-c694942b33a2",
+                "type": "VariableOperation"
+              },
+              {
+                "botMessages": [
+                  {
+                    "message": "Successfully created subscription for you. Id - {!Subscription_Id}. Payment details would be sent on your phone.",
+                    "messageIdentifier": "805f171f-e04d-1ebd-5846-945bc329d8f9"
+                  }
+                ],
+                "stepIdentifier": "3e79caf2-c601-456a-9d95-76465b70ab78",
+                "type": "Message"
+              },
+              {
+                "botSteps": [
+                  {
+                    "botNavigation": {
+                      "botNavigationLinks": [
+                        {
+                          "targetBotDialog": "Main_Menu"
+                        }
+                      ],
+                      "type": "Redirect"
+                    },
+                    "stepIdentifier": "b1e79402-4771-45a4-8069-69258e0c40f8",
+                    "type": "Navigation"
+                  }
+                ],
+                "conditionLogicType": "And",
+                "stepIdentifier": "4c3d62a7-a9fc-4f0e-bec2-7436ffcf1410",
+                "type": "Group"
+              },
+              {
+                "botNavigation": {
+                  "botNavigationLinks": [
+                    {
+                      "targetBotDialog": "Main_Menu"
+                    }
+                  ],
+                  "type": "Redirect"
+                },
+                "stepIdentifier": "5384df1e-2977-49e4-80f5-d356def640bf",
+                "type": "Navigation"
+              }
+            ],
+            "description": "This is to create a subscription",
+            "developerName": "Create_Subscription",
+            "isPlaceholderDialog": false,
+            "label": "Create Subscription",
+            "showInFooterMenu": false
+          },
+          {
+            "botDialogGroup": "Subscription",
+            "botSteps": [
+              {
+                "botVariableOperation": {
+                  "askCollectIfSet": "true",
+                  "botMessages": [
+                    {
+                      "message": "Please enter your phone number",
+                      "messageIdentifier": "190e283d-6ad2-8e4f-98ee-fc9e14ac88c2"
+                    }
+                  ],
+                  "botVariableOperands": [
+                    {
+                      "disableAutoFill": "true",
+                      "sourceName": "_Text",
+                      "sourceType": "StandardMlSlotClass",
+                      "targetName": "Phone_Number",
+                      "targetType": "ConversationVariable"
+                    }
+                  ],
+                  "optionalCollect": false,
+                  "quickReplyWidgetType": "Buttons",
+                  "type": "Collect",
+                  "variableOperationIdentifier": "89509813-5634-f672-fcae-fba9d6399ab6"
+                },
+                "stepIdentifier": "59edad1d-96ec-4536-9de4-f729cfec4d08",
+                "type": "VariableOperation"
+              },
+              {
+                "botVariableOperation": {
+                  "botInvocation": {
+                    "invocationActionName": "FIT_Get_Subscription",
+                    "invocationActionType": "apex",
+                    "invocationMappings": [
+                      {
+                        "parameterName": "phoneNumbers",
+                        "type": "Input",
+                        "variableName": "Phone_Number",
+                        "variableType": "ConversationVariable"
+                      },
+                      {
+                        "parameterName": "startDate",
+                        "type": "Output",
+                        "variableName": "Subscription_Start_Date",
+                        "variableType": "ConversationVariable"
+                      },
+                      {
+                        "parameterName": "id",
+                        "type": "Output",
+                        "variableName": "Subscription_Id",
+                        "variableType": "ConversationVariable"
+                      },
+                      {
+                        "parameterName": "endDate",
+                        "type": "Output",
+                        "variableName": "Subscription_End_Date",
+                        "variableType": "ConversationVariable"
+                      },
+                      {
+                        "parameterName": "status",
+                        "type": "Output",
+                        "variableName": "Subscription_Status",
+                        "variableType": "ConversationVariable"
+                      },
+                      {
+                        "parameterName": "plan",
+                        "type": "Output",
+                        "variableName": "FIT_Plan",
+                        "variableType": "ConversationVariable"
+                      }
+                    ]
+                  },
+                  "type": "Set",
+                  "variableOperationIdentifier": "f91a1207-b8f8-4c78-b238-4b27ff283718"
+                },
+                "stepIdentifier": "1fa39f0f-7e2a-46c5-b9b2-84bfe37806c3",
+                "type": "VariableOperation"
+              },
+              {
+                "botMessages": [
+                  {
+                    "message": "Subscription id - {!Subscription_Id}, Subscription plan - {!FIT_Plan}, Subscription status - {!Subscription_Status}, Subscription start date - {!Subscription_Start_Date}, Subscription end date - {!Subscription_End_Date}",
+                    "messageIdentifier": "439880eb-8246-682f-c527-dd5df78477cd"
+                  }
+                ],
+                "stepIdentifier": "841ec4dc-f788-4ca5-badc-303a5e0c882b",
+                "type": "Message"
+              },
+              {
+                "botSteps": [
+                  {
+                    "botNavigation": {
+                      "botNavigationLinks": [
+                        {
+                          "targetBotDialog": "Main_Menu"
+                        }
+                      ],
+                      "type": "Redirect"
+                    },
+                    "stepIdentifier": "05fe05e0-b146-4d0d-9fe6-f00a0e4cc9a3",
+                    "type": "Navigation"
+                  }
+                ],
+                "conditionLogicType": "And",
+                "stepIdentifier": "af3aa450-1305-4554-acaa-8fdc83c6f77c",
+                "type": "Group"
+              },
+              {
+                "botNavigation": {
+                  "botNavigationLinks": [
+                    {
+                      "targetBotDialog": "Main_Menu"
+                    }
+                  ],
+                  "type": "Redirect"
+                },
+                "stepIdentifier": "7d6416ea-0eae-4a7f-b690-c0614f63a615",
+                "type": "Navigation"
+              }
+            ],
+            "description": "This is to fetch the subscription",
+            "developerName": "Get_Subscription_Details",
+            "isPlaceholderDialog": false,
+            "label": "Get Subscription Details",
+            "showInFooterMenu": false
+          },
+          {
+            "botDialogGroup": "Subscription",
+            "botSteps": [
+              {
+                "botVariableOperation": {
+                  "askCollectIfSet": "true",
+                  "botMessages": [
+                    {
+                      "message": "Please enter your phone number",
+                      "messageIdentifier": "d5d4686c-c68b-34af-213d-146f8af0daf5"
+                    }
+                  ],
+                  "botVariableOperands": [
+                    {
+                      "disableAutoFill": "true",
+                      "sourceName": "_Text",
+                      "sourceType": "StandardMlSlotClass",
+                      "targetName": "Phone_Number",
+                      "targetType": "ConversationVariable"
+                    }
+                  ],
+                  "optionalCollect": false,
+                  "quickReplyWidgetType": "Buttons",
+                  "type": "Collect",
+                  "variableOperationIdentifier": "3ec4f1d7-6ebc-25cc-d20b-b158c2ccf040"
+                },
+                "stepIdentifier": "553521ee-890a-48de-baf0-feb167b5e0db",
+                "type": "VariableOperation"
+              },
+              {
+                "botVariableOperation": {
+                  "botInvocation": {
+                    "invocationActionName": "FIT_Cancel_Subscription",
+                    "invocationActionType": "apex",
+                    "invocationMappings": [
+                      {
+                        "parameterName": "phoneNumbers",
+                        "type": "Input",
+                        "variableName": "Phone_Number",
+                        "variableType": "ConversationVariable"
+                      },
+                      {
+                        "parameterName": "output",
+                        "type": "Output",
+                        "variableName": "Subscription_Id",
+                        "variableType": "ConversationVariable"
+                      }
+                    ]
+                  },
+                  "type": "Set",
+                  "variableOperationIdentifier": "f3130575-d59b-4d54-afcc-d59190476a1c"
+                },
+                "stepIdentifier": "30321d20-8c06-42d0-98a4-4d4dfd731f48",
+                "type": "VariableOperation"
+              },
+              {
+                "botMessages": [
+                  {
+                    "message": "Your subscription has been cancelled! You will receive a refund within 2 working days",
+                    "messageIdentifier": "b8e0b33c-0401-2f0f-eaa5-d45a27131cd1"
+                  }
+                ],
+                "stepIdentifier": "b48545e2-81b9-4c51-bdeb-a86ba1f142a8",
+                "type": "Message"
+              },
+              {
+                "botSteps": [
+                  {
+                    "botNavigation": {
+                      "botNavigationLinks": [
+                        {
+                          "targetBotDialog": "Main_Menu"
+                        }
+                      ],
+                      "type": "Redirect"
+                    },
+                    "stepIdentifier": "672b18b8-9b83-40af-a76e-0106ce7d9e75",
+                    "type": "Navigation"
+                  }
+                ],
+                "conditionLogicType": "And",
+                "stepIdentifier": "8ddbb102-c10a-48ee-9a6a-02f472b41d1a",
+                "type": "Group"
+              },
+              {
+                "botNavigation": {
+                  "botNavigationLinks": [
+                    {
+                      "targetBotDialog": "Main_Menu"
+                    }
+                  ],
+                  "type": "Redirect"
+                },
+                "stepIdentifier": "d5d6736d-6979-453b-96cc-3c43a01b7bbd",
+                "type": "Navigation"
+              }
+            ],
+            "description": "This is to cancel subscription",
+            "developerName": "Cancel_Subscription",
+            "isPlaceholderDialog": false,
+            "label": "Cancel Subscription",
+            "showInFooterMenu": false
+          },
+          {
+            "botDialogGroup": "Booking",
+            "botSteps": [
+              {
+                "botVariableOperation": {
+                  "askCollectIfSet": "true",
+                  "botMessages": [
+                    {
+                      "message": "Please select an option",
+                      "messageIdentifier": "eb5e8773-464e-413b-1cb6-3b124361df88"
+                    }
+                  ],
+                  "botQuickReplyOptions": [
+                    {
+                      "literalValue": "Create Booking",
+                      "quickReplyOptionIdentifier": "0d6ca3f5-ff39-d4ec-c3e1-72de6a334a76"
+                    },
+                    {
+                      "literalValue": "Cancel Booking",
+                      "quickReplyOptionIdentifier": "7e568a33-d0ff-357b-b6e7-43aeaa23a496"
+                    }
+                  ],
+                  "botVariableOperands": [
+                    {
+                      "disableAutoFill": "true",
+                      "sourceName": "_Text",
+                      "sourceType": "StandardMlSlotClass",
+                      "targetName": "Booking_Menu_Selection",
+                      "targetType": "ConversationVariable"
+                    }
+                  ],
+                  "ignoreIntentRecognition": "false",
+                  "optionalCollect": false,
+                  "quickReplyType": "Static",
+                  "quickReplyWidgetType": "Buttons",
+                  "type": "Collect",
+                  "variableOperationIdentifier": "9a04a620-a3ff-de2d-ee6b-902572dd4c3c"
+                },
+                "stepIdentifier": "cb681ab1-b8a3-4faf-9b84-ed2b00086b3f",
+                "type": "VariableOperation"
+              },
+              {
+                "botStepConditions": [
+                  {
+                    "leftOperandName": "Booking_Menu_Selection",
+                    "leftOperandType": "ConversationVariable",
+                    "operatorType": "Equals",
+                    "rightOperandValue": "Create Booking"
+                  }
+                ],
+                "botSteps": [
+                  {
+                    "botNavigation": {
+                      "botNavigationLinks": [
+                        {
+                          "targetBotDialog": "Create_Booking"
+                        }
+                      ],
+                      "type": "Redirect"
+                    },
+                    "stepIdentifier": "28867073-5607-4bf1-b739-7d9f362fc62c",
+                    "type": "Navigation"
+                  }
+                ],
+                "conditionLogicType": "And",
+                "stepIdentifier": "b4bbcee6-ecc4-4f91-bd10-0950eb110245",
+                "type": "Group"
+              },
+              {
+                "botStepConditions": [
+                  {
+                    "leftOperandName": "Booking_Menu_Selection",
+                    "leftOperandType": "ConversationVariable",
+                    "operatorType": "Equals",
+                    "rightOperandValue": "Cancel Booking"
+                  }
+                ],
+                "botSteps": [
+                  {
+                    "botNavigation": {
+                      "botNavigationLinks": [
+                        {
+                          "targetBotDialog": "Cancel_Booking"
+                        }
+                      ],
+                      "type": "Redirect"
+                    },
+                    "stepIdentifier": "d59e4d59-bb8b-4ed0-a302-67b76772d3a0",
+                    "type": "Navigation"
+                  }
+                ],
+                "conditionLogicType": "And",
+                "stepIdentifier": "70130bc3-262f-43bd-927d-1d7019cb8909",
+                "type": "Group"
+              },
+              {
+                "stepIdentifier": "f2e3144d-afe5-4f92-87fb-a062fae09384",
+                "type": "Wait"
+              }
+            ],
+            "description": "This is a menu for all booking related operations",
+            "developerName": "Booking_Menu",
+            "isPlaceholderDialog": false,
+            "label": "Booking Menu",
+            "mlIntent": "Booking_Menu",
+            "mlIntentTrainingEnabled": true,
+            "showInFooterMenu": false
+          },
+          {
+            "botDialogGroup": "Complaint",
+            "botSteps": [
+              {
+                "botVariableOperation": {
+                  "askCollectIfSet": "true",
+                  "botMessages": [
+                    {
+                      "message": "Please select an option",
+                      "messageIdentifier": "6ad2df8c-b6d6-9975-1e6d-b7085dfdfd34"
+                    }
+                  ],
+                  "botQuickReplyOptions": [
+                    {
+                      "literalValue": "Create Complaint",
+                      "quickReplyOptionIdentifier": "2fe5dc8e-c904-d362-1066-1818b6088be8"
+                    },
+                    {
+                      "literalValue": "Get Complaint Status",
+                      "quickReplyOptionIdentifier": "b122041f-c0a8-7636-6a25-e68986b722e4"
+                    }
+                  ],
+                  "botVariableOperands": [
+                    {
+                      "disableAutoFill": "true",
+                      "sourceName": "_Text",
+                      "sourceType": "StandardMlSlotClass",
+                      "targetName": "Complaint_Menu_Selection",
+                      "targetType": "ConversationVariable"
+                    }
+                  ],
+                  "ignoreIntentRecognition": "false",
+                  "optionalCollect": false,
+                  "quickReplyType": "Static",
+                  "quickReplyWidgetType": "Buttons",
+                  "type": "Collect",
+                  "variableOperationIdentifier": "95922570-abb1-c63c-0913-e6a3c028b3ac"
+                },
+                "stepIdentifier": "4c2bdfbf-619d-40b6-a32c-57961546b6f6",
+                "type": "VariableOperation"
+              },
+              {
+                "botStepConditions": [
+                  {
+                    "leftOperandName": "Complaint_Menu_Selection",
+                    "leftOperandType": "ConversationVariable",
+                    "operatorType": "Equals",
+                    "rightOperandValue": "Create Complaint"
+                  }
+                ],
+                "botSteps": [
+                  {
+                    "botNavigation": {
+                      "botNavigationLinks": [
+                        {
+                          "targetBotDialog": "Create_Complaint"
+                        }
+                      ],
+                      "type": "Redirect"
+                    },
+                    "stepIdentifier": "4c34b4ee-8603-4cea-aa46-ccf211c436b4",
+                    "type": "Navigation"
+                  }
+                ],
+                "conditionLogicType": "And",
+                "stepIdentifier": "952dcdd8-93f1-4a9e-9cfd-e4ed60ada1c8",
+                "type": "Group"
+              },
+              {
+                "botStepConditions": [
+                  {
+                    "leftOperandName": "Complaint_Menu_Selection",
+                    "leftOperandType": "ConversationVariable",
+                    "operatorType": "Equals",
+                    "rightOperandValue": "Get Complaint Status"
+                  }
+                ],
+                "botSteps": [
+                  {
+                    "botNavigation": {
+                      "botNavigationLinks": [
+                        {
+                          "targetBotDialog": "Get_Complaint_Status"
+                        }
+                      ],
+                      "type": "Redirect"
+                    },
+                    "stepIdentifier": "8a673053-95b2-4efb-9ea4-cee3b6ed6e6c",
+                    "type": "Navigation"
+                  }
+                ],
+                "conditionLogicType": "And",
+                "stepIdentifier": "fbeb39c6-226a-48a8-898e-b10ac4e98381",
+                "type": "Group"
+              },
+              {
+                "stepIdentifier": "dd1bba89-4520-4f97-b7c6-fa14e1a80e32",
+                "type": "Wait"
+              }
+            ],
+            "description": "This is a menu for all complaint related operations",
+            "developerName": "Complaint_Menu",
+            "isPlaceholderDialog": false,
+            "label": "Complaint Menu",
+            "mlIntent": "Complaint_Menu",
+            "mlIntentTrainingEnabled": true,
+            "showInFooterMenu": false
+          },
+          {
+            "botDialogGroup": "Booking",
+            "botSteps": [
+              {
+                "botVariableOperation": {
+                  "askCollectIfSet": "true",
+                  "botMessages": [
+                    {
+                      "message": "Please enter your phone number",
+                      "messageIdentifier": "c73e8a11-f4f7-f708-6fe9-47cd0f97e0d2"
+                    }
+                  ],
+                  "botVariableOperands": [
+                    {
+                      "disableAutoFill": "true",
+                      "sourceName": "_Text",
+                      "sourceType": "StandardMlSlotClass",
+                      "targetName": "Phone_Number",
+                      "targetType": "ConversationVariable"
+                    }
+                  ],
+                  "optionalCollect": false,
+                  "quickReplyWidgetType": "Buttons",
+                  "type": "Collect",
+                  "variableOperationIdentifier": "5c20b78a-9540-9d33-dc02-9e95a61eb955"
+                },
+                "stepIdentifier": "1c55c67c-3096-4aa7-b3e5-545d9f3a7057",
+                "type": "VariableOperation"
+              },
+              {
+                "botVariableOperation": {
+                  "askCollectIfSet": "true",
+                  "botMessages": [
+                    {
+                      "message": "Please select your sport or health program",
+                      "messageIdentifier": "c241ca0e-1675-61e8-fc49-8272892caf5a"
+                    }
+                  ],
+                  "botQuickReplyOptions": [
+                    {
+                      "literalValue": "Badminton",
+                      "quickReplyOptionIdentifier": "0da8f78b-640d-88e5-bfbe-930380c721bb"
+                    },
+                    {
+                      "literalValue": "Swimming",
+                      "quickReplyOptionIdentifier": "752ee32f-4f69-8e50-002c-886983f9dbe0"
+                    },
+                    {
+                      "literalValue": "Table Tennis",
+                      "quickReplyOptionIdentifier": "197544f2-cd02-91ed-9845-a07dafb701e0"
+                    },
+                    {
+                      "literalValue": "Cricket",
+                      "quickReplyOptionIdentifier": "44c7959e-bdbd-3763-32bf-32cf207ca550"
+                    },
+                    {
+                      "literalValue": "Tennis",
+                      "quickReplyOptionIdentifier": "f999c93b-58a3-0df2-1838-81e52a78dd4f"
+                    },
+                    {
+                      "literalValue": "Football",
+                      "quickReplyOptionIdentifier": "5fa37d1e-162b-a9fe-6dd7-c956964f5240"
+                    },
+                    {
+                      "literalValue": "Yoga",
+                      "quickReplyOptionIdentifier": "a3dd866b-1339-1b85-34ba-20772af8afe4"
+                    },
+                    {
+                      "literalValue": "Meditation",
+                      "quickReplyOptionIdentifier": "e815c9e2-1992-80c7-6f79-4112ddef9b22"
+                    }
+                  ],
+                  "botVariableOperands": [
+                    {
+                      "disableAutoFill": "true",
+                      "sourceName": "_Text",
+                      "sourceType": "StandardMlSlotClass",
+                      "targetName": "Booking_Sport",
+                      "targetType": "ConversationVariable"
+                    }
+                  ],
+                  "ignoreIntentRecognition": "false",
+                  "optionalCollect": false,
+                  "quickReplyType": "Static",
+                  "quickReplyWidgetType": "Buttons",
+                  "type": "Collect",
+                  "variableOperationIdentifier": "d17b47bc-3c1b-b991-0000-50d9c064a71e"
+                },
+                "stepIdentifier": "2e758ba3-fbde-4bfc-ae1c-301701455b4e",
+                "type": "VariableOperation"
+              },
+              {
+                "botVariableOperation": {
+                  "askCollectIfSet": "true",
+                  "botMessages": [
+                    {
+                      "message": "Please enter your slot start time in [YYYY-MM-DD HH:MM] format",
+                      "messageIdentifier": "bb04c846-22c0-f604-6dee-5dc8bc20d732"
+                    }
+                  ],
+                  "botVariableOperands": [
+                    {
+                      "disableAutoFill": "true",
+                      "sourceName": "_Text",
+                      "sourceType": "StandardMlSlotClass",
+                      "targetName": "Booking_Start_Time",
+                      "targetType": "ConversationVariable"
+                    }
+                  ],
+                  "optionalCollect": false,
+                  "quickReplyWidgetType": "Buttons",
+                  "type": "Collect",
+                  "variableOperationIdentifier": "0c253aef-66b9-be64-c69e-4f13031facd5"
+                },
+                "stepIdentifier": "4c2dde48-9e65-4aa3-b79a-4b5a9d816f46",
+                "type": "VariableOperation"
+              },
+              {
+                "botVariableOperation": {
+                  "botInvocation": {
+                    "invocationActionName": "FIT_Create_Booking",
+                    "invocationActionType": "apex",
+                    "invocationMappings": [
+                      {
+                        "parameterName": "sport",
+                        "type": "Input",
+                        "variableName": "Booking_Sport",
+                        "variableType": "ConversationVariable"
+                      },
+                      {
+                        "parameterName": "startTime",
+                        "type": "Input",
+                        "variableName": "Booking_Start_Time",
+                        "variableType": "ConversationVariable"
+                      },
+                      {
+                        "parameterName": "phone",
+                        "type": "Input",
+                        "variableName": "Phone_Number",
+                        "variableType": "ConversationVariable"
+                      },
+                      {
+                        "parameterName": "output",
+                        "type": "Output",
+                        "variableName": "Booking_Id",
+                        "variableType": "ConversationVariable"
+                      }
+                    ]
+                  },
+                  "type": "Set",
+                  "variableOperationIdentifier": "84858f12-d0e1-410f-a574-8d017518a6dd"
+                },
+                "stepIdentifier": "e582c486-b8e4-4e97-8f88-2842dc4776a4",
+                "type": "VariableOperation"
+              },
+              {
+                "botMessages": [
+                  {
+                    "message": "Your booking has been confirmed. Id - {!Booking_Id}",
+                    "messageIdentifier": "18188ec9-0d1e-8a79-8743-6ce0e3a07b16"
+                  }
+                ],
+                "stepIdentifier": "f1640415-8268-4c40-a19f-9cab2a652980",
+                "type": "Message"
+              },
+              {
+                "botSteps": [
+                  {
+                    "botNavigation": {
+                      "botNavigationLinks": [
+                        {
+                          "targetBotDialog": "Main_Menu"
+                        }
+                      ],
+                      "type": "Redirect"
+                    },
+                    "stepIdentifier": "07b30156-9082-4801-87ed-54142db5f207",
+                    "type": "Navigation"
+                  }
+                ],
+                "conditionLogicType": "And",
+                "stepIdentifier": "de2b5c9e-f3b8-4b6f-bd4c-205556e76641",
+                "type": "Group"
+              },
+              {
+                "botNavigation": {
+                  "botNavigationLinks": [
+                    {
+                      "targetBotDialog": "Main_Menu"
+                    }
+                  ],
+                  "type": "Redirect"
+                },
+                "stepIdentifier": "1a3bc7fd-731a-43a7-b772-012fce25f509",
+                "type": "Navigation"
+              }
+            ],
+            "description": "This is to create a booking",
+            "developerName": "Create_Booking",
+            "isPlaceholderDialog": false,
+            "label": "Create Booking",
+            "showInFooterMenu": false
+          },
+          {
+            "botDialogGroup": "Booking",
+            "botSteps": [
+              {
+                "botVariableOperation": {
+                  "askCollectIfSet": "true",
+                  "botMessages": [
+                    {
+                      "message": "Please enter your booking id",
+                      "messageIdentifier": "97bbd921-204a-c130-cabc-c8a3dc9e799a"
+                    }
+                  ],
+                  "botVariableOperands": [
+                    {
+                      "disableAutoFill": "true",
+                      "sourceName": "_Text",
+                      "sourceType": "StandardMlSlotClass",
+                      "targetName": "Booking_Id",
+                      "targetType": "ConversationVariable"
+                    }
+                  ],
+                  "optionalCollect": false,
+                  "quickReplyWidgetType": "Buttons",
+                  "type": "Collect",
+                  "variableOperationIdentifier": "078a5b62-0401-9a28-e7a2-67465ecbae60"
+                },
+                "stepIdentifier": "555f60e7-daaa-4c2b-b348-161b093de344",
+                "type": "VariableOperation"
+              },
+              {
+                "botVariableOperation": {
+                  "botInvocation": {
+                    "invocationActionName": "FIT_Cancel_Booking",
+                    "invocationActionType": "apex",
+                    "invocationMappings": [
+                      {
+                        "parameterName": "bookingIds",
+                        "type": "Input",
+                        "variableName": "Booking_Id",
+                        "variableType": "ConversationVariable"
+                      },
+                      {
+                        "parameterName": "output",
+                        "type": "Output",
+                        "variableName": "Booking_Id",
+                        "variableType": "ConversationVariable"
+                      }
+                    ]
+                  },
+                  "type": "Set",
+                  "variableOperationIdentifier": "93678133-c7f6-447c-9adc-a60902eb9e7c"
+                },
+                "stepIdentifier": "1c01f03c-4e27-4c04-88c7-33616d34dfca",
+                "type": "VariableOperation"
+              },
+              {
+                "botMessages": [
+                  {
+                    "message": "Your booking has been cancelled.",
+                    "messageIdentifier": "a7da61cc-9225-01d1-7dbb-0bb66fee5a8f"
+                  }
+                ],
+                "stepIdentifier": "d8cb70ac-8990-44a8-a03e-b7882c4e8766",
+                "type": "Message"
+              },
+              {
+                "botSteps": [
+                  {
+                    "botNavigation": {
+                      "botNavigationLinks": [
+                        {
+                          "targetBotDialog": "Main_Menu"
+                        }
+                      ],
+                      "type": "Redirect"
+                    },
+                    "stepIdentifier": "424387d3-08f5-4cae-a396-c1d5cb4bc6e8",
+                    "type": "Navigation"
+                  }
+                ],
+                "conditionLogicType": "And",
+                "stepIdentifier": "e63e65e7-a242-47d2-8192-d97bb1f02483",
+                "type": "Group"
+              },
+              {
+                "botNavigation": {
+                  "botNavigationLinks": [
+                    {
+                      "targetBotDialog": "Main_Menu"
+                    }
+                  ],
+                  "type": "Redirect"
+                },
+                "stepIdentifier": "c22db822-0778-4b34-a87c-c73c72b1cb4e",
+                "type": "Navigation"
+              }
+            ],
+            "description": "This is to cancel a booking",
+            "developerName": "Cancel_Booking",
+            "isPlaceholderDialog": false,
+            "label": "Cancel Booking",
+            "showInFooterMenu": false
+          },
+          {
+            "botDialogGroup": "Complaint",
+            "botSteps": [
+              {
+                "botVariableOperation": {
+                  "askCollectIfSet": "true",
+                  "botMessages": [
+                    {
+                      "message": "Please enter your phone number",
+                      "messageIdentifier": "68cef62a-0a6d-37e8-86f1-6166107370bf"
+                    }
+                  ],
+                  "botVariableOperands": [
+                    {
+                      "disableAutoFill": "true",
+                      "sourceName": "_Text",
+                      "sourceType": "StandardMlSlotClass",
+                      "targetName": "Phone_Number",
+                      "targetType": "ConversationVariable"
+                    }
+                  ],
+                  "optionalCollect": false,
+                  "quickReplyWidgetType": "Buttons",
+                  "type": "Collect",
+                  "variableOperationIdentifier": "3d9a0019-c125-15f3-5cbe-75505f9cbea4"
+                },
+                "stepIdentifier": "efee7432-e8f5-4f83-bb0f-c6695c20b860",
+                "type": "VariableOperation"
+              },
+              {
+                "botVariableOperation": {
+                  "askCollectIfSet": "true",
+                  "botMessages": [
+                    {
+                      "message": "Please select your complaint type",
+                      "messageIdentifier": "1b964c16-5aac-1a35-873c-28a912d469e6"
+                    }
+                  ],
+                  "botQuickReplyOptions": [
+                    {
+                      "literalValue": "Subscription related",
+                      "quickReplyOptionIdentifier": "dbdc8539-2570-0291-f691-94812853b706"
+                    },
+                    {
+                      "literalValue": "Booking related",
+                      "quickReplyOptionIdentifier": "3ef28dff-7bee-6f88-c7e8-579b0eb327fb"
+                    },
+                    {
+                      "literalValue": "Others",
+                      "quickReplyOptionIdentifier": "9a0eaaa6-60ee-7cba-4340-342f499c3d76"
+                    }
+                  ],
+                  "botVariableOperands": [
+                    {
+                      "disableAutoFill": "true",
+                      "sourceName": "_Text",
+                      "sourceType": "StandardMlSlotClass",
+                      "targetName": "Complaint_Type",
+                      "targetType": "ConversationVariable"
+                    }
+                  ],
+                  "ignoreIntentRecognition": "false",
+                  "optionalCollect": false,
+                  "quickReplyType": "Static",
+                  "quickReplyWidgetType": "Buttons",
+                  "type": "Collect",
+                  "variableOperationIdentifier": "614f95f0-898b-5f6c-6b9f-cb546ffcc40f"
+                },
+                "stepIdentifier": "8b075b20-de3e-48a0-a7ce-ca71e11c2e0e",
+                "type": "VariableOperation"
+              },
+              {
+                "botVariableOperation": {
+                  "askCollectIfSet": "true",
+                  "botMessages": [
+                    {
+                      "message": "Please describe your problem",
+                      "messageIdentifier": "158b3d27-1669-27f2-044b-a0834020d1d6"
+                    }
+                  ],
+                  "botVariableOperands": [
+                    {
+                      "disableAutoFill": "true",
+                      "sourceName": "_Text",
+                      "sourceType": "StandardMlSlotClass",
+                      "targetName": "Complaint_Content",
+                      "targetType": "ConversationVariable"
+                    }
+                  ],
+                  "optionalCollect": false,
+                  "quickReplyWidgetType": "Buttons",
+                  "type": "Collect",
+                  "variableOperationIdentifier": "cbf43464-a3b2-8e43-ab3c-11f3940af26c"
+                },
+                "stepIdentifier": "d4304878-cc8c-4af6-9b95-ffc5ae846929",
+                "type": "VariableOperation"
+              },
+              {
+                "botVariableOperation": {
+                  "botInvocation": {
+                    "invocationActionName": "FIT_Create_Complaint",
+                    "invocationActionType": "apex",
+                    "invocationMappings": [
+                      {
+                        "parameterName": "type",
+                        "type": "Input",
+                        "variableName": "Complaint_Type",
+                        "variableType": "ConversationVariable"
+                      },
+                      {
+                        "parameterName": "content",
+                        "type": "Input",
+                        "variableName": "Complaint_Content",
+                        "variableType": "ConversationVariable"
+                      },
+                      {
+                        "parameterName": "phone",
+                        "type": "Input",
+                        "variableName": "Phone_Number",
+                        "variableType": "ConversationVariable"
+                      },
+                      {
+                        "parameterName": "output",
+                        "type": "Output",
+                        "variableName": "Complaint_Id",
+                        "variableType": "ConversationVariable"
+                      }
+                    ]
+                  },
+                  "type": "Set",
+                  "variableOperationIdentifier": "7cd61396-1f65-44a4-9eee-916cf758bb98"
+                },
+                "stepIdentifier": "8d34a645-8520-4242-8fde-b3a4f51f9b1d",
+                "type": "VariableOperation"
+              },
+              {
+                "botMessages": [
+                  {
+                    "message": "Your complaint has been registered with id {!Complaint_Id}.",
+                    "messageIdentifier": "73d5c63c-c932-9ae7-2a2e-ca069825aef7"
+                  }
+                ],
+                "stepIdentifier": "feded6d0-cdd5-4ede-b84f-bdfd860e76c0",
+                "type": "Message"
+              },
+              {
+                "botSteps": [
+                  {
+                    "botNavigation": {
+                      "botNavigationLinks": [
+                        {
+                          "targetBotDialog": "Main_Menu"
+                        }
+                      ],
+                      "type": "Redirect"
+                    },
+                    "stepIdentifier": "deeed286-e723-4ec6-9c5a-928afc1b37f2",
+                    "type": "Navigation"
+                  }
+                ],
+                "conditionLogicType": "And",
+                "stepIdentifier": "c6f64c82-00c9-4277-b7e2-531e38956531",
+                "type": "Group"
+              },
+              {
+                "botNavigation": {
+                  "botNavigationLinks": [
+                    {
+                      "targetBotDialog": "Main_Menu"
+                    }
+                  ],
+                  "type": "Redirect"
+                },
+                "stepIdentifier": "6798a679-c6da-4959-a581-8f0aa71ba5ea",
+                "type": "Navigation"
+              }
+            ],
+            "description": "This is to create a complaint",
+            "developerName": "Create_Complaint",
+            "isPlaceholderDialog": false,
+            "label": "Create Complaint",
+            "showInFooterMenu": false
+          },
+          {
+            "botDialogGroup": "Complaint",
+            "botSteps": [
+              {
+                "botVariableOperation": {
+                  "askCollectIfSet": "true",
+                  "botMessages": [
+                    {
+                      "message": "Please enter your complaint id",
+                      "messageIdentifier": "db437a4a-31f3-3ca9-06ed-bbba076674b6"
+                    }
+                  ],
+                  "botVariableOperands": [
+                    {
+                      "disableAutoFill": "true",
+                      "sourceName": "_Text",
+                      "sourceType": "StandardMlSlotClass",
+                      "targetName": "Complaint_Id",
+                      "targetType": "ConversationVariable"
+                    }
+                  ],
+                  "optionalCollect": false,
+                  "quickReplyWidgetType": "Buttons",
+                  "type": "Collect",
+                  "variableOperationIdentifier": "2979615b-2217-183f-f511-a02f33fe06fb"
+                },
+                "stepIdentifier": "fe17a7e6-0fd5-42ea-8379-2b7204092241",
+                "type": "VariableOperation"
+              },
+              {
+                "botVariableOperation": {
+                  "botInvocation": {
+                    "invocationActionName": "FIT_Get_Complaint",
+                    "invocationActionType": "apex",
+                    "invocationMappings": [
+                      {
+                        "parameterName": "complaintIds",
+                        "type": "Input",
+                        "variableName": "Complaint_Id",
+                        "variableType": "ConversationVariable"
+                      },
+                      {
+                        "parameterName": "comment",
+                        "type": "Output",
+                        "variableName": "Complaint_Comment",
+                        "variableType": "ConversationVariable"
+                      },
+                      {
+                        "parameterName": "content",
+                        "type": "Output",
+                        "variableName": "Complaint_Content",
+                        "variableType": "ConversationVariable"
+                      },
+                      {
+                        "parameterName": "type",
+                        "type": "Output",
+                        "variableName": "Complaint_Type",
+                        "variableType": "ConversationVariable"
+                      },
+                      {
+                        "parameterName": "status",
+                        "type": "Output",
+                        "variableName": "Complaint_Status",
+                        "variableType": "ConversationVariable"
+                      },
+                      {
+                        "parameterName": "id",
+                        "type": "Output",
+                        "variableName": "Complaint_Id",
+                        "variableType": "ConversationVariable"
+                      },
+                      {
+                        "parameterName": "phone",
+                        "type": "Output",
+                        "variableName": "Phone_Number",
+                        "variableType": "ConversationVariable"
+                      }
+                    ]
+                  },
+                  "type": "Set",
+                  "variableOperationIdentifier": "465c781c-f69d-4e08-8d13-4fb88eb4638f"
+                },
+                "stepIdentifier": "d6aabbf9-3b97-48eb-8e49-084ac9799bc9",
+                "type": "VariableOperation"
+              },
+              {
+                "botMessages": [
+                  {
+                    "message": "Your complaint status is {!Complaint_Status}. Comments: {!Complaint_Comment}",
+                    "messageIdentifier": "0fc781d8-665d-4359-5bb2-773f3e442e1f"
+                  }
+                ],
+                "stepIdentifier": "e2098f4d-2f8d-4b55-9af9-42b6a7db8179",
+                "type": "Message"
+              },
+              {
+                "botSteps": [
+                  {
+                    "botNavigation": {
+                      "botNavigationLinks": [
+                        {
+                          "targetBotDialog": "Main_Menu"
+                        }
+                      ],
+                      "type": "Redirect"
+                    },
+                    "stepIdentifier": "fb34ef34-840a-474e-a9b3-b5327df9d8c2",
+                    "type": "Navigation"
+                  }
+                ],
+                "conditionLogicType": "And",
+                "stepIdentifier": "36b15633-5502-41d1-88cb-b71ae6b954a6",
+                "type": "Group"
+              },
+              {
+                "botNavigation": {
+                  "botNavigationLinks": [
+                    {
+                      "targetBotDialog": "Main_Menu"
+                    }
+                  ],
+                  "type": "Redirect"
+                },
+                "stepIdentifier": "ab12ddba-adbd-49b2-92a1-aafaeccddc62",
+                "type": "Navigation"
+              }
+            ],
+            "description": "This is to get a complaint status",
+            "developerName": "Get_Complaint_Status",
+            "isPlaceholderDialog": false,
+            "label": "Get Complaint Status",
+            "showInFooterMenu": false
+          }
+        ],
+        "citationsEnabled": false,
+        "conversationSystemDialogs": [
+          {
+            "dialog": "Rich_Content_Error_Handling",
+            "type": "ErrorHandling"
+          },
+          {
+            "dialog": "No_Agent_Available",
+            "type": "TransferFailed"
+          }
+        ],
+        "conversationVariables": [
+          {
+            "dataType": "Text",
+            "developerName": "Booking_Id",
+            "includeInPrompt": "false",
+            "label": "Booking Id"
+          },
+          {
+            "dataType": "Text",
+            "developerName": "Booking_Menu_Selection",
+            "includeInPrompt": "false",
+            "label": "Booking Menu Selection"
+          },
+          {
+            "dataType": "Text",
+            "developerName": "Booking_Sport",
+            "includeInPrompt": "false",
+            "label": "Booking Sport"
+          },
+          {
+            "dataType": "Text",
+            "developerName": "Booking_Start_Time",
+            "includeInPrompt": "false",
+            "label": "Booking Start Time"
+          },
+          {
+            "dataType": "Text",
+            "developerName": "Complaint_Comment",
+            "includeInPrompt": "false",
+            "label": "Complaint Comment"
+          },
+          {
+            "dataType": "Text",
+            "developerName": "Complaint_Content",
+            "includeInPrompt": "false",
+            "label": "Complaint Content"
+          },
+          {
+            "dataType": "Text",
+            "developerName": "Complaint_Id",
+            "includeInPrompt": "false",
+            "label": "Complaint Id"
+          },
+          {
+            "dataType": "Text",
+            "developerName": "Complaint_Menu_Selection",
+            "includeInPrompt": "false",
+            "label": "Complaint Menu Selection"
+          },
+          {
+            "dataType": "Text",
+            "developerName": "Complaint_Status",
+            "includeInPrompt": "false",
+            "label": "Complaint Status"
+          },
+          {
+            "dataType": "Text",
+            "developerName": "Complaint_Type",
+            "includeInPrompt": "false",
+            "label": "Complaint Type"
+          },
+          {
+            "dataType": "Text",
+            "developerName": "FIT_Plan",
+            "includeInPrompt": "false",
+            "label": "FIT Plan"
+          },
+          {
+            "dataType": "Text",
+            "developerName": "Phone_Number",
+            "includeInPrompt": "false",
+            "label": "Phone Number"
+          },
+          {
+            "dataType": "Text",
+            "developerName": "Subscription_End_Date",
+            "includeInPrompt": "false",
+            "label": "Subscription End Date"
+          },
+          {
+            "dataType": "Text",
+            "developerName": "Subscription_Id",
+            "includeInPrompt": "false",
+            "label": "Subscription Id"
+          },
+          {
+            "dataType": "Text",
+            "developerName": "Subscription_Menu_Selection",
+            "includeInPrompt": "false",
+            "label": "Subscription Menu Selection"
+          },
+          {
+            "dataType": "Text",
+            "developerName": "Subscription_Start_Date",
+            "includeInPrompt": "false",
+            "label": "Subscription Start Date"
+          },
+          {
+            "dataType": "Text",
+            "developerName": "Subscription_Status",
+            "includeInPrompt": "false",
+            "label": "Subscription Status"
+          }
+        ],
+        "defaultStdObjForContactIdFltrEnabled": "false",
+        "entryDialog": "Welcome",
+        "intentDisambiguationEnabled": false,
+        "intentV3Enabled": "true",
+        "isScriptCompatibleAgent": "false",
+        "knowledgeActionEnabled": false,
+        "knowledgeFallbackEnabled": false,
+        "mainMenuDialog": "Main_Menu",
+        "nlpProviders": [
+          {
+            "language": "en_US",
+            "nlpProviderType": "EinsteinAi"
+          },
+          {
+            "language": "de",
+            "nlpProviderType": "EinsteinAi"
+          }
+        ],
+        "smallTalkEnabled": false,
+        "staticPromptsEnabled": false,
+        "stopRecPrompts": "false",
+        "stopWelcomePrompts": "false",
+        "surfacesEnabled": "false",
+        "toneType": "Casual"
+      }
+    ]
+  },
+  "availableAgentActions": {
+    "customActions": [],
+    "standardActions": []
+  },
+  "botInvocationsDescribeInfo": {
+    "apex": {
+      "FIT_Create_Subscription": {
+        "inputParameters": {
+          "plan": {
+            "type": "STRING"
+          },
+          "endDate": {
+            "type": "STRING"
+          },
+          "phone": {
+            "type": "STRING"
+          },
+          "startDate": {
+            "type": "STRING"
+          }
+        },
+        "outputParameters": {
+          "output": {
+            "type": "STRING"
+          }
+        }
+      },
+      "FIT_Get_Subscription": {
+        "inputParameters": {
+          "phoneNumbers": {
+            "type": "STRING"
+          }
+        },
+        "outputParameters": {
+          "startDate": {
+            "type": "STRING"
+          },
+          "id": {
+            "type": "STRING"
+          },
+          "endDate": {
+            "type": "STRING"
+          },
+          "status": {
+            "type": "STRING"
+          },
+          "plan": {
+            "type": "STRING"
+          }
+        }
+      },
+      "FIT_Cancel_Subscription": {
+        "inputParameters": {
+          "phoneNumbers": {
+            "type": "STRING"
+          }
+        },
+        "outputParameters": {
+          "output": {
+            "type": "STRING"
+          }
+        }
+      },
+      "FIT_Create_Booking": {
+        "inputParameters": {
+          "sport": {
+            "type": "STRING"
+          },
+          "startTime": {
+            "type": "STRING"
+          },
+          "phone": {
+            "type": "STRING"
+          }
+        },
+        "outputParameters": {
+          "output": {
+            "type": "STRING"
+          }
+        }
+      },
+      "FIT_Cancel_Booking": {
+        "inputParameters": {
+          "bookingIds": {
+            "type": "STRING"
+          }
+        },
+        "outputParameters": {
+          "output": {
+            "type": "STRING"
+          }
+        }
+      },
+      "FIT_Create_Complaint": {
+        "inputParameters": {
+          "type": {
+            "type": "STRING"
+          },
+          "content": {
+            "type": "STRING"
+          },
+          "phone": {
+            "type": "STRING"
+          }
+        },
+        "outputParameters": {
+          "output": {
+            "type": "STRING"
+          }
+        }
+      },
+      "FIT_Get_Complaint": {
+        "inputParameters": {
+          "complaintIds": {
+            "type": "STRING"
+          }
+        },
+        "outputParameters": {
+          "comment": {
+            "type": "STRING"
+          },
+          "content": {
+            "type": "STRING"
+          },
+          "type": {
+            "type": "STRING"
+          },
+          "status": {
+            "type": "STRING"
+          },
+          "id": {
+            "type": "STRING"
+          },
+          "phone": {
+            "type": "STRING"
+          }
+        }
+      }
+    },
+    "flow": {}
+  },
+  "mlRelatedData": {
+    "c": {
+      "FIT": {
+        "MlDomain": {
+          "fullName": "FIT",
+          "label": "FIT",
+          "mlIntents": [
+            {
+              "developerName": "Booking_Menu",
+              "label": "Booking Menu",
+              "mlIntentUtterances": [
+                {
+                  "utterance": "Booking"
+                },
+                {
+                  "utterance": "Booking details"
+                },
+                {
+                  "utterance": "Query about booking"
+                },
+                {
+                  "utterance": "Anfrage zur Buchung"
+                },
+                {
+                  "utterance": "Buchung"
+                },
+                {
+                  "utterance": "Buchungsdetails"
+                },
+                {
+                  "utterance": "I want to cancel my booking"
+                }
+              ]
+            },
+            {
+              "developerName": "Complaint_Menu",
+              "label": "Complaint Menu",
+              "mlIntentUtterances": [
+                {
+                  "utterance": "Complaint"
+                },
+                {
+                  "utterance": "Complaint details"
+                },
+                {
+                  "utterance": "Query about Complaint"
+                },
+                {
+                  "utterance": "Details der Beschwerde"
+                },
+                {
+                  "utterance": "Beschwerde"
+                },
+                {
+                  "utterance": "Anfrage zur Beschwerde"
+                }
+              ]
+            },
+            {
+              "developerName": "Subscription_Menu",
+              "label": "Subscription Menu",
+              "mlIntentUtterances": [
+                {
+                  "utterance": "Query about subscription"
+                },
+                {
+                  "utterance": "Subscription details"
+                },
+                {
+                  "utterance": "Subscription"
+                },
+                {
+                  "utterance": "Abonnement"
+                },
+                {
+                  "utterance": "Abonnementdetails"
+                },
+                {
+                  "utterance": "Anfrage zum Abonnement"
+                }
+              ]
+            }
+          ]
+        }
+      }
+    }
+  }
+}

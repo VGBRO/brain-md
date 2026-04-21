@@ -1,7 +1,7 @@
 ---
 name: retrieve-bots-metadata
 description: >
-   Step 1 of 6: Retrieve Bot Metadata. Interactive conversational interface for fetching Einstein Bot 
+   Retrieve Bot Metadata. Interactive conversational interface for fetching Einstein Bot 
    metadata from Salesforce orgs. Guides users through org connection, bot selection, version selection, 
    and metadata download with complete ML training data.
 metadata:
@@ -818,8 +818,14 @@ Added `normalize_retry_messages()` function that ensures all `retryMessages` fie
 
 ## Next Steps
 
-After successful completion:
+1. After successful completion:
 - **File ready:** `data/sf-cli/custom/.../jsons/<BOTNAME>.json`
 - **Contains:** Complete bot structure + ML training data + accurate Apex invocation types
-- **Next skill:** `/02-process-and-build-inventory`
-- **User prompt:** "Would you like to proceed to Step 2: Bot Inventory?"
+2. Within the data directory, create a folder structure `<ORGID>/<BOTNAME>/<BOT_VERSION_NAME>`. This would be used as the temporary directory to store all the intermediate outputs in the entire conversion process in this session.
+3. Copy over the json file from `data/sf-cli/custom/.../jsons/<BOTNAME>.json` to a file with name `bot.json` in the newly created folder.
+4. **Important Instruction** - For the scope of this session, update the data directory to the new folder.
+  - All new intermediate files or outputs should be written/read from this folder.
+  - Wherever data directory is referenced, it should be resolved to this path.
+  - Example: `data/<ORGID>/<BOTNAME>/<BOT_VERSION_NAME>` ---> `data/00DSB00000cASgsgAG/Service_Bot/v1`.
+5. Ensure that `bot.json` file is present in the new data directory.
+6. Finally, provide a message to the user like 'Proceeding to the next step..'. And stop here. And give back the control.

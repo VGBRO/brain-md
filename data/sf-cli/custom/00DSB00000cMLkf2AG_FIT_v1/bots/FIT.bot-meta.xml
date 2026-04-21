@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Bot xmlns="http://soap.sforce.com/2006/04/metadata">
+    <agentDSLEnabled>false</agentDSLEnabled>
+    <botMlDomain>
+        <label>FIT</label>
+        <mlIntents>
+            <description>This is a menu for all booking related operations</description>
+            <developerName>Booking_Menu</developerName>
+            <label>Booking Menu</label>
+            <mlIntentUtterances>
+                <language>en_US</language>
+                <utterance>Booking</utterance>
+            </mlIntentUtterances>
+            <mlIntentUtterances>
+                <language>en_US</language>
+                <utterance>Booking details</utterance>
+            </mlIntentUtterances>
+            <mlIntentUtterances>
+                <language>en_US</language>
+                <utterance>Query about booking</utterance>
+            </mlIntentUtterances>
+            <mlIntentUtterances>
+                <language>de</language>
+                <utterance>Anfrage zur Buchung</utterance>
+            </mlIntentUtterances>
+            <mlIntentUtterances>
+                <language>de</language>
+                <utterance>Buchung</utterance>
+            </mlIntentUtterances>
+            <mlIntentUtterances>
+                <language>de</language>
+                <utterance>Buchungsdetails</utterance>
+            </mlIntentUtterances>
+            <mlIntentUtterances>
+                <language>en_US</language>
+                <utterance>I want to cancel my booking</utterance>
+            </mlIntentUtterances>
+        </mlIntents>
+        <mlIntents>
+            <description>This is a menu for all complaint related operations</description>
+            <developerName>Complaint_Menu</developerName>
+            <label>Complaint Menu</label>
+            <mlIntentUtterances>
+                <language>en_US</language>
+                <utterance>Complaint</utterance>
+            </mlIntentUtterances>
+            <mlIntentUtterances>
+                <language>en_US</language>
+                <utterance>Complaint details</utterance>
+            </mlIntentUtterances>
+            <mlIntentUtterances>
+                <language>en_US</language>
+                <utterance>Query about Complaint</utterance>
+            </mlIntentUtterances>
+            <mlIntentUtterances>
+                <language>de</language>
+                <utterance>Details der Beschwerde</utterance>
+            </mlIntentUtterances>
+            <mlIntentUtterances>
+                <language>de</language>
+                <utterance>Beschwerde</utterance>
+            </mlIntentUtterances>
+            <mlIntentUtterances>
+                <language>de</language>
+                <utterance>Anfrage zur Beschwerde</utterance>
+            </mlIntentUtterances>
+        </mlIntents>
+        <mlIntents>
+            <developerName>Subscription_Menu</developerName>
+            <label>Subscription Menu</label>
+            <mlIntentUtterances>
+                <language>en_US</language>
+                <utterance>Query about subscription</utterance>
+            </mlIntentUtterances>
+            <mlIntentUtterances>
+                <language>en_US</language>
+                <utterance>Subscription details</utterance>
+            </mlIntentUtterances>
+            <mlIntentUtterances>
+                <language>en_US</language>
+                <utterance>Subscription</utterance>
+            </mlIntentUtterances>
+            <mlIntentUtterances>
+                <language>de</language>
+                <utterance>Abonnement</utterance>
+            </mlIntentUtterances>
+            <mlIntentUtterances>
+                <language>de</language>
+                <utterance>Abonnementdetails</utterance>
+            </mlIntentUtterances>
+            <mlIntentUtterances>
+                <language>de</language>
+                <utterance>Anfrage zum Abonnement</utterance>
+            </mlIntentUtterances>
+        </mlIntents>
+        <name>FIT</name>
+    </botMlDomain>
+    <botSource>None</botSource>
+    <contextVariables>
+        <contextVariableMappings>
+            <SObjectType>MessagingEndUser</SObjectType>
+            <fieldName>MessagingEndUser.ContactId</fieldName>
+            <messageType>EmbeddedMessaging</messageType>
+        </contextVariableMappings>
+        <dataType>Id</dataType>
+        <description>This variable may also be referred to as MessagingEndUser ContactId</description>
+        <developerName>ContactId</developerName>
+        <includeInPrompt>false</includeInPrompt>
+        <label>Contact Id</label>
+    </contextVariables>
+    <contextVariables>
+        <contextVariableMappings>
+            <SObjectType>MessagingSession</SObjectType>
+            <fieldName>MessagingSession.MessagingEndUserId</fieldName>
+            <messageType>EmbeddedMessaging</messageType>
+        </contextVariableMappings>
+        <dataType>Id</dataType>
+        <description>This variable may also be referred to as MessagingEndUser Id</description>
+        <developerName>EndUserId</developerName>
+        <includeInPrompt>true</includeInPrompt>
+        <label>End User Id</label>
+    </contextVariables>
+    <contextVariables>
+        <contextVariableMappings>
+            <SObjectType>MessagingSession</SObjectType>
+            <fieldName>MessagingSession.Id</fieldName>
+            <messageType>EmbeddedMessaging</messageType>
+        </contextVariableMappings>
+        <dataType>Id</dataType>
+        <description>This variable may also be referred to as MessagingSession Id</description>
+        <developerName>RoutableId</developerName>
+        <includeInPrompt>true</includeInPrompt>
+        <label>Routable Id</label>
+    </contextVariables>
+    <defaultOutboundFlow>RouteToAgent</defaultOutboundFlow>
+    <description>A bot from scratch.</description>
+    <label>FIT</label>
+    <logPrivateConversationData>true</logPrivateConversationData>
+    <richContentEnabled>true</richContentEnabled>
+    <sessionTimeout>0</sessionTimeout>
+    <type>Bot</type>
+</Bot>

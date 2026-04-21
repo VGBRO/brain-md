@@ -6,9 +6,11 @@ allowed-tools: Write, Edit, Read, Glob
 
 # 0. Prerequisite
 
-- If `topic_classification.json` file already exists in the data directory, ask the user explicitly if they want to skip this step. 
-    - If yes, then show a message to the user like 'Proceeding to the next step..'. And give back the control.
-    - If not, proceed to the next step.
+- If `topic_classification.json` file already exists in the data directory and the user has opted to reuse the existing artifacts in all the previous steps in the full conversion process,
+    - ask the user explicitly if they want to skip this step. Something like - "You have opted to use the preprocessed artifacts in all the previous steps, and it looks like the topics were already generated for this bot version previously. Do you want to continue reusing the same output or do you want to identify the topics again?"
+    - **DO NOT mention the file names or paths in question or do not expose the file names/paths to the user.**
+    - If the user wants to use the existing output from a previously initiated conversion process, then show a message to the user like 'Proceeding to the next step..'. And give back the control.
+    - If not, proceed to step #1 below.
 
 # 1. Einstein bot concepts:
 
@@ -137,6 +139,7 @@ From the preprocessed bot metadata, parse each action structure.
     - User can add a new topic.
         - In this scenario, ask for the associated actions and dialogs. Provide a list of available actions and dialogs.
             - If the list of dialogs is too large (more than 30 dialogs), then inform the user about this and ask them to provide the dialog names directly. And then validate that the dialog actually exists in the bot. If not, nudge the user to provide the correct dialog name.
+            - Do not allow user to add non-existent or new dialog or action.
         - Check if the provided dialogs or actions are already part of another topic (that has been generated). If so, then ask the user for confirmation to add it to the new topic.
         - While adding a new topic to the generated list of topics, verify the new topic configuration with the validations mentioned below (in step #7).
     - User can delete a topic.
