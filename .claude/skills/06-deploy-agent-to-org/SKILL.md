@@ -49,6 +49,8 @@ Read `migration-architecture.md` and extract:
 - `AGENT_NAME` — the agent API name
 - `TARGET_ORG` — the org alias or username used during retrieval
 
+Always ask for TARGET_ORG from user.
+
 Verify the compiled `.agent` file exists at:
 `force-app/main/default/aiAuthoringBundles/AGENT_NAME/AGENT_NAME.agent`
 
@@ -139,9 +141,9 @@ Initialize publish loop: Set `PUBLISH_ITERATION = 0` and `MAX_PUBLISH_ITERATIONS
 Run the publish command:
 
 ```bash
-sf agent publish authoring-bundle --api-name AGENT_NAME --target-org TARGET_ORG
+sf agent publish authoring-bundle --dev-debug --api-name AGENT_NAME --target-org TARGET_ORG
 ```
-Very Important: Always provide detailed error output in the console in case of error.
+Very Important: Always provide detailed error output in the console in case of error. The dev-debug flag attached to publish command will get detailed error output.
 
 ### Step 6: Handle Publish Result
 
@@ -250,19 +252,54 @@ Agent:    AGENT_NAME
 Org:      [instanceUrl]
 Username: [username]
 
-Remaining errors:
-   1. [error description]
-   2. [error description]
+Due to a transient issue, the agent could not be published automatically
+after MAX_PUBLISH_ITERATIONS attempts.
 
-The agent could not be published after MAX_PUBLISH_ITERATIONS attempts.
+============================================
+   MANUAL DEPLOYMENT INSTRUCTIONS
+============================================
 
-Suggested manual steps:
-   1. Open the .agent file: AGENT_FILE_PATH
-   2. Review the errors above and apply fixes
-   3. Re-compile: uv run --refresh --native-tls 00-start-migration/scripts/compile_agentscript.py AGENT_FILE_PATH
-   4. Re-publish: sf agent publish authoring-bundle --api-name AGENT_NAME --target-org TARGET_ORG
+Please deploy the agent manually using Agentforce Builder:
 
-Alternatively, you can edit the agent directly in Agentforce Builder.
+1. **Open Agentforce Builder**
+   - Log in to your Salesforce org: [instanceUrl]
+   - Navigate to Setup > Agentforce > Agents
+   - Click "New Agent"
+
+2. **Create New Agent**
+   - Choose "Build Your Own"
+   - Enter Agent Name: AGENT_NAME
+   - Click "Create"
+
+3. **Copy AgentScript Content**
+   - The AgentScript file is located at:
+     AGENT_FILE_PATH
+   
+   - Open this file and copy its entire content
+
+4. **Paste in Script Editor**
+   - In Agentforce Builder, click on "Script Editor" view
+   - Delete any existing placeholder code
+   - Paste the copied AgentScript content
+
+5. **Validate AgentScript**
+   - Click the "Validate" button in the Script Editor
+   - Ensure all validations pass
+   - Fix any errors if shown (refer to validation messages)
+
+6. **Save the Agent**
+   - Click "Save" to save the agent configuration
+   - Activate the agent when ready for use
+
+============================================
+   ALTERNATIVE: CLI RETRY
+============================================
+
+If you prefer to retry via CLI:
+   1. Review any errors above and apply fixes to: AGENT_FILE_PATH
+   2. Re-compile: uv run --refresh --native-tls 00-start-migration/scripts/compile_agentscript.py AGENT_FILE_PATH
+   3. Re-publish: sf agent publish authoring-bundle --api-name AGENT_NAME --target-org TARGET_ORG
+
 ============================================
 ```
 
