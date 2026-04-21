@@ -33,25 +33,28 @@ def run_sf_command(query: str, org: Optional[str] = None) -> List[Dict]:
 
 
 def list_bots(org: Optional[str] = None) -> List[Dict]:
-    """Query all bot versions from org"""
+    """Query all bot versions from org (Einstein Bots only, excludes Agentforce Agents)"""
     query = """
     SELECT
-        BotDefinition.DeveloperName,
+        BotDefinition.MasterLabel,
         BotDefinition.Description,
+        BotDefinition.Type,
         VersionNumber,
+        Status,
         LastModifiedDate
     FROM BotVersion
-    ORDER BY BotDefinition.DeveloperName, VersionNumber DESC
+    WHERE BotDefinition.Type = 'Bot'
+    ORDER BY BotDefinition.MasterLabel, VersionNumber DESC
     """
 
     return run_sf_command(query, org)
 
 
 def group_by_bot(versions: List[Dict]) -> Dict[str, List[Dict]]:
-    """Group versions by bot developer name"""
+    """Group versions by bot master label"""
     grouped = {}
     for version in versions:
-        bot_name = version["BotDefinition"]["DeveloperName"]
+        bot_name = version["BotDefinition"]["MasterLabel"]
         if bot_name not in grouped:
             grouped[bot_name] = []
         grouped[bot_name].append(version)
