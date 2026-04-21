@@ -9,7 +9,7 @@ metadata:
    author: salesforce-migration
    version: "2.0-bot"
    pipeline-order: "0"
-compatibility: Requires Node.js, Python 3.8+, Salesforce CLI (sf), uv package manager (which manages Python automatically), and network access to the Salesforce Nexus PyPI proxy.
+compatibility: Requires Node.js, Python 3.11+, Salesforce CLI (sf), uv package manager, and network access to the Salesforce Nexus PyPI proxy.
 ---
 
 # Start Bot-to-NGA Agent Migration
@@ -103,7 +103,23 @@ network conditions and org size.
 
 Run ALL of the following checks. Report the result of each.
 
-#### 2a: Node.js
+#### 2a: Python 3.11+
+
+```bash
+python3 --version
+```
+
+Check that the version is 3.11 or higher. If Python is not installed or the version is older than 3.11, check for `python3.11` as a fallback:
+
+```bash
+python3.11 --version 2>/dev/null || echo "not found"
+```
+
+If `python3.11` exists and is 3.11+, suggest creating an alias or updating the PATH. Otherwise:
+> "Python 3.11+ is required for the AgentScript compiler but not installed or version is too old.
+> Current version: [version or 'not found']"
+
+#### 2b: Node.js
 
 ```bash
 node --version
@@ -113,7 +129,7 @@ If this fails:
 > "Node.js is required (for the Salesforce CLI) but not installed.
 > Install it from: https://nodejs.org/"
 
-#### 2b: Salesforce CLI
+#### 2c: Salesforce CLI
 
 ```bash
 sf --version
@@ -123,7 +139,7 @@ If this fails:
 > "The Salesforce CLI (`sf`) is required but not installed.
 > Install it from: https://developer.salesforce.com/tools/salesforcecli"
 
-#### 2c: uv Package Manager
+#### 2d: uv Package Manager
 
 ```bash
 uv --version
@@ -133,10 +149,7 @@ If this fails:
 > "The `uv` package manager is required but not installed.
 > Install from: https://docs.astral.sh/uv/getting-started/installation/"
 
-Note: `uv` manages Python automatically — there is no need to check for a separate Python
-installation.
-
-#### 2d: Authenticated Salesforce Org
+#### 2e: Authenticated Salesforce Org
 
 ```bash
 sf org list
@@ -147,7 +160,7 @@ Verify at least one org is listed. If none:
 >   `sf org login web --alias my-org`
 > For sandboxes: `sf org login web --alias my-sandbox --instance-url https://test.salesforce.com`"
 
-#### 2e: Compiler Dependencies (Network Access)
+#### 2f: Compiler Dependencies (Network Access)
 
 ```bash
 python3 skills/00-start-migration/scripts/compile_agentscript_nexus_ts.py 2>&1 || true
@@ -167,6 +180,7 @@ After all checks, display a summary:
 ```
 Prerequisites Check
 ====================
+  Python 3.11+:       [PASS version / FAIL]
   Node.js:            [PASS version / FAIL]
   Salesforce CLI:     [PASS version / FAIL]
   uv:                 [PASS version / FAIL]
@@ -179,19 +193,19 @@ If **all checks pass**:
 
 Then invoke the **01-retrieve-legacy-agent** skill.
 
-If **any of checks 2a, 2b, or 2c fail** (Node.js, sf CLI, or uv missing), suggest the user
+If **any of checks 2a, 2b, 2c, or 2d fail** (Python 3.11+, Node.js, sf CLI, or uv missing), suggest the user
 run the appropriate one-line installer command:
 
 > "Some prerequisites are missing: [list missing tools].
 > You can install them automatically using the provided installation scripts:
 >
 > **macOS/Linux:**
-> ```
+> ```bash
 > bash scripts/install-prerequisites.sh
 > ```
 >
 > **Windows (PowerShell):**
-> ```
+> ```powershell
 > powershell -ExecutionPolicy Bypass -File scripts/install-prerequisites.ps1
 > ```
 >

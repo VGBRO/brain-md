@@ -141,6 +141,7 @@ Run the publish command:
 ```bash
 sf agent publish authoring-bundle --api-name AGENT_NAME --target-org TARGET_ORG
 ```
+Very Important: Always provide detailed error output in the console in case of error.
 
 ### Step 6: Handle Publish Result
 

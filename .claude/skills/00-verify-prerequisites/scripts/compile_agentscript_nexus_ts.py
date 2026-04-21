@@ -32,6 +32,7 @@ import re
 import subprocess
 import sys
 from pathlib import Path
+from typing import List, Tuple, Optional, Union
 
 
 # ANSI color codes
@@ -55,7 +56,7 @@ def error(message):
     print(f"{Colors.RED}{message}{Colors.RESET}", file=sys.stderr)
 
 
-def show_source_context(source_lines: list[str], line_number: int, context: int = 2) -> None:
+def show_source_context(source_lines: List[str], line_number: int, context: int = 2) -> None:
     """Show source code context around an error line."""
     start = max(0, line_number - context - 1)
     end = min(len(source_lines), line_number + context)
@@ -64,7 +65,7 @@ def show_source_context(source_lines: list[str], line_number: int, context: int 
         error(f"  {marker} {i:4d} | {line}")
 
 
-def extract_line_number(error_msg: str) -> int | None:
+def extract_line_number(error_msg: str) -> Optional[int]:
     """Extract line number from error message."""
     m = re.search(r'\bline\s+(\d+)', error_msg, re.IGNORECASE)
     if m:
@@ -75,7 +76,7 @@ def extract_line_number(error_msg: str) -> int | None:
     return None
 
 
-def check_node_installed() -> tuple[bool, str]:
+def check_node_installed() -> Tuple[bool, str]:
     """Check if Node.js is installed and return version."""
     try:
         result = subprocess.run(
@@ -135,7 +136,7 @@ def check_tree_sitter_cli() -> tuple[bool, str]:
         return False, f"error: {e}"
 
 
-def find_cli_location() -> Path | None:
+def find_cli_location() -> Optional[Path]:
     """Find the @agentscript/cli location in node_modules."""
     # Due to path resolution bug in @agentscript/cli, we prefer the local monorepo build
     # where dependencies resolve correctly. The npm-installed version has issues.
@@ -154,7 +155,7 @@ def find_cli_location() -> Path | None:
     return None
 
 
-def check_cli_installed() -> tuple[bool, str, Path | None]:
+def check_cli_installed() -> Tuple[bool, str, Optional[Path]]:
     """Check if @agentscript/cli is installed."""
     cli_path = find_cli_location()
 

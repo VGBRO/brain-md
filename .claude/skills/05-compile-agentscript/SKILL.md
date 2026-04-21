@@ -1,14 +1,14 @@
 ---
-name: compile-agentscript
+name: 05-compile-agentscript
 description: >
-  Runs the AgentScript compiler (00-start-migration/scripts/compile_agentscript.py) in a self-healing loop, automatically
+  Runs the AgentScript compiler (TypeScript/Nexus implementation) in a self-healing loop, automatically
   diagnosing and fixing syntax, structural, and semantic errors until compilation succeeds or
   the maximum retry count is reached. Pipeline step 5 of 6.
 metadata:
   author: salesforce-migration
-  version: "1.0"
+  version: "2.0-nexus-ts"
   pipeline-order: "5"
-compatibility: Requires Python 3.11+, uv package manager, network access to the Salesforce Nexus PyPI proxy for automatic dependency resolution, and 00-start-migration/assets/AGENT_SCRIPT_RULES.md for error diagnosis reference.
+compatibility: Requires Python 3.11+, Node.js v18+, npm, tree-sitter-cli (global), @agentscript/cli from Nexus npm registry, and 00-start-migration/assets/AGENT_SCRIPT_RULES.md for error diagnosis reference.
 ---
 
 # Compile AgentScript
@@ -22,10 +22,15 @@ loop to diagnose and fix errors. The compiler validates syntax (via ANTLR parser
 ## Prerequisites
 
 - The `.agent` file exists at the path from `migration-architecture.md`.
-- `00-start-migration/scripts/compile_agentscript.py` is accessible at the project root.
-- Python 3.11+ is installed.
-- `uv` package manager is installed (https://docs.astral.sh/uv/).
-- Network access to the Salesforce Nexus PyPI proxy for dependencies.
+- Python 3.11+ installed
+- Node.js v18+ installed
+- npm installed (comes with Node.js)
+- tree-sitter-cli installed globally: `npm install -g tree-sitter-cli`
+- @agentscript/cli from Nexus: `npm install --legacy-peer-deps --ignore-scripts`
+- Network access to Nexus npm registry (for verification)
+- The compiler script: `skills/00-start-migration/scripts/compile_agentscript_nexus_ts.py`
+
+**Note:** The compiler automatically checks all prerequisites and provides installation instructions if anything is missing.
 
 ## Authoritative Rules Reference
 
@@ -46,48 +51,152 @@ the most common mistakes and their correct alternatives.
 
 ## Instructions
 
-### Step 1: Determine File Path
+### Step 1: Copy AgentScript to Target Location
 
-Read `migration-architecture.md` and extract the `.agent` file path. It should be:
+Before compilation, copy the generated `agentscript.txt` from the data directory to the proper Salesforce CLI structure:
+
+1. **Read `migration-architecture.md`** to extract the agent name (stored as `AGENT_NAME`).
+
+2. **Define paths**:
+   ```
+   SOURCE_FILE = data/agentscript.txt
+   TARGET_DIR = data/sf-cli/generated/aiAuthoringBundles/AGENT_NAME
+   TARGET_FILE = data/sf-cli/generated/aiAuthoringBundles/AGENT_NAME/AGENT_NAME.agent
+   ```
+
+3. **Create directory structure if it doesn't exist**:
+   ```bash
+   mkdir -p data/sf-cli/generated/aiAuthoringBundles/AGENT_NAME
+   ```
+
+4. **Copy and rename the file**:
+   ```bash
+   cp data/agentscript.txt data/sf-cli/generated/aiAuthoringBundles/AGENT_NAME/AGENT_NAME.agent
+   ```
+
+5. **Verify the copy**:
+   ```bash
+   ls -lh data/sf-cli/generated/aiAuthoringBundles/AGENT_NAME/AGENT_NAME.agent
+   ```
+
+If the source file `data/agentscript.txt` doesn't exist, STOP and report to the user that Step 4 (Generate AgentScript) must be completed first.
+
+Store `TARGET_FILE` as `AGENT_FILE_PATH` for use in subsequent steps.
+
+### Step 2: Verify Prerequisites
+
+The compiler script automatically checks all prerequisites. However, you can verify them manually if needed:
+
+```bash
+# Check Python version
+python3 --version  # Should be 3.11+
+
+# Check Node.js version
+node --version  # Should be v18+
+
+# Check npm
+npm --version
+
+# Check tree-sitter CLI
+tree-sitter --version
+
+# Check @agentscript/cli installation
+python3 skills/00-start-migration/scripts/compile_agentscript_nexus_ts.py --help
+```
+
+**The compiler will automatically display a Prerequisites Check:**
 
 ```
-force-app/main/default/aiAuthoringBundles/AGENT_NAME/AGENT_NAME.agent
+Prerequisites Check
+============================================================
+  Node.js (v18+)      ✓ PASS  v24.14.1
+  npm                 ✓ PASS  11.11.0
+  tree-sitter CLI     ✓ PASS  tree-sitter 0.26.8
+  @agentscript/cli    ✓ PASS  2.2.25 (node_modules/@agentscript/cli)
+  Nexus npm registry  ✓ PASS  @agentscript/cli@2.2.25
+
+✓ All prerequisites satisfied
 ```
 
-Store this as `AGENT_FILE_PATH`.
+**If any prerequisite is missing**, the compiler will display installation instructions.
 
-### Step 2: Initialize Loop Counter
+**One-Time Setup (if prerequisites are missing):**
+
+```bash
+# Install tree-sitter CLI globally
+npm install -g tree-sitter-cli
+
+# Install @agentscript/cli from Nexus
+cd <project-root>
+npm install --legacy-peer-deps --ignore-scripts
+```
+
+### Step 3: Initialize Loop Counter
 
 Set `ITERATION = 0` and `MAX_ITERATIONS = 30`.
 
-### Step 3: Run Compilation
+### Step 4: Run Compilation
 
-Execute the compiler:
+**Note:** Use the `AGENT_FILE_PATH` from Step 1 (the `.agent` file in the `data/sf-cli/generated/aiAuthoringBundles/AGENT_NAME/` directory).
+
+Execute the compiler using the TypeScript/Nexus implementation:
 
 ```bash
-uv run --refresh --native-tls 00-start-migration/scripts/compile_agentscript.py AGENT_FILE_PATH
+python3 skills/00-start-migration/scripts/compile_agentscript_nexus_ts.py AGENT_FILE_PATH
 ```
 
-**FORBIDDEN**: Do NOT use `python` or `python3` — the script requires `uv` for dependency
-resolution. Do NOT omit `--refresh --native-tls` (required for corporate network environments).
+**Important Notes:**
+- This uses the **@agentscript/cli** TypeScript implementation from **Nexus npm registry**
+- The compiler verifies Nexus availability before each compilation
+- Provides detailed diagnostics with error messages and line numbers
+- Validates against the full AgentJSON (AgentDSLAuthoring) schema
+- Automatically checks all prerequisites and displays results
+
+**What the compiler checks:**
+- Syntax validation (AgentScript grammar via tree-sitter)
+- Linked variable sources must reference `@MessagingSession` or `@MessagingEndUser`
+- Action inputs/outputs schema validation
+- Required parameters must be provided in `with` clauses
+- Type checking (object types should have `complex_data_type_name`)
+- Topic structure and transitions
+- Control flow and reasoning blocks
+
+**Output includes:**
+1. Prerequisites check results
+2. Nexus registry verification
+3. Compilation results with line-by-line error context
+4. Agent details (developer name, type, topics count)
 
 Capture BOTH stdout and stderr output.
 
-### Step 4: Analyze Output
+### Step 5: Analyze Output
 
 The compiler has three possible outcomes:
 
 #### Outcome A: Success
 
-The output contains ONE of:
-- `"Successfully compiled Agent Script."`
-- `"Successfully compiled Agent Script (library warnings present"`
+The output contains:
+- `"✅ Successfully compiled Agent Script!"`
+- Agent details displayed (Developer Name, Agent Type, Topics)
+- `"✓ Compilation successful. Ready for deployment."`
 
-If you see either of these → **compilation succeeded**. Go to Step 8.
+If you see this → **compilation succeeded**. Go to Step 9 (Report Success).
 
-**About library warnings**: Messages about `developer_name=None` or similar are KNOWN
-LIBRARY BUGS in the compiler's dependencies, NOT problems with your AgentScript. These
-are safe to ignore. The authoritative validator is `sf agent publish`.
+**Example successful output:**
+```
+✓ Parsed agent_name.agent (411 lines)
+
+✅ Successfully compiled Agent Script!
+
+Agent Details:
+  Developer Name: my_agent
+  Agent Label: My Agent
+  Agent Type: AgentforceServiceAgent
+  Description: Service agent for customer support
+  Topics: 3
+
+✓ Compilation successful. Ready for deployment.
+```
 
 #### Outcome B: Parse Errors
 
@@ -99,9 +208,9 @@ These are syntax errors caught by the ANTLR parser. Go to Step 5.
 
 The output contains `"Compile errors in"` followed by error messages.
 
-These are structural or semantic errors caught during compilation. Go to Step 5.
+These are structural or semantic errors caught during compilation. Go to Step 6.
 
-### Step 5: Diagnose Errors
+### Step 6: Diagnose Errors
 
 **ABSOLUTE PROHIBITION — NO WEB OR INTERNET SEARCH.** Under absolutely NO circumstances may
 you use web search, internet search, or any external lookup to diagnose or fix compilation
@@ -259,7 +368,7 @@ to something that doesn't exist.
    - Left side must be `@variables.name`
    - Right side must be `@outputs.name` or a value
 
-### Step 6: Apply Fixes
+### Step 7: Apply Fixes
 
 For each diagnosed error:
 
@@ -275,7 +384,7 @@ For each diagnosed error:
 **Important**: Fix ALL errors from the current compilation run before re-compiling.
 Do not fix one error and immediately re-run.
 
-### Step 7: Re-run Compilation
+### Step 8: Re-run Compilation
 
 Increment `ITERATION`.
 
@@ -285,9 +394,9 @@ If `ITERATION >= MAX_ITERATIONS`:
 - Ask for guidance.
 - Go to Step 9.
 
-Otherwise, return to Step 3.
+Otherwise, return to Step 4.
 
-### Step 8: Fix Linter Errors
+### Step 9: Fix Linter Errors
 
 After compilation succeeds, you MUST check for and fix any linter errors in the `.agent`
 file and any related project files before proceeding to deployment. Open the `.agent` file
@@ -300,7 +409,7 @@ in the IDE and review for:
 **Do NOT proceed to the deploy step until ALL linter errors are resolved.** Deploying code
 with linter errors can result in deployment failures or unexpected behavior in the org.
 
-### Step 9: Report Success
+### Step 10: Report Success
 
 ```
 Compilation Successful
@@ -316,7 +425,7 @@ Note: The authoritative validator is `sf agent publish`. Library warnings
 problems with your AgentScript.
 ```
 
-### Step 10: Report Failure (if max iterations reached)
+### Step 11: Report Failure (if max iterations reached)
 
 ```
 Compilation Failed After MAX_ITERATIONS Attempts
@@ -339,4 +448,10 @@ how to fix them.
 
 ## Next Step
 
-After successful compilation, invoke the **06-deploy-agentscript** skill.
+After successful compilation, ask user if user wants to go ahead with deploy agent step strictly in yes/no answer.
+if answer is yes, invoke the **06-deploy-agentscript** skill.
+
+After unsuccessful compilation ,ask user if user wants to go ahead with deploy agent step strictly in yes/no answer.
+if answer is yes, invoke the **06-deploy-agentscript** skill.
+
+

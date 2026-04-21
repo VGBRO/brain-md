@@ -43,7 +43,51 @@ gh auth setup-git
 Write-Host ""
 
 # ---------------------------------------------------------------------------
-# 3. Node.js
+# 3. Python 3.11+
+# ---------------------------------------------------------------------------
+function Test-PythonVersion {
+    if (Get-Command python -ErrorAction SilentlyContinue) {
+        $pythonVersion = python --version 2>&1 | Out-String
+        if ($pythonVersion -match "Python (\d+)\.(\d+)") {
+            $major = [int]$matches[1]
+            $minor = [int]$matches[2]
+            if ($major -ge 3 -and $minor -ge 11) {
+                return $true
+            }
+        }
+    }
+    return $false
+}
+
+if (Test-PythonVersion) {
+    $pythonVersion = python --version 2>&1 | Out-String
+    Write-Host "[ok] Python already installed: $pythonVersion" -ForegroundColor Green
+} else {
+    $currentVersion = "not installed"
+    if (Get-Command python -ErrorAction SilentlyContinue) {
+        $currentVersion = python --version 2>&1 | Out-String
+    }
+    Write-Host "[install] Python $currentVersion found, but 3.11+ is required. Installing Python 3.11..." -ForegroundColor Yellow
+
+    winget install Python.Python.3.11 --accept-package-agreements --accept-source-agreements
+
+    # Refresh PATH to include new Python installation
+    $env:PATH = [System.Environment]::GetEnvironmentVariable("PATH", "Machine") + ";" + [System.Environment]::GetEnvironmentVariable("PATH", "User")
+
+    # Verify installation
+    if (Test-PythonVersion) {
+        $pythonVersion = python --version 2>&1 | Out-String
+        Write-Host "[ok] Python 3.11 installed and configured: $pythonVersion" -ForegroundColor Green
+    } else {
+        Write-Host "[warning] Python 3.11 installed but 'python' command still points to old version." -ForegroundColor Yellow
+        Write-Host "         Please restart your terminal or PowerShell window." -ForegroundColor Yellow
+        Write-Host "         Current python: $(python --version 2>&1)" -ForegroundColor Yellow
+    }
+}
+Write-Host ""
+
+# ---------------------------------------------------------------------------
+# 4. Node.js
 # ---------------------------------------------------------------------------
 if (Get-Command node -ErrorAction SilentlyContinue) {
     Write-Host "[ok] Node.js already installed: $(node --version)" -ForegroundColor Green
@@ -56,7 +100,7 @@ if (Get-Command node -ErrorAction SilentlyContinue) {
 Write-Host ""
 
 # ---------------------------------------------------------------------------
-# 4. Salesforce CLI (sf)
+# 5. Salesforce CLI (sf)
 # ---------------------------------------------------------------------------
 if (Get-Command sf -ErrorAction SilentlyContinue) {
     Write-Host "[ok] Salesforce CLI already installed: $(sf --version | Select-Object -First 1)" -ForegroundColor Green
@@ -68,7 +112,7 @@ if (Get-Command sf -ErrorAction SilentlyContinue) {
 Write-Host ""
 
 # ---------------------------------------------------------------------------
-# 5. uv (Python package manager)
+# 6. uv (Python package manager)
 # ---------------------------------------------------------------------------
 if (Get-Command uv -ErrorAction SilentlyContinue) {
     Write-Host "[ok] uv already installed: $(uv --version)" -ForegroundColor Green
@@ -83,4 +127,19 @@ Write-Host ""
 # Summary
 # ---------------------------------------------------------------------------
 Write-Host "=== All prerequisites installed ===" -ForegroundColor Cyan
+Write-Host ""
+
+# Verify Python version one final time
+if (Test-PythonVersion) {
+    $pythonVersion = python --version 2>&1 | Out-String
+    Write-Host "✅ Python version validated: $pythonVersion" -ForegroundColor Green
+} else {
+    Write-Host "⚠️  Please restart your terminal to use the new Python 3.11 installation" -ForegroundColor Yellow
+    if (Get-Command python -ErrorAction SilentlyContinue) {
+        $currentVersion = python --version 2>&1 | Out-String
+        Write-Host "   Current python: $currentVersion" -ForegroundColor Yellow
+    } else {
+        Write-Host "   Current python: not found" -ForegroundColor Yellow
+    }
+}
 Write-Host ""

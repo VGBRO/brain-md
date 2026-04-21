@@ -104,11 +104,6 @@ Preserve exact target names from bot metadata:
    - Step 1: Confirm bot identity and inventory
    - Step 2: Provide agent name/label, approve architecture
    - Step 6: Confirm deployment target org
-4. **Monitor dashboard** (optional):
-   ```bash
-   python3 dashboard/server.py &
-   open http://localhost:8080
-   ```
 
 ## Compilation
 
