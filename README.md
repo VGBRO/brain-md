@@ -38,12 +38,12 @@ powershell -ExecutionPolicy Bypass -File scripts/install-prerequisites.ps1
 
 After installation, restart your terminal and authenticate to a Salesforce org:
 ```bash
-sf org login web --alias my-org
+sf org login web --instance-url <ORG_LOGIN_URL> --alias <CUSTOM_NAME>
 ```
 
-For sandbox environments:
+**Example:**
 ```bash
-sf org login web --alias my-sandbox --instance-url https://test.salesforce.com
+sf org login web --instance-url https://orgfarm-7532d67587.test1.my.pc-rnd.salesforce.com/ --alias orgfarm-epic
 ```
 
 ## Migration Pipeline

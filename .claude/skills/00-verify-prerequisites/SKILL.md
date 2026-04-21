@@ -157,8 +157,11 @@ sf org list
 
 Verify at least one org is listed. If none:
 > "No authenticated Salesforce orgs found. Authenticate with:
->   `sf org login web --alias my-org`
-> For sandboxes: `sf org login web --alias my-sandbox --instance-url https://test.salesforce.com`"
+> 
+>   `sf org login web --instance-url <ORG_LOGIN_URL> --alias <CUSTOM_NAME>`
+> 
+> Example:
+>   `sf org login web --instance-url https://orgfarm-7532d67587.test1.my.pc-rnd.salesforce.com/ --alias orgfarm-epic`"
 
 #### 2f: Compiler Dependencies (Network Access)
 

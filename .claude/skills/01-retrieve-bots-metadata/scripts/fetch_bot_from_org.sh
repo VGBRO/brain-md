@@ -4,6 +4,15 @@
 
 set -e
 
+# Verbose mode - set DEBUG=1 to see all substeps
+VERBOSE="${DEBUG:-false}"
+
+log() {
+    if [ "$VERBOSE" = "true" ] || [ "$VERBOSE" = "1" ]; then
+        echo "$@"
+    fi
+}
+
 BOT_NAME="${1}"
 ORG="${2:-}"
 ML_DOMAIN="${3:-}"  # Optional - will auto-discover if not provided
@@ -48,40 +57,29 @@ fi
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/../../../.." && pwd)"
 
-echo "================================================================================"
-echo "Fetch Einstein Bot from Salesforce Org"
-echo "================================================================================"
-echo ""
-if [ "$INTERACTIVE" = "true" ]; then
-    echo "Mode:       Interactive Selection"
-    echo "Org:        ${ORG}"
-else
-    echo "Bot Name:   $BOT_NAME"
-    echo "Org:        ${ORG:-<default>}"
-    echo "ML Domain:  ${ML_DOMAIN:-<auto-discover>}"
-fi
-echo "Project:    $PROJECT_ROOT"
-echo ""
-echo "================================================================================"
+echo "Step 1 — Retrieve Bot Metadata from SF Org"
 echo ""
 
-# Step 1.0: Ensure SF project exists
-echo "Step 1.0: Checking Salesforce DX project setup..."
-echo ""
+# Step 1.1: Ensure SF project exists (SILENT unless error)
+log "Step 1.1: Checking Salesforce DX project setup..."
 
 if [ ! -f "$PROJECT_ROOT/sfdx-project.json" ]; then
-    echo "⚠️  No sfdx-project.json found. Creating Salesforce DX project..."
-    echo ""
-
     cd "$PROJECT_ROOT"
-    sf project generate \
-        --name "bot-to-agent-migration" \
-        --template "empty" \
-        --output-dir "."
+
+    if [ "$VERBOSE" = "true" ] || [ "$VERBOSE" = "1" ]; then
+        sf project generate \
+            --name "bot-to-agent-migration" \
+            --template "empty" \
+            --output-dir "."
+    else
+        sf project generate \
+            --name "bot-to-agent-migration" \
+            --template "empty" \
+            --output-dir "." >/dev/null 2>&1
+    fi
 
     if [ $? -ne 0 ]; then
-        echo ""
-        echo "Error: Failed to create Salesforce DX project"
+        echo "❌ Error: Failed to create Salesforce DX project"
         exit 1
     fi
 
@@ -99,38 +97,26 @@ if [ ! -f "$PROJECT_ROOT/sfdx-project.json" ]; then
   "sourceApiVersion": "62.0"
 }
 EOF
-
-    echo "  ✓ Created sfdx-project.json with package directory: data/sf-cli"
-else
-    echo "  ✓ sfdx-project.json exists"
 fi
+
+log "  ✓ sfdx-project.json exists"
+log "  ✓ Package directory structure ready"
+log ""
 
 # Ensure package directory structure exists
-mkdir -p "$PROJECT_ROOT/data/sf-cli/main/default"
-mkdir -p "$PROJECT_ROOT/data/resources"
+mkdir -p "$PROJECT_ROOT/data/sf-cli/main/default" 2>/dev/null
+mkdir -p "$PROJECT_ROOT/data/resources" 2>/dev/null
 
 # Remove force-app directory if it exists (SF CLI will use it instead of data/sf-cli)
-if [ -d "$PROJECT_ROOT/force-app" ]; then
-    echo "  ⚠️  Removing conflicting force-app directory"
-    rm -rf "$PROJECT_ROOT/force-app"
-fi
+rm -rf "$PROJECT_ROOT/force-app" 2>/dev/null
 
 # Remove any empty metadata directories that cause SF CLI scandir errors
-# Let SF CLI create these directories during retrieve
 rmdir "$PROJECT_ROOT/data/sf-cli/main/default/bots" 2>/dev/null || true
 rmdir "$PROJECT_ROOT/data/sf-cli/main/default/mlDomains" 2>/dev/null || true
 rmdir "$PROJECT_ROOT/data/sf-cli/main/default/aiAuthoringBundles" 2>/dev/null || true
 
-echo "  ✓ Package directory structure ready"
-echo ""
-echo "================================================================================"
-echo ""
-
-# Step 1.1: Interactive bot selection (if enabled)
+# Step 1.1.1: Interactive bot selection (if enabled)
 if [ "$INTERACTIVE" = "true" ]; then
-    echo "Step 1.1: Interactive bot selection..."
-    echo ""
-
     # Run interactive bot selector - redirect only the SELECTED_BOT line to capture it
     TEMP_OUTPUT=$(mktemp)
 
@@ -159,29 +145,24 @@ if [ "$INTERACTIVE" = "true" ]; then
     BOT_NAME="$SELECTED_BOT"
 
     echo ""
-    echo "  ✓ Selected bot: $BOT_NAME"
-    echo ""
-    echo "================================================================================"
-    echo ""
 fi
 
 # Step 1.2: Get org ID and bot version to create folder name
-echo "Step 1.2: Getting org details and bot version..."
-echo ""
+log "Step 1.2: Getting org details and bot version..."
 
-# Get org ID
+# Get org ID (suppress JSON output since we parse it, not user-facing)
 if [ -z "$ORG" ]; then
-    ORG_INFO=$(sf org display --json 2>&1)
+    ORG_INFO=$(sf org display --json 2>/dev/null)
     if [ $? -ne 0 ]; then
-        echo "Error: No default org set. Please specify org with --target-org or set a default org."
-        echo "Run: sf org display to check available orgs"
+        echo "❌ Error: No default org set. Please specify org with --target-org or set a default org."
+        echo "   Run: sf org display to check available orgs"
         exit 1
     fi
 else
-    ORG_INFO=$(sf org display --target-org "$ORG" --json 2>&1)
+    ORG_INFO=$(sf org display --target-org "$ORG" --json 2>/dev/null)
     if [ $? -ne 0 ]; then
-        echo "Error: Failed to get org details for: $ORG"
-        echo "Check that the org alias is correct and you're authenticated."
+        echo "❌ Error: Failed to get org details for: $ORG"
+        echo "   Check that the org alias is correct and you're authenticated."
         exit 1
     fi
 fi
@@ -189,45 +170,92 @@ fi
 ORG_ID=$(echo "$ORG_INFO" | python3 -c "import sys, json; data=json.load(sys.stdin); print(data.get('result', {}).get('id', ''))" 2>/dev/null)
 
 if [ -z "$ORG_ID" ]; then
-    echo "Error: Failed to retrieve org ID from org info"
+    echo "❌ Error: Failed to retrieve org ID from org info"
     exit 1
 fi
 
-echo "  ✓ Org ID: $ORG_ID"
+log "  ✓ Org ID: $ORG_ID"
 
-# Query bot version
+# Query bot version (suppress JSON output since we parse it, not user-facing)
 if [ -z "$ORG" ]; then
-    BOT_VERSION_QUERY=$(sf data query --query "SELECT VersionNumber FROM BotVersion WHERE BotDefinition.DeveloperName='${BOT_NAME}' ORDER BY VersionNumber DESC LIMIT 1" --json)
+    BOT_VERSION_QUERY=$(sf data query --query "SELECT VersionNumber FROM BotVersion WHERE BotDefinition.DeveloperName='${BOT_NAME}' ORDER BY VersionNumber DESC LIMIT 1" --json 2>/dev/null)
 else
-    BOT_VERSION_QUERY=$(sf data query --query "SELECT VersionNumber FROM BotVersion WHERE BotDefinition.DeveloperName='${BOT_NAME}' ORDER BY VersionNumber DESC LIMIT 1" --target-org "$ORG" --json)
+    BOT_VERSION_QUERY=$(sf data query --query "SELECT VersionNumber FROM BotVersion WHERE BotDefinition.DeveloperName='${BOT_NAME}' ORDER BY VersionNumber DESC LIMIT 1" --target-org "$ORG" --json 2>/dev/null)
 fi
 
 BOT_VERSION=$(echo "$BOT_VERSION_QUERY" | python3 -c "import sys, json; data=json.load(sys.stdin); print(data['result']['records'][0]['VersionNumber'] if data['result']['records'] else '1')")
 
 if [ -z "$BOT_VERSION" ]; then
-    echo "  ⚠️  Could not determine bot version, defaulting to 1"
+    log "  ⚠️  Could not determine bot version, defaulting to 1"
     BOT_VERSION="1"
 fi
 
-echo "  ✓ Bot Version: $BOT_VERSION"
+log "  ✓ Bot Version: $BOT_VERSION"
 
-# Define custom folder path (separate from SF CLI's default structure)
-FOLDER_NAME="${ORG_ID}_${BOT_NAME}_v${BOT_VERSION}"
-BOT_DIR="$PROJECT_ROOT/data/sf-cli/custom/${FOLDER_NAME}"
+# Define new directory structure with lowercase paths
+# Convert to lowercase for directory paths
+ORG_ID_LOWER=$(echo "$ORG_ID" | tr '[:upper:]' '[:lower:]')
+BOT_NAME_LOWER=$(echo "$BOT_NAME" | tr '[:upper:]' '[:lower:]')
 
-echo "  ℹ️  Will organize files into: custom/${FOLDER_NAME}"
+# Define paths
+BOT_VERSION_DIR="$PROJECT_ROOT/data/bots/${ORG_ID_LOWER}/${BOT_NAME_LOWER}/v${BOT_VERSION}"
+STEP1_DIR="${BOT_VERSION_DIR}/step1"
+FINAL_OUTPUT_FILE="${BOT_VERSION_DIR}/${BOT_NAME}.json"
 
-echo ""
-echo "================================================================================"
+log "  ℹ️  Will organize files into: bots/${ORG_ID_LOWER}/${BOT_NAME_LOWER}/v${BOT_VERSION}"
+
+# Check if bot metadata already exists
+if [ -d "$BOT_VERSION_DIR" ]; then
+    echo ""
+    echo "⚠️  ${BOT_NAME}.json already exists for version ${BOT_VERSION}"
+    echo ""
+    echo "Do you want to overwrite the existing data?"
+    echo ""
+    echo "  [yes]  Overwrite and re-retrieve metadata"
+    echo "  [no]   Skip retrieval (use existing data)"
+    echo ""
+    read -p "Your choice: " OVERWRITE_CHOICE
+
+    case "${OVERWRITE_CHOICE,,}" in
+        yes|y)
+            log "  🗑️  Cleaning previous run: $BOT_VERSION_DIR"
+            rm -rf "$BOT_VERSION_DIR"
+            echo ""
+            ;;
+        no|n|skip)
+            echo ""
+            echo "✅ Skipping retrieval. Using existing ${BOT_NAME}.json"
+            echo ""
+            echo "File location:"
+            echo "  ${FINAL_OUTPUT_FILE}"
+            echo ""
+            echo "Next Step:"
+            echo "  /02-process-and-build-inventory"
+            echo ""
+            exit 0
+            ;;
+        *)
+            echo ""
+            echo "❌ Invalid choice. Please run again and choose 'yes' or 'no'."
+            exit 1
+            ;;
+    esac
+fi
+
+log ""
+
+# Show single user-facing message (always shown, not verbose-gated)
+echo "Downloading metadata for ${BOT_NAME}..."
 echo ""
 
 # Step 1.3: Retrieve bot metadata
-echo "Step 1.3: Retrieving bot metadata from Salesforce org..."
-echo ""
+log "Step 1.3: Retrieving bot metadata from Salesforce org..."
+log ""
 
 # Change to project root for SF CLI commands
 cd "$PROJECT_ROOT"
 
+# Always show SF CLI output (it has useful progress info)
 if [ -z "$ORG" ]; then
     sf project retrieve start \
         --metadata "Bot:${BOT_NAME}"
@@ -239,21 +267,21 @@ fi
 
 if [ $? -ne 0 ]; then
     echo ""
-    echo "Error: Failed to retrieve bot metadata"
-    echo "Check that:"
-    echo "  - Bot name is correct (DeveloperName, not Label)"
-    echo "  - You're authenticated to the org"
-    echo "  - The bot exists in the org"
+    echo "❌ Error: Failed to retrieve bot metadata"
+    echo "   Check that:"
+    echo "     - Bot name is correct (DeveloperName, not Label)"
+    echo "     - You're authenticated to the org"
+    echo "     - The bot exists in the org"
     exit 1
 fi
 
-echo ""
+log ""
 
 # Step 1.4: Auto-discover ML domains from bot metadata (if not provided)
-if [ -z "$ML_DOMAIN" ]; then
-    echo "Step 1.4: Auto-discovering ML domains from bot metadata..."
-    echo ""
+log "Step 1.4: Auto-discovering ML domains..."
+log ""
 
+if [ -z "$ML_DOMAIN" ]; then
     # Parse bot metadata to find relatedMlIntents (from default location)
     DEFAULT_BOT_DIR="$PROJECT_ROOT/data/sf-cli/main/default/bots/${BOT_NAME}"
     BOT_META_FILE="${DEFAULT_BOT_DIR}/${BOT_NAME}.bot-meta.xml"
@@ -267,27 +295,27 @@ if [ -z "$ML_DOMAIN" ]; then
                             tr '\n' ' ')
 
         if [ -n "$DISCOVERED_DOMAINS" ]; then
-            echo "  ✓ Discovered ML domain(s): $DISCOVERED_DOMAINS"
+            log "  ✓ Discovered ML domain(s): $DISCOVERED_DOMAINS"
             ML_DOMAINS_TO_FETCH="$DISCOVERED_DOMAINS"
         else
-            echo "  ℹ  No external ML domains referenced - will use bot's internal mlDomain only"
+            log "  ℹ  No external ML domains referenced - will use bot's internal mlDomain only"
             ML_DOMAINS_TO_FETCH=""
         fi
     else
-        echo "  ⚠️  Bot metadata file not found, skipping auto-discovery"
+        log "  ⚠️  Bot metadata file not found, skipping auto-discovery"
         ML_DOMAINS_TO_FETCH=""
     fi
 else
-    echo "Step 1.4: Using provided ML domain: $ML_DOMAIN"
+    log "  ℹ  Using provided ML domain: $ML_DOMAIN"
     ML_DOMAINS_TO_FETCH="$ML_DOMAIN"
 fi
 
-echo ""
+log ""
 
 # Step 1.5: Retrieve ML training data
 if [ -n "$ML_DOMAINS_TO_FETCH" ]; then
-    echo "Step 1.5: Retrieving ML training data from Salesforce org..."
-    echo ""
+    log "Step 1.5: Retrieving ML training data..."
+    log ""
 
     # Ensure we're in project root for SF CLI commands
     cd "$PROJECT_ROOT"
@@ -295,194 +323,269 @@ if [ -n "$ML_DOMAINS_TO_FETCH" ]; then
     ML_DOMAIN_RETRIEVED=false
 
     for DOMAIN in $ML_DOMAINS_TO_FETCH; do
-        echo "  Fetching ML domain: $DOMAIN"
+        log "  Fetching ML domain: $DOMAIN"
 
-        # Capture stderr to temp file to avoid flooding console with progress spinner
+        # Capture stderr to temp file to avoid flooding console
         TEMP_ERR=$(mktemp)
 
-        if [ -z "$ORG" ]; then
-            sf project retrieve start \
-                --metadata "MlDomain:${DOMAIN}" 2>"$TEMP_ERR"
-            EXIT_CODE=$?
+        if [ "$VERBOSE" = "true" ] || [ "$VERBOSE" = "1" ]; then
+            if [ -z "$ORG" ]; then
+                sf project retrieve start \
+                    --metadata "MlDomain:${DOMAIN}" 2>&1
+                EXIT_CODE=$?
+            else
+                sf project retrieve start \
+                    --metadata "MlDomain:${DOMAIN}" \
+                    --target-org "${ORG}" 2>&1
+                EXIT_CODE=$?
+            fi
         else
-            sf project retrieve start \
-                --metadata "MlDomain:${DOMAIN}" \
-                --target-org "${ORG}" 2>"$TEMP_ERR"
-            EXIT_CODE=$?
-        fi
+            if [ -z "$ORG" ]; then
+                sf project retrieve start \
+                    --metadata "MlDomain:${DOMAIN}" >"$TEMP_ERR" 2>&1
+                EXIT_CODE=$?
+            else
+                sf project retrieve start \
+                    --metadata "MlDomain:${DOMAIN}" \
+                    --target-org "${ORG}" >"$TEMP_ERR" 2>&1
+                EXIT_CODE=$?
+            fi
 
-        # Only show errors if command failed (ignore ENOENT scandir warnings)
-        if [ $EXIT_CODE -ne 0 ]; then
-            grep -v -E "(ENOENT.*scandir|Error \(ENOENT\):)" "$TEMP_ERR" || true
+            # Only show errors if command failed (ignore ENOENT scandir warnings)
+            if [ $EXIT_CODE -ne 0 ]; then
+                grep -v -E "(ENOENT.*scandir|Error \(ENOENT\):)" "$TEMP_ERR" || true
+            fi
         fi
         rm -f "$TEMP_ERR"
 
         # Check if files were actually retrieved
         if [ -f "$PROJECT_ROOT/data/sf-cli/main/default/mlDomains/${DOMAIN}.mlDomain-meta.xml" ]; then
-            echo "    ✓ Retrieved $DOMAIN"
+            log "    ✓ Retrieved $DOMAIN"
             ML_DOMAIN_RETRIEVED=true
         else
-            echo "    ⚠️  Failed to retrieve $DOMAIN (may not exist in org)"
+            log "    ⚠️  Failed to retrieve $DOMAIN (may not exist in org)"
         fi
     done
 
     if [ "$ML_DOMAIN_RETRIEVED" = false ]; then
-        echo ""
-        echo "  ⚠️  No ML domains retrieved successfully"
-        echo "  Continuing with bot's internal mlDomain only..."
+        log ""
+        log "  ⚠️  No ML domains retrieved successfully"
+        log "  Continuing with bot's internal mlDomain only..."
     fi
 else
-    echo "Step 1.5: Skipping ML domain retrieval (none specified or discovered)"
+    log "Step 1.5: Skipping ML domain retrieval (none specified or discovered)"
     ML_DOMAIN_RETRIEVED=false
 fi
 
-echo ""
+log ""
 
-# Step 1.6: Copy all retrieved files to custom organized folder
-echo "Step 1.6: Copying files to custom/${FOLDER_NAME}..."
-echo ""
+# Step 1.5.1: Copy all retrieved files to step1 organized folder
+log "Step 1.5.1: Copying files to step1 folder..."
+log ""
 
-# Create custom folder structure with subfolders
-mkdir -p "$BOT_DIR/bots"
-mkdir -p "$BOT_DIR/jsons"
+# Create step1 folder structure
+mkdir -p "$STEP1_DIR/xml/bots"
+mkdir -p "$STEP1_DIR/xml/mlDomains"
+mkdir -p "$STEP1_DIR/json"
+mkdir -p "$STEP1_DIR/apex-invocations/classes"
 
-# Copy bot XML files to bots subfolder
+# Copy bot XML files to step1/xml/bots/
 DEFAULT_BOT_DIR="$PROJECT_ROOT/data/sf-cli/main/default/bots/${BOT_NAME}"
 if [ -d "$DEFAULT_BOT_DIR" ]; then
-    cp -r "$DEFAULT_BOT_DIR"/*.bot-meta.xml "$BOT_DIR/bots/" 2>/dev/null || true
-    cp -r "$DEFAULT_BOT_DIR"/*.botVersion-meta.xml "$BOT_DIR/bots/" 2>/dev/null || true
-    echo "  ✓ Bot XML files copied to bots/"
+    cp -r "$DEFAULT_BOT_DIR"/*.bot-meta.xml "$STEP1_DIR/xml/bots/" 2>/dev/null || true
+    cp -r "$DEFAULT_BOT_DIR"/*.botVersion-meta.xml "$STEP1_DIR/xml/bots/" 2>/dev/null || true
+    log "  ✓ Bot XML files copied to step1/xml/bots/"
 fi
 
-# Copy ML domain XML files to mlDomains subfolder
+# Copy ML domain XML files to step1/xml/mlDomains/
 DEFAULT_ML_DIR="$PROJECT_ROOT/data/sf-cli/main/default/mlDomains"
 if [ -d "$DEFAULT_ML_DIR" ] && [ "$(ls -A $DEFAULT_ML_DIR 2>/dev/null)" ]; then
-    mkdir -p "$BOT_DIR/mlDomains"
-    cp -r "$DEFAULT_ML_DIR"/*.mlDomain-meta.xml "$BOT_DIR/mlDomains/" 2>/dev/null || true
-    echo "  ✓ ML domain XML files copied to mlDomains/"
+    cp -r "$DEFAULT_ML_DIR"/*.mlDomain-meta.xml "$STEP1_DIR/xml/mlDomains/" 2>/dev/null || true
+    log "  ✓ ML domain XML files copied to step1/xml/mlDomains/"
 fi
 
-echo ""
+log ""
 
-# Step 1.7: Convert bot XML to JSON
-echo "Step 1.7: Converting bot XML metadata to JSON..."
-echo ""
-python3 "$SCRIPT_DIR/convert_bot_xml_to_json.py" "${BOT_NAME}" "${FOLDER_NAME}"
+# Step 1.6: Convert bot XML to JSON
+log "Step 1.6: Converting bot XML to JSON..."
+log ""
+
+if [ "$VERBOSE" = "true" ] || [ "$VERBOSE" = "1" ]; then
+    python3 "$SCRIPT_DIR/convert_bot_xml_to_json.py" "${BOT_NAME}" "${STEP1_DIR}"
+else
+    python3 "$SCRIPT_DIR/convert_bot_xml_to_json.py" "${BOT_NAME}" "${STEP1_DIR}" >/dev/null 2>&1
+fi
 
 if [ $? -ne 0 ]; then
     echo ""
-    echo "Error: Failed to convert bot XML to JSON"
+    echo "❌ Error: Failed to convert bot XML to JSON"
     exit 1
 fi
 
-echo ""
+log ""
 
-# Step 1.8: Convert ML domain XML to JSON FIRST (before extraction needs it)
+# Step 1.6.1: Convert ML domain XML to JSON FIRST (before extraction needs it)
 if [ "$ML_DOMAIN_RETRIEVED" = true ]; then
-    echo "Step 1.8: Converting ML domain XML to JSON..."
-    echo ""
+    log "Step 1.6.1: Converting ML domain XML to JSON..."
+    log ""
 
     ML_DOMAIN_CONVERTED=false
 
-    # Convert all retrieved ML domain XML files in custom folder
-    for ML_XML_FILE in "$BOT_DIR/mlDomains"/*.mlDomain-meta.xml; do
+    # Convert all retrieved ML domain XML files in step1 folder
+    for ML_XML_FILE in "$STEP1_DIR/xml/mlDomains"/*.mlDomain-meta.xml; do
         if [ -f "$ML_XML_FILE" ]; then
-            echo "  Converting: $(basename "$ML_XML_FILE")"
-            python3 "$SCRIPT_DIR/convert_ml_domain.py" "$ML_XML_FILE"
+            log "  Converting: $(basename "$ML_XML_FILE")"
+
+            if [ "$VERBOSE" = "true" ] || [ "$VERBOSE" = "1" ]; then
+                python3 "$SCRIPT_DIR/convert_ml_domain.py" "$ML_XML_FILE"
+            else
+                python3 "$SCRIPT_DIR/convert_ml_domain.py" "$ML_XML_FILE" >/dev/null 2>&1
+            fi
 
             if [ $? -eq 0 ]; then
-                echo "    ✓ Converted successfully"
-                # Move JSON from mlDomains to jsons folder
+                log "    ✓ Converted successfully"
+                # Move JSON from xml/mlDomains to json folder
                 JSON_FILE="${ML_XML_FILE%.mlDomain-meta.xml}.json"
                 if [ -f "$JSON_FILE" ]; then
-                    mv "$JSON_FILE" "$BOT_DIR/jsons/"
-                    echo "    ✓ Moved to jsons/"
+                    mv "$JSON_FILE" "$STEP1_DIR/json/"
+                    log "    ✓ Moved to json/"
                 fi
                 ML_DOMAIN_CONVERTED=true
             else
-                echo "    ⚠️  Conversion failed"
+                log "    ⚠️  Conversion failed"
             fi
         fi
     done
 
     if [ "$ML_DOMAIN_CONVERTED" = false ]; then
-        echo ""
-        echo "  ⚠️  No ML domain XML files found or all conversions failed"
+        log ""
+        log "  ⚠️  No ML domain XML files found or all conversions failed"
     fi
 else
-    echo "Step 1.8: Skipped (ML domain not retrieved)"
+    log "Step 1.6.1: Skipped (ML domain not retrieved)"
     ML_DOMAIN_CONVERTED=false
 fi
 
-echo ""
+log ""
 
-# Step 1.9: Extract bot data (now IntentSets.json is available if needed)
-echo "Step 1.9: Extracting bot metadata to JSON..."
-echo ""
-python3 "$SCRIPT_DIR/extract_bot_metadata.py" "${BOT_NAME}" --bot-dir "${BOT_DIR}"
+# Step 1.6.2: Extract bot data (now IntentSets.json is available if needed)
+log "Step 1.6.2: Extracting bot metadata to JSON..."
+log ""
+
+if [ "$VERBOSE" = "true" ] || [ "$VERBOSE" = "1" ]; then
+    python3 "$SCRIPT_DIR/extract_bot_metadata.py" "${BOT_NAME}" --step1-dir "${STEP1_DIR}"
+else
+    python3 "$SCRIPT_DIR/extract_bot_metadata.py" "${BOT_NAME}" --step1-dir "${STEP1_DIR}" >/dev/null 2>&1
+fi
 
 if [ $? -ne 0 ]; then
     echo ""
-    echo "Error: Failed to extract bot metadata"
+    echo "❌ Error: Failed to extract bot metadata"
     exit 1
 fi
 
-echo ""
+log ""
 
-# Step 1.10: Removed (merge_ml_data.py is obsolete)
+# Step 1.7: Fetch and parse Apex invocations from org (replaces inference logic)
+log "Step 1.7: Fetching real Apex class signatures from org..."
+log ""
+
+# Temporary file before Apex parsing (in step1/json)
+TEMP_BOT_FILE="${STEP1_DIR}/json/${BOT_NAME}.json"
+
+# Check if bot JSON exists
+if [ ! -f "$TEMP_BOT_FILE" ]; then
+    echo "❌ Error: Bot JSON not found at $TEMP_BOT_FILE"
+    exit 1
+fi
+
+# Run fetch and parse invocations script
+APEX_OUTPUT_DIR="${STEP1_DIR}/apex-invocations"
+
+if [ "$VERBOSE" = "true" ] || [ "$VERBOSE" = "1" ]; then
+    bash "$SCRIPT_DIR/fetch_and_parse_invocations.sh" \
+        "$TEMP_BOT_FILE" \
+        "$ORG" \
+        "$APEX_OUTPUT_DIR"
+    APEX_EXIT_CODE=$?
+else
+    bash "$SCRIPT_DIR/fetch_and_parse_invocations.sh" \
+        "$TEMP_BOT_FILE" \
+        "$ORG" \
+        "$APEX_OUTPUT_DIR" \
+        --quiet
+    APEX_EXIT_CODE=$?
+fi
+
+if [ $APEX_EXIT_CODE -ne 0 ]; then
+    log ""
+    log "⚠️  Warning: Failed to fetch Apex invocations from org"
+    log "    Continuing with inferred types (may be incorrect)"
+    log ""
+    # Move temp file to final location without Apex updates
+    mv "$TEMP_BOT_FILE" "$FINAL_OUTPUT_FILE"
+else
+    # Replace the temp file with the updated one, then move to final location
+    UPDATED_BOT_FILE="${TEMP_BOT_FILE%.json}_with_parsed_invocations.json"
+    if [ -f "$UPDATED_BOT_FILE" ]; then
+        mv "$UPDATED_BOT_FILE" "$FINAL_OUTPUT_FILE"
+        log "✅ Bot JSON updated with real Apex signatures and moved to root"
+    else
+        # If no update file, move original
+        mv "$TEMP_BOT_FILE" "$FINAL_OUTPUT_FILE"
+    fi
+fi
+
+# Clean up temporary JSON file in step1/json if it still exists
+if [ -f "$TEMP_BOT_FILE" ]; then
+    rm "$TEMP_BOT_FILE"
+    log "  🗑️  Cleaned up temporary file: step1/json/${BOT_NAME}.json"
+fi
+
+log ""
+
+# Step 1.11: Removed (merge_ml_data.py is obsolete)
 # extract_bot_metadata.py now handles ML intent extraction correctly by parsing
 # relatedMlIntents and extracting ONLY the referenced intents from Intent Sets.
 
-# Final file is always in jsons directory with bot name
-FINAL_FILE="${BOT_DIR}/jsons/${BOT_NAME}.json"
-
-if [ ! -f "$FINAL_FILE" ]; then
-    echo "Error: Final bot JSON not found at $FINAL_FILE"
+# Check final file exists at root of bot version directory
+if [ ! -f "$FINAL_OUTPUT_FILE" ]; then
+    echo "Error: Final bot JSON not found at $FINAL_OUTPUT_FILE"
     exit 1
 fi
 
-echo ""
-echo "================================================================================"
-echo "✅ Complete!"
-echo "================================================================================"
-echo ""
+# Save pipeline state for session resumption
+STATE_FILE="$PROJECT_ROOT/.claude/pipeline-state.json"
+mkdir -p "$(dirname "$STATE_FILE")"
+cat > "$STATE_FILE" <<EOF
+{
+  "currentStep": 1,
+  "botName": "${BOT_NAME}",
+  "botVersion": "v${BOT_VERSION}",
+  "orgId": "${ORG_ID}",
+  "orgAlias": "${ORG:-default}",
+  "botJsonPath": "${FINAL_OUTPUT_FILE}",
+  "lastUpdated": "$(date -u +"%Y-%m-%dT%H:%M:%SZ" 2>/dev/null || date +"%Y-%m-%dT%H:%M:%S")"
+}
+EOF
 
-echo "Folder: custom/${FOLDER_NAME}"
-echo ""
-if [ "$ML_DOMAIN_CONVERTED" = true ]; then
-    echo "🎉 Successfully fetched bot with COMPLETE ML training data!"
-    echo ""
-    echo "Output file:"
-    echo "  data/sf-cli/custom/${FOLDER_NAME}/jsons/${BOT_NAME}.json ⭐"
-    echo "  (COMPLETE: bot + invocations + ML training data)"
-    echo ""
-    echo "Additional resources:"
-    echo "  - SF CLI raw: data/sf-cli/main/default/bots/ and mlDomains/"
-    echo "  - Organized XML: data/sf-cli/custom/${FOLDER_NAME}/"
-    echo "  - Organized JSON: data/sf-cli/custom/${FOLDER_NAME}/jsons/"
-    echo "  - ML domains: data/sf-cli/custom/${FOLDER_NAME}/mlDomains/"
-else
-    echo "⚠️  Fetched bot structure and invocations"
-    echo "   ML training data is from bot's internal mlDomain"
-    echo ""
-    echo "Output file:"
-    echo "  data/sf-cli/custom/${FOLDER_NAME}/jsons/${BOT_NAME}.json ⭐"
-    echo "  (bot structure + invocations + internal ML)"
-    echo ""
-    echo "Additional resources:"
-    echo "  - SF CLI raw: data/sf-cli/main/default/bots/"
-    echo "  - Organized XML: data/sf-cli/custom/${FOLDER_NAME}/"
-    echo "  - Organized JSON: data/sf-cli/custom/${FOLDER_NAME}/jsons/"
-fi
+log "  💾 Saved pipeline state to .claude/pipeline-state.json"
 
 echo ""
-echo "================================================================================"
+echo "════════════════════════════════════════════════════════════"
+echo "✅  STEP 1 COMPLETE"
+echo "════════════════════════════════════════════════════════════"
 echo ""
-echo "Next step: Start the migration pipeline"
-echo "  Ask Claude: 'Start the bot migration for ${BOT_NAME}'"
-echo "  Or run: /00-start-migration"
+echo "Bot metadata successfully retrieved and saved."
 echo ""
-echo "  Bot JSON location: data/sf-cli/custom/${FOLDER_NAME}/jsons/${BOT_NAME}.json"
+echo "Final JSON location:"
+echo "  data/bots/${ORG_ID_LOWER}/${BOT_NAME_LOWER}/v${BOT_VERSION}/${BOT_NAME}.json"
 echo ""
-echo "================================================================================"
+echo "Next Step:"
+echo "  /02-process-and-build-inventory"
+echo ""
+echo "This will parse the bot metadata and show you a complete"
+echo "inventory of dialogs, intents, actions, and variables."
+echo ""
+echo "════════════════════════════════════════════════════════════"
 echo ""

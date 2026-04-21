@@ -123,8 +123,11 @@ bash .claude/skills/01-retrieve-bots-metadata/scripts/fetch_bot_from_org.sh <BOT
 
 **Examples:**
 ```bash
-# Interactive mode (shows bot list)
+# Interactive mode (shows bot list) - clean output
 bash .claude/skills/01-retrieve-bots-metadata/scripts/fetch_bot_from_org.sh interactive orgfarm-cult
+
+# Interactive mode with verbose debug output
+DEBUG=1 bash .claude/skills/01-retrieve-bots-metadata/scripts/fetch_bot_from_org.sh interactive orgfarm-cult
 
 # Direct fetch from default org
 bash .claude/skills/01-retrieve-bots-metadata/scripts/fetch_bot_from_org.sh B2A_Intent_Enabled
@@ -135,6 +138,21 @@ bash .claude/skills/01-retrieve-bots-metadata/scripts/fetch_bot_from_org.sh B2A_
 # Fetch with custom ML domain
 bash .claude/skills/01-retrieve-bots-metadata/scripts/fetch_bot_from_org.sh B2A_Intent_Enabled my-org CustomIntents
 ```
+
+**Output Modes:**
+
+By default, the script runs in **clean mode** showing only essential messages:
+```
+Downloading metadata for B2A_Intent_Enabled...
+
+✅  Metadata saved to: data/sf-cli/custom/.../jsons/B2A_Intent_Enabled.json
+```
+
+For debugging or troubleshooting, use **verbose mode** with `DEBUG=1`:
+```bash
+DEBUG=1 bash .claude/skills/01-retrieve-bots-metadata/scripts/fetch_bot_from_org.sh interactive orgfarm-cult
+```
+This shows all substeps (1.1-1.7) with detailed output from SF CLI and Python scripts.
 
 ---
 
@@ -162,15 +180,19 @@ And skip to Step 2 of the migration pipeline.
 Before fetching, authenticate to your Salesforce org:
 
 ```bash
-# Production or Developer org
-sf org login web --alias my-org
-
-# Sandbox org
-sf org login web --alias my-sandbox --instance-url https://test.salesforce.com
-
-# Orgfarm org (Salesforce internal)
-sf org login web --alias orgfarm-epic --instance-url https://orgfarm-xxxx.test1.my.pc-rnd.salesforce.com/
+sf org login web --instance-url <ORG_LOGIN_URL> --alias <CUSTOM_NAME>
 ```
+
+**Example:**
+```bash
+sf org login web --instance-url https://orgfarm-7532d67587.test1.my.pc-rnd.salesforce.com/ --alias orgfarm-epic
+# Username: epic.out.32f02a30b2d1@orgfarm.salesforce.com
+```
+
+**Common instance URLs:**
+- Production: `https://login.salesforce.com`
+- Sandbox: `https://test.salesforce.com`
+- Orgfarm: `https://orgfarm-xxxx.test1.my.pc-rnd.salesforce.com/`
 
 **Verify authentication:**
 ```bash
@@ -215,6 +237,45 @@ The fetch script retrieves and extracts:
 
 ## Step-by-Step Process
 
+The pipeline has been updated with sequential step numbering (1.1-1.7) and includes two-phase Apex parsing.
+
+### Main Steps Overview
+
+**Note:** By default, all these steps run silently. Only errors and the final success message are shown. Use `DEBUG=1` to see detailed output.
+
+```
+Step 1.1: Checking Salesforce DX project setup
+  Step 1.1.1: Interactive bot selection (if enabled)
+Step 1.2: Getting org details and bot version
+Step 1.3: Retrieving bot metadata from Salesforce org
+Step 1.4: Auto-discovering ML domains from bot metadata (or using provided domain)
+Step 1.5: Retrieving ML training data (if domains found)
+  Step 1.5.1: Copying files to custom organized folder
+Step 1.6: Converting bot XML to JSON
+  Step 1.6.1: Converting ML domain XML to JSON (if retrieved)
+  Step 1.6.2: Extracting bot metadata to JSON
+Step 1.7: Fetching real Apex class signatures from org (two-phase approach)
+```
+
+**Step 1.7 Sub-Steps:**
+```
+Step 1: Extract invocation structure from bot metadata
+Step 2: Extract Apex class names
+Step 3: Retrieve Apex classes from org (batched if >50)
+Step 4: Parse Apex invocable methods
+Step 5: Merge bot metadata with Apex types
+Step 6: Update bot JSON
+```
+
+**Clean Output (Default):**
+- Bot selection interface (interactive mode)
+- "Downloading metadata..." message
+- Success or error final status
+
+**Verbose Output (DEBUG=1):**
+- All steps shown with detailed SF CLI and Python script output
+- Useful for troubleshooting issues
+
 ### Step 1: Find Your Bot Name
 
 List all bots in your org:
@@ -228,11 +289,11 @@ sf data query --query "SELECT Id, DeveloperName, MasterLabel FROM Bot" --target-
 Example output:
 ```
 Id                  DeveloperName        MasterLabel
-00DB0000000XXXX     FIT_Bot             FIT Bot
-00DB0000000YYYY     Customer_Support    Customer Support Bot
+00DB0000000XXXX     CustomerServiceBot   Customer Service Bot
+00DB0000000YYYY     SupportBot           Support Bot
 ```
 
-Use: `FIT_Bot` (not "FIT Bot")
+Use: `CustomerServiceBot` (not "Customer Service Bot")
 
 ### Step 2: Check ML Domain (Optional)
 
@@ -260,12 +321,20 @@ bash .claude/skills/01-retrieve-bots-metadata/scripts/fetch_bot_from_org.sh <BOT
 ```
 
 **What happens:**
-1. ✅ Retrieves bot metadata from org
-2. ✅ Retrieves ML domain metadata (if available)
-3. ✅ Extracts bot structure to JSON
-4. ✅ Converts ML domain XML to JSON
-5. ✅ Merges ML training data into bot JSON
-6. ✅ Copies result to `data/bot.json`
+1. ✅ Checks Salesforce DX project setup (Step 1.1)
+2. ✅ Gets org details and bot version (Step 1.2)
+3. ✅ Retrieves bot metadata from org (Step 1.3)
+4. ✅ Auto-discovers ML domains from bot metadata (Step 1.4)
+5. ✅ Retrieves ML domain metadata if available (Step 1.5)
+6. ✅ Copies files to custom organized folder (Step 1.6)
+7. ✅ Converts bot XML to JSON (Step 1.7)
+8. ✅ Converts ML domain XML to JSON (Step 1.8)
+9. ✅ Extracts bot structure to JSON with retryMessages normalization (Step 1.9)
+10. ✅ **Fetches real Apex class signatures from org using two-phase approach** (Step 1.10):
+    - Extracts parameter names from bot metadata
+    - Retrieves Apex classes from org (batched if >50)
+    - Parses @InvocableMethod signatures from source code
+    - Merges to produce accurate botInvocationsDescribeInfo
 
 ### Step 4: Verify Output
 
@@ -508,12 +577,34 @@ Don't delete files in `force-app/main/default/bots/` - they're useful for debugg
 
 ### Enable Verbose Output
 
-For debugging, run scripts with verbose output:
+The script runs in **clean mode** by default (only shows essential messages). For debugging, enable **verbose mode**:
 
 ```bash
-# Salesforce CLI verbose mode
+# Enable verbose mode for the fetch script
+DEBUG=1 bash .claude/skills/01-retrieve-bots-metadata/scripts/fetch_bot_from_org.sh interactive orgfarm-cult
+
+# Or for direct bot fetch
+DEBUG=1 bash .claude/skills/01-retrieve-bots-metadata/scripts/fetch_bot_from_org.sh B2A_Intent_Enabled my-org
+```
+
+**What verbose mode shows:**
+- All substeps (1.1-1.7) with detailed logging
+- SF CLI command output
+- Python script processing details
+- Apex class retrieval progress
+- File conversion status
+
+**When to use verbose mode:**
+- Debugging metadata retrieval issues
+- Troubleshooting ML domain discovery
+- Investigating Apex parsing failures
+- Understanding step-by-step execution
+
+**Salesforce CLI verbose mode (optional):**
+```bash
+# For even more detailed SF CLI output
 export SF_LOG_LEVEL=debug
-sf project retrieve start --metadata Bot:${BOT_NAME} --target-org ${ORG}
+DEBUG=1 bash .claude/skills/01-retrieve-bots-metadata/scripts/fetch_bot_from_org.sh interactive orgfarm-cult
 ```
 
 ### Check Retrieved Files
@@ -553,11 +644,15 @@ After successfully fetching bot data:
 
 | Script | Purpose |
 |--------|---------|
-| `fetch_bot_from_org.sh` | Main wrapper (orchestrates all steps) |
+| `fetch_bot_from_org.sh` | Main orchestrator (runs all 10 steps sequentially) |
 | `list_bots_interactive.py` | Interactive bot selector with formatted display |
 | `convert_bot_xml_to_json.py` | Bot XML → JSON converter (handles arrays/booleans) |
-| `extract_bot_metadata.py` | Core extraction engine (extracts only referenced ML intents) |
+| `extract_bot_metadata.py` | Core extraction engine (extracts only referenced ML intents, normalizes retryMessages) |
 | `convert_ml_domain.py` | ML domain XML → JSON converter |
+| `extract_invocations_from_bot.py` | Phase 1: Extract parameter names from bot metadata |
+| `parse_apex_invocable_methods.py` | Phase 2a: Parse Apex @InvocableMethod signatures from source |
+| `merge_invocation_types.py` | Phase 2b: Merge bot parameters with Apex types |
+| `fetch_and_parse_invocations.sh` | Apex invocation orchestrator (two-phase approach) |
 | `compare_bot_jsons.py` | Validation tool for comparing bot JSONs |
 
 ### File Formats
