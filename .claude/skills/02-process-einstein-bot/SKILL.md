@@ -14,10 +14,7 @@ allowed-tools: Write, Edit, Read, Glob
 
 # 1. Reformat and refine the bot structure.
 
-```python
-from scripts import preprocess_bot
-preprocess_bot.run()
-```
+Import `preprocess_bot.py` from `scripts` folder and invoke the `run` method in the file by passing the data directory as input.
 
 # 2. Generate Intent Digest.
 
@@ -63,6 +60,5 @@ DIALOGS WITH ACTIONS
     - If the question is out of the scope of these files, then inform the user that the question is out of scope and inform them that you can answer questions related to the bot configuration and provide examples of questions about dialogs, actions, dialog to action mappings etc.
     - If the user asks questions about all the dialogs, and if there are too many dialogs in the bot (more than 20), nudge user towards a more specific question instead of displaying all the dialogs at once.
     - User CANNOT ask to modify/update any information about the bot. And hence, the generated files and the original bot json file cannot be modified via user interactions at this point. This is only an informational interaction with the user and not intended to take any feedback from the user.
-- If the user wants to proceed to the next step, provide a message to the user like 'Proceeding to the next step..'. And stop here. And give back the control.
-
-** IMPORTANT INSTRUCTION ** - Do not make any changes to `bot.json` or `preprocessed_bot.json` or `intent_digest.json` files while interacting with the user.
+**IMPORTANT INSTRUCTION** - Do not make any changes to `bot.json` or `preprocessed_bot.json` or `intent_digest.json` files while interacting with the user.
+- If the user wants to proceed to the next step, provide a message to the user like 'Proceeding to the next step..'.

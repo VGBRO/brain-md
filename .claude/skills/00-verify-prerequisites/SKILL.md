@@ -96,7 +96,7 @@ Verify at least one org is listed. If none:
 ### 1f: Compiler Dependencies (Network Access)
 
 ```bash
-python3 skills/00-start-migration/scripts/compile_agentscript_nexus_ts.py 2>&1 || true
+python3 skills/00-verify-prerequisites/scripts/compile_agentscript_nexus_ts.py 2>&1 || true
 ```
 
 If the output shows a network error reaching the Nexus PyPI proxy:

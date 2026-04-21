@@ -415,19 +415,14 @@ Delete the topics generated corresponding to the `deleted_topics` in the `topic_
 
 # 9. Wait for user response and feedback, and incorporate any changes suggested.
 
-First, inform the user that the agentscript has been generated successfully. Then, provide a 1-2 line summary of the following sections in generated agentscript:
-    - system
-    - config
-    - variables
-    - knowledge
-    - language
-    - topics
-
-Then, inform the user that you will help them review each section. And inform them that they also have an option to directly navigate to a particular section if they want to.
-**Important Instruction** - Allow user to stop/skip reviewing the generated agentscript at any point in the review process and move on to the next step. If the user does this, move on the step #10.
-**Important Instruction** - At any point in the entire review process, allow the user to review any section of the agentscript. If the user does this, then help them review the sections that they would like and keep asking for their inputs on what they would like to do next.
-
-Help the user review the agentscript in a phased manner, as the content that has been generated is large and dumping all the content on the user at once will lead to confusion and missing detail. Go through the below steps to finalise the agentscript after incorporating any changes.
+- First, inform the user that the agentscript has been generated successfully. Then, provide the below list of the sections generated in agentscript:
+    1. system
+    2. config
+    3. variables
+    4. knowledge
+    5. language
+    6. topics
+- Then, help user review each section of the generated agentscript.
 
 ## 1. Review `system` section in agentscript.
 
@@ -548,4 +543,4 @@ Help the user review the agentscript in a phased manner, as the content that has
 
 - Validate that the agentscript follows all the rules mentioned in step # 8.
 - Write the generated agentscript to `agentscript.agent` in the data directory.
-- Finally, provide a message to the user like 'Proceeding to the next step..'. And stop here. And give back the control.
+- Finally, provide a message to the user like 'Proceeding to the next step..'.
