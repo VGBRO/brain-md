@@ -113,11 +113,11 @@ ORDER BY BotDefinition.DeveloperName, VersionNumber DESC
 
   #   Bot Name                  Description
   ─   ─────────────────────     ──────────────────────────────────────────
-  1   Emirates_Bot              Customer service bot for Emirates airline.
-                                Handles flight bookings, baggage, rewards.
-  2   Cultfit_Bot               Health & fitness assistant. Manages class
+  1   CustomerServiceBot              Customer service bot for airline services.
+                                Handles reservations, baggage, rewards.
+  2   FitnessAssistantBot               Fitness assistant. Manages class
                                 bookings, memberships, and support queries.
-  3   B2A_Intent_Enabled        Test bot with intent routing
+  3   SupportBot        General support bot with intent routing
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
@@ -144,7 +144,7 @@ ORDER BY BotDefinition.DeveloperName, VersionNumber DESC
 
 Accept these variations:
 - "select bot 1" / "1" / "bot 1" / "first one"
-- "select Emirates_Bot" / "Emirates Bot"
+- "select CustomerServiceBot" / "Emirates Bot"
 - "show me the Emirates bot"
 - "quit" / "exit" / "cancel"
 
@@ -154,12 +154,12 @@ Map these to the appropriate bot selection or exit.
 
 ```
 User: select 2
-Claude: ✅  Selected: Cultfit_Bot
+Claude: ✅  Selected: FitnessAssistantBot
         Fetching versions...
         [Proceeds to Phase 1.3]
 
 User: I want the Emirates bot
-Claude: ✅  Selected: Emirates_Bot
+Claude: ✅  Selected: CustomerServiceBot
         Fetching versions...
         [Proceeds to Phase 1.3]
 
@@ -175,7 +175,7 @@ Claude: Exiting bot selection. You can restart with /01-retrieve-bots-metadata
 
 ```
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  VERSIONS  —  Emirates_Bot
+  VERSIONS  —  CustomerServiceBot
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
   #   Version     Status      Last Modified
@@ -245,7 +245,7 @@ Claude: We are currently in the bot selection phase (Step 1). I can help you:
   CONFIRM SELECTION
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-  Bot      : Emirates_Bot
+  Bot      : CustomerServiceBot
   Version  : v4  (Active)
   Org      : <OrgName>
 
@@ -297,20 +297,31 @@ Run the existing infrastructure:
 bash .claude/skills/01-retrieve-bots-metadata/scripts/fetch_bot_from_org.sh <BOT_NAME> <ORG_ALIAS>
 ```
 
-**Show progress:**
+**Show simplified progress (hide intermediate steps unless errors occur):**
 ```
-Downloading metadata for Emirates_Bot v4...
-  Step 1.3: Retrieving bot metadata...
-  Step 1.4: Auto-discovering ML domains...
-  Step 1.5: Retrieving ML training data...
-  Step 1.6: Copying files to custom folder...
-  Step 1.7: Converting bot XML to JSON...
-  Step 1.8: Extracting bot metadata...
-  Step 1.9: Converting ML domain to JSON...
-  Step 1.10: Merging ML training data...
+Downloading metadata for CustomerServiceBot v4...
 
 ✅  Metadata saved to: 
-    data/sf-cli/custom/00DVW...Emirates_Bot_v4/jsons/Emirates_Bot.json
+    data/sf-cli/custom/00DVW...CustomerServiceBot_v4/jsons/CustomerServiceBot.json
+```
+
+**Internal steps (Steps 1.1-1.7) run silently:**
+- 1.1: Checking Salesforce DX project setup
+- 1.2: Getting org details and bot version
+- 1.3: Retrieving bot metadata from org
+- 1.4: Auto-discovering ML domains
+- 1.5: Retrieving ML training data (if available)
+- 1.6: Copying files to custom folder
+- 1.7: Converting and extracting metadata (includes two-phase Apex parsing)
+
+**Only show step details if an error occurs at any step.**
+
+**Example error output:**
+```
+Downloading metadata for CustomerServiceBot v4...
+  Step 1.3: Retrieving bot metadata...
+  ❌ Error in Step 1.3: Failed to retrieve bot metadata
+     Reason: Bot not found in org
 ```
 
 **Success outcome:**
@@ -328,7 +339,7 @@ Downloading metadata for Emirates_Bot v4...
 ```
 ❌  Metadata download failed.
 
-    Bot     : Emirates_Bot  v4
+    Bot     : CustomerServiceBot  v4
     Reason  : <error detail from script>
 
   [retry]  Try downloading again
@@ -355,14 +366,14 @@ The user can ask questions at any point. Handle contextually:
 **During bot selection (Phase 1.2):**
 ```
 User: what does this bot do?
-Claude: I can see that Emirates_Bot is described as: "Customer service bot 
-        for Emirates airline. Handles flight bookings, baggage, rewards."
+Claude: I can see that CustomerServiceBot is described as: "Customer service bot 
+        for airline services. Handles reservations, baggage, rewards."
         
         Would you like to select this bot?
 
 User: show me more details about bot 2
-Claude: Bot 2 is Cultfit_Bot:
-        - Description: Health & fitness assistant
+Claude: Bot 2 is FitnessAssistantBot:
+        - Description: Fitness assistant
         - Available versions: v1, v2, v3
         - Latest modified: [date]
         
@@ -398,13 +409,13 @@ Maintain context throughout the flow:
 
 **Example:**
 ```
-[User selected Emirates_Bot in Phase 1.2]
+[User selected CustomerServiceBot in Phase 1.2]
 
-Claude (in Phase 1.3): Here are the versions for Emirates_Bot...
+Claude (in Phase 1.3): Here are the versions for CustomerServiceBot...
 
 [User selected v4 in Phase 1.3]
 
-Claude (in Phase 1.4): Confirm: Emirates_Bot v4 from <OrgName>
+Claude (in Phase 1.4): Confirm: CustomerServiceBot v4 from <OrgName>
 ```
 
 ---
@@ -479,7 +490,7 @@ data/sf-cli/custom/<ORGID_BOTNAME_VERSION>/jsons/<BOTNAME>.json
 ```
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   Step 1 complete.
-  Emirates_Bot v4  —  metadata downloaded
+  CustomerServiceBot v4  —  metadata downloaded
 
   Moving to Step 2: Bot Inventory.
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -529,7 +540,7 @@ Use these formatting patterns consistently:
 
 - Be concise and direct
 - Use active voice: "I will download..." not "The system will..."
-- Acknowledge user input: "✅ Selected: Emirates_Bot"
+- Acknowledge user input: "✅ Selected: CustomerServiceBot"
 - Provide context: "The Active version is recommended for production migrations"
 - Guide next steps: "Would you like to select a version?"
 
@@ -599,24 +610,101 @@ Use these formatting patterns consistently:
 
 ```
 .claude/skills/01-retrieve-bots-metadata/
-├── SKILL.md                          # This file
-├── scripts/
-│   ├── fetch_bot_from_org.sh        # Main wrapper
-│   ├── list_bots_interactive.py     # Bot selector
-│   ├── extract_bot_metadata.py      # Extraction engine (handles ML intents)
-│   ├── convert_ml_domain.py         # ML domain XML converter
-│   ├── convert_bot_xml_to_json.py   # Bot XML converter
-│   └── compare_bot_jsons.py         # Validation tool
-└── assets/
-    └── SF_CLI_COMMANDS.md           # SF CLI reference
+├── SKILL.md                                  # This file
+├── APEX_INVOCATION_PARSING.md                # Technical doc for two-phase Apex parsing
+├── assets/
+│   ├── SF_CLI_COMMANDS.md                    # SF CLI reference
+│   └── BOT_FETCHING_GUIDE.md                 # Comprehensive fetching guide
+└── scripts/
+    ├── fetch_bot_from_org.sh                 # Main orchestrator (Steps 1.1-1.7)
+    ├── list_bots_interactive.py              # Bot selector
+    ├── convert_bot_xml_to_json.py            # Bot XML converter
+    ├── extract_bot_metadata.py               # Extraction engine (handles ML intents, normalizes retryMessages)
+    ├── convert_ml_domain.py                  # ML domain XML converter
+    ├── fetch_and_parse_invocations.sh        # Apex parsing orchestrator (two-phase approach)
+    ├── extract_invocations_from_bot.py       # Phase 1: Extract parameter names from bot metadata
+    ├── parse_apex_invocable_methods.py       # Phase 2a: Parse Apex @InvocableMethod signatures
+    ├── merge_invocation_types.py             # Phase 2b: Merge bot params with Apex types
+    └── compare_bot_jsons.py                  # Validation tool
 
 Output:
 data/sf-cli/custom/<ORGID_BOTNAME_VERSION>/
-├── bots/                            # Raw bot XML
-├── mlDomains/                       # Raw ML XML
-└── jsons/                           # Converted JSON (main output)
-    └── <BOTNAME>.json              # ⭐ Pass this to Step 2
+├── bots/                                     # Raw bot XML
+├── mlDomains/                                # Raw ML XML
+├── apex-invocations/                         # Apex parsing artifacts
+│   ├── classes/                              # Retrieved Apex .cls files
+│   ├── bot-invocations.json                  # Phase 1 output (parameter names)
+│   ├── parsed-apex-types.json                # Phase 2a output (types from Apex)
+│   └── merged-invocations.json               # Phase 2b output (complete data)
+└── jsons/                                    # Converted JSON (main output)
+    └── <BOTNAME>.json                        # ⭐ Pass this to Step 2 (includes real Apex types)
 ```
+
+---
+
+## Technical Implementation Details
+
+### Two-Phase Apex Parsing (Step 1.7)
+
+**Problem Solved:**
+The original implementation inferred Apex invocable method parameter types from bot conversation variable labels, leading to incorrect type information. For example, a variable labeled "Response User" was incorrectly inferred as `ResponseUser__c` when the actual type was `CultUser__c`.
+
+**Solution:**
+Replaced inference with real Apex class parsing from Salesforce org using a two-phase approach:
+
+**Phase 1: Extract Parameter Names from Bot Metadata**
+- Script: `extract_invocations_from_bot.py`
+- Parses `invocationMappings` from botVersion metadata
+- Returns parameter names (without types yet)
+- Output: `bot-invocations.json`
+
+**Phase 2: Fetch and Parse Apex Classes**
+- **Phase 2a: Parse Apex Source** (`parse_apex_invocable_methods.py`)
+  - Retrieves .cls files from org using SF CLI
+  - Parses `@InvocableMethod` signatures
+  - Handles Request/Response inner classes
+  - Handles simple method signatures (List<String> input, List<Response> output)
+  - Handles mixed patterns (simple input + Response class output)
+  - Maps Apex types to API types (`String` → `STRING`, `CustomObject__c` → `SOBJECT`)
+  - Uses `sobjectType` field name (lowercase 's')
+  - Output: `parsed-apex-types.json`
+  
+- **Phase 2b: Merge** (`merge_invocation_types.py`)
+  - Merges bot metadata parameters with Apex type information
+  - Uses Apex as authoritative source (includes all defined parameters)
+  - Sorts all data alphabetically
+  - Output: `merged-invocations.json`
+
+**Phase 3: Update Bot JSON**
+- Replaces `botInvocationsDescribeInfo.apex` with complete, accurate data
+- Output: `<BOTNAME>_with_parsed_invocations.json` → `<BOTNAME>.json`
+
+**Batching Strategy:**
+- ≤ 50 Apex classes: Single `sf project retrieve start` call with `package.xml`
+- \> 50 Apex classes: Batches of 50 (efficient parallel retrieval)
+
+**Key Features:**
+- ✅ No inference - all data from real Apex source code
+- ✅ Accurate SObject types (e.g., `CultUser__c` not fabricated `ResponseUser__c`)
+- ✅ Proper field name: `sobjectType` (lowercase 's')
+- ✅ Includes `required` flags from `@InvocableVariable(required=true)`
+- ✅ Handles complex method patterns (Request/Response, simple, mixed)
+- ✅ Alphabetically sorted (classes, input params, output params)
+- ✅ Generic - works with any Einstein Bot
+
+**See Also:**
+- `.claude/skills/01-retrieve-bots-metadata/APEX_INVOCATION_PARSING.md` for complete technical documentation
+- `.claude/skills/01-retrieve-bots-metadata/assets/BOT_FETCHING_GUIDE.md` for usage guide
+
+### retryMessages Normalization (Step 2.5 in extract_bot_metadata.py)
+
+**Problem Solved:**
+Einstein Bot metadata has inconsistent `retryMessages` structure:
+- Sometimes: `{"message": "...", "messageIdentifier": "..."}` (single object)
+- Sometimes: `[{"message": "...", "messageIdentifier": "..."}, ...]` (array)
+
+**Solution:**
+Added `normalize_retry_messages()` function that ensures all `retryMessages` fields are arrays of objects for consistency.
 
 ---
 
@@ -624,5 +712,6 @@ data/sf-cli/custom/<ORGID_BOTNAME_VERSION>/
 
 After successful completion:
 - **File ready:** `data/sf-cli/custom/.../jsons/<BOTNAME>.json`
+- **Contains:** Complete bot structure + ML training data + accurate Apex invocation types
 - **Next skill:** `/02-process-and-build-inventory`
 - **User prompt:** "Would you like to proceed to Step 2: Bot Inventory?"

@@ -17,307 +17,40 @@ def load_json_file(file_path: Path) -> Dict[str, Any]:
         return json.load(f)
 
 
-def build_variable_type_map(conversation_vars: List[Dict]) -> Dict[str, Dict]:
+def normalize_retry_messages(obj: Any) -> Any:
     """
-    Build a map of variable name to its complete type information.
-    Returns: {variableName: {dataType, collectionType, etc}}
+    Normalize all retryMessages fields to always be arrays of objects.
+
+    Einstein Bot metadata has inconsistent retryMessages structure:
+    - Sometimes: {"message": "...", "messageIdentifier": "..."}  (single object)
+    - Sometimes: [{"message": "...", "messageIdentifier": "..."}, ...]  (array)
+
+    This function ensures all retryMessages are arrays for consistency.
     """
-    var_map = {}
-    for var in conversation_vars:
-        var_name = var.get("developerName")
-        if var_name:
-            var_map[var_name] = {
-                "dataType": var.get("dataType", "Text"),
-                "collectionType": var.get("collectionType"),
-                "label": var.get("label", "")
-            }
-    return var_map
+    if isinstance(obj, dict):
+        # Check if this dict has retryMessages key
+        if 'retryMessages' in obj:
+            retry = obj['retryMessages']
+            # If it's a dict (single object), wrap it in an array
+            if isinstance(retry, dict):
+                obj['retryMessages'] = [retry]
+            # If it's already a list, leave it as-is
+            elif isinstance(retry, list):
+                pass
+            # If it's None or other type, convert to empty array
+            elif retry is None:
+                obj['retryMessages'] = []
 
+        # Recurse into all values
+        for key, value in obj.items():
+            obj[key] = normalize_retry_messages(value)
 
-def infer_sobject_type_from_label(label: str) -> Optional[str]:
-    """
-    Try to infer SObject API name from label.
-    E.g., "Current User" -> might be a User-related object
-    Returns None if can't infer.
-    """
-    if not label:
-        return None
+    elif isinstance(obj, list):
+        # Recurse into all list items
+        return [normalize_retry_messages(item) for item in obj]
 
-    # Convert label to potential API name format
-    # Remove special chars, title case each word
-    words = label.replace("_", " ").split()
+    return obj
 
-    # If it looks like it could be a custom object (multiple words, specific patterns)
-    if len(words) >= 2:
-        # Try to construct API name
-        api_name = "".join(word.capitalize() for word in words)
-
-        # Add __c suffix if it looks like a custom object
-        # (Not standard objects like Account, Contact, Case, etc.)
-        if api_name not in ["Account", "Contact", "Case", "User", "Lead", "Opportunity"]:
-            return f"{api_name}__c"
-        return api_name
-
-    return None
-
-
-def map_salesforce_data_type(sf_type: str, param_name: str = "") -> str:
-    """
-    Map Salesforce data types to API parameter types.
-    Uses standard Salesforce type mappings.
-    For Number type, infers INTEGER vs NUMBER based on parameter name.
-    """
-    type_mapping = {
-        "Text": "STRING",
-        "LongText": "STRING",
-        "Number": "NUMBER",  # May be overridden below
-        "Boolean": "BOOLEAN",
-        "Date": "DATE",
-        "DateTime": "DATETIME",
-        "Currency": "NUMBER",
-        "Percent": "NUMBER",
-        "Id": "STRING",
-        "Email": "STRING",
-        "Phone": "STRING",
-        "Url": "STRING",
-        "Picklist": "STRING",
-        "MultiPicklist": "STRING",
-        "Object": "SOBJECT",  # Generic object
-    }
-
-    result = type_mapping.get(sf_type, "STRING")
-
-    # For Number type, check if it should be INTEGER
-    if sf_type == "Number" and param_name:
-        param_lower = param_name.lower()
-        # These patterns suggest integers
-        integer_patterns = ["days", "count", "quantity", "index", "page", "limit"]
-        if any(pattern in param_lower for pattern in integer_patterns):
-            result = "INTEGER"
-
-    return result
-
-
-def infer_parameter_type_generic(
-    param_name: str,
-    variable_name: str,
-    var_type_map: Dict[str, Dict]
-) -> Dict[str, Any]:
-    """
-    Infer parameter type generically using ONLY metadata information.
-    No hardcoded patterns or specific object names.
-    """
-    # If we have the variable mapping, use it
-    if variable_name and variable_name in var_type_map:
-        var_info = var_type_map[variable_name]
-        data_type = var_info["dataType"]
-
-        # Map to API type (pass param_name for Number type inference)
-        api_type = map_salesforce_data_type(data_type, param_name)
-
-        result = {"type": api_type}
-
-        # For Object types, try to infer the specific SObject
-        if data_type == "Object":
-            # Try to infer from variable label
-            sobject_type = infer_sobject_type_from_label(var_info.get("label", ""))
-            if sobject_type:
-                result["sObjectType"] = sobject_type
-            # Otherwise leave as generic SOBJECT
-
-        # Handle collections
-        if var_info.get("collectionType") == "List":
-            result["collectionType"] = "List"
-
-        return result
-
-    # Fallback: Generic type inference based on common Salesforce patterns
-    # Use parameter name to make educated guess
-    param_lower = param_name.lower()
-
-    # Boolean patterns
-    if param_lower.startswith("is") or param_lower.startswith("has") or "success" in param_lower:
-        return {"type": "BOOLEAN"}
-
-    # Date patterns
-    if "date" in param_lower and "update" not in param_lower:
-        return {"type": "DATE"}
-
-    if "datetime" in param_lower or "timestamp" in param_lower:
-        return {"type": "DATETIME"}
-
-    # Number patterns
-    if any(word in param_lower for word in ["count", "number", "amount", "quantity", "duration", "id"]):
-        if "id" in param_lower and not param_lower.endswith("id"):
-            return {"type": "STRING"}
-        elif param_lower.endswith("id") or param_lower.endswith("ids"):
-            return {"type": "STRING"}
-        return {"type": "NUMBER"}
-
-    # Default to STRING
-    return {"type": "STRING"}
-
-
-def extract_required_fields_from_steps(bot_dialogs: List[Dict]) -> Set[str]:
-    """
-    Extract which fields are marked as required in dialog steps.
-    Returns set of variable names that are required.
-    """
-    required_vars = set()
-
-    def process_step(step: Any):
-        if not isinstance(step, dict):
-            return
-
-        # Check for collection steps with optionalCollect flag
-        optional_collect = step.get("optionalCollect", "false")
-        if optional_collect == "false":
-            # This is a required collection
-            bot_var_op = step.get("botVariableOperation", {})
-            if isinstance(bot_var_op, dict):
-                operands = bot_var_op.get("botVariableOperands", {})
-                if isinstance(operands, dict):
-                    target_name = operands.get("targetName")
-                    if target_name:
-                        required_vars.add(target_name)
-
-        # Recurse into nested steps
-        nested_steps = step.get("botSteps", [])
-        if isinstance(nested_steps, list):
-            for nested_step in nested_steps:
-                process_step(nested_step)
-
-    # Process all dialogs
-    for dialog in bot_dialogs:
-        steps = dialog.get("botSteps", [])
-        for step in steps:
-            process_step(step)
-
-    return required_vars
-
-
-def extract_invocations_from_bot_version_generic(
-    bot_version_data: Dict,
-    var_type_map: Dict[str, Dict],
-    required_vars: Set[str]
-) -> Dict[str, Dict]:
-    """
-    Extract all invocations generically from botVersion.
-    Uses only metadata, no hardcoded values.
-    """
-    print("    Extracting invocations from bot dialogs...")
-
-    invocations = {}
-
-    def process_step(step: Any, depth: int = 0):
-        """Recursively process a bot step."""
-        if not isinstance(step, dict):
-            return
-
-        # Check for botInvocation in botVariableOperation
-        bot_var_op = step.get("botVariableOperation", {})
-        if isinstance(bot_var_op, dict) and "botInvocation" in bot_var_op:
-            bot_invocation = bot_var_op.get("botInvocation", {})
-            invocation_name = bot_invocation.get("invocationActionName", "")
-
-            if invocation_name:
-                if invocation_name not in invocations:
-                    invocations[invocation_name] = {
-                        "inputParameters": {},
-                        "outputParameters": {}
-                    }
-
-                # Extract parameter mappings
-                mappings = bot_invocation.get("invocationMappings", [])
-                for mapping in mappings:
-                    if not isinstance(mapping, dict):
-                        continue
-
-                    param_name = mapping.get("parameterName", "")
-                    mapping_type = mapping.get("type", "")  # "Input" or "Output"
-                    variable_name = mapping.get("variableName", "")
-
-                    if not param_name:
-                        continue
-
-                    # Infer parameter type generically
-                    param_info = infer_parameter_type_generic(
-                        param_name,
-                        variable_name,
-                        var_type_map
-                    )
-
-                    # Check if required (for input parameters only)
-                    if mapping_type == "Input" and variable_name in required_vars:
-                        param_info["required"] = True
-
-                    # Add to appropriate parameters dict
-                    if mapping_type == "Input":
-                        invocations[invocation_name]["inputParameters"][param_name] = param_info
-                    elif mapping_type == "Output":
-                        invocations[invocation_name]["outputParameters"][param_name] = param_info
-
-        # Also check for direct botInvocation (alternative format)
-        if "botInvocation" in step:
-            bot_invocation = step.get("botInvocation", {})
-            invocation_name = (
-                bot_invocation.get("invocationName", "") or
-                bot_invocation.get("invocationActionName", "")
-            )
-
-            if invocation_name:
-                if invocation_name not in invocations:
-                    invocations[invocation_name] = {
-                        "inputParameters": {},
-                        "outputParameters": {}
-                    }
-
-                mappings = bot_invocation.get("invocationMappings", [])
-                for mapping in mappings:
-                    if not isinstance(mapping, dict):
-                        continue
-
-                    param_name = mapping.get("parameterName", "")
-                    mapping_type = mapping.get("type", "")
-                    variable_name = mapping.get("variableName", "")
-
-                    if not param_name:
-                        continue
-
-                    param_info = infer_parameter_type_generic(
-                        param_name,
-                        variable_name,
-                        var_type_map
-                    )
-
-                    if mapping_type == "Input" and variable_name in required_vars:
-                        param_info["required"] = True
-
-                    if mapping_type == "Input":
-                        invocations[invocation_name]["inputParameters"][param_name] = param_info
-                    elif mapping_type == "Output":
-                        invocations[invocation_name]["outputParameters"][param_name] = param_info
-
-        # Recurse into nested botSteps
-        nested_steps = step.get("botSteps", [])
-        if isinstance(nested_steps, list):
-            for nested_step in nested_steps:
-                process_step(nested_step, depth + 1)
-
-    # Get conversation variables
-    conversation_vars = bot_version_data.get("conversationVariables", [])
-
-    # Build required vars set
-    bot_dialogs = bot_version_data.get("botDialogs", [])
-
-    # Process all bot dialogs
-    for dialog in bot_dialogs:
-        bot_steps = dialog.get("botSteps", [])
-        for step in bot_steps:
-            process_step(step)
-
-    print(f"      Found {len(invocations)} unique invocations")
-    return invocations
 
 
 def parse_related_ml_intents(bot_meta: Dict) -> Dict[str, List[str]]:
@@ -516,14 +249,6 @@ def rebuild_bot_json_generic(
     # Use bot_name as fullName (not botVersion.fullName which is just "v1")
     full_name = bot_name
 
-    # Build variable type map
-    conversation_vars = bot_version_data.get("conversationVariables", [])
-    var_type_map = build_variable_type_map(conversation_vars)
-
-    # Build required fields set
-    bot_dialogs = bot_version_data.get("botDialogs", [])
-    required_vars = extract_required_fields_from_steps(bot_dialogs)
-
     # Extract Bot structure
     bot_data = {
         "fullName": full_name,
@@ -536,12 +261,9 @@ def rebuild_bot_json_generic(
         "botVersions": [bot_version_data]
     }
 
-    # Extract invocations generically
-    invocations = extract_invocations_from_bot_version_generic(
-        bot_version_data,
-        var_type_map,
-        required_vars
-    )
+    # NOTE: Invocations are now fetched from org using fetch_and_parse_invocations.sh
+    # This provides REAL type information from Apex source code instead of inference.
+    # The botInvocationsDescribeInfo will be populated by the pipeline after this script runs.
 
     # Extract ML data generically
     ml_data = extract_ml_data_from_bot_meta_generic(bot_meta)
@@ -554,7 +276,7 @@ def rebuild_bot_json_generic(
         "Bot": bot_data,
         "availableAgentActions": agent_actions,
         "botInvocationsDescribeInfo": {
-            "apex": invocations,
+            "apex": {},  # Will be populated by fetch_and_parse_invocations.sh
             "flow": {}
         },
         "mlRelatedData": ml_data
@@ -585,7 +307,7 @@ def main():
     print("="*80)
 
     # Load metadata files from jsons directory
-    print("\nStep 1: Loading metadata files...")
+    print("\n  Loading metadata files...")
     jsons_dir = base_dir / "jsons"
     bot_meta_file = jsons_dir / f"{bot_name}.bot-meta.json"
 
@@ -602,12 +324,17 @@ def main():
         sys.exit(1)
 
     bot_version = load_json_file(version_files[0])
-    print(f"  ✓ Loaded {bot_meta_file.name}")
-    print(f"  ✓ Loaded {version_files[0].name}")
+    print(f"    ✓ Loaded {bot_meta_file.name}")
+    print(f"    ✓ Loaded {version_files[0].name}")
 
     # Rebuild
-    print("\nStep 2: Extracting and combining data...")
+    print("\n  Extracting and combining data...")
     rebuilt = rebuild_bot_json_generic(bot_meta, bot_version, bot_name)
+
+    # Normalize retryMessages to always be arrays
+    print("\n  Normalizing retryMessages structure...")
+    rebuilt = normalize_retry_messages(rebuilt)
+    print("    ✓ All retryMessages normalized to arrays")
 
     # Create jsons subdirectory
     jsons_dir = base_dir / "jsons"
@@ -618,16 +345,16 @@ def main():
     with open(temp_file, 'w', encoding='utf-8') as f:
         json.dump(rebuilt, f, indent=2, ensure_ascii=False)
 
-    print(f"\n  ✓ Saved temporary file to {temp_file}")
+    print(f"\n    ✓ Saved temporary file to {temp_file}")
 
-    # Step 3: Extract and merge related ML intents from Intent Sets
-    print("\nStep 3: Extracting related ML intents from Intent Sets...")
+    # Extract and merge related ML intents from Intent Sets
+    print("\n  Extracting related ML intents from Intent Sets...")
     intent_set_map = parse_related_ml_intents(bot_meta)
 
     if intent_set_map:
-        print(f"  ✓ Found references to {len(intent_set_map)} Intent Set(s):")
+        print(f"    ✓ Found references to {len(intent_set_map)} Intent Set(s):")
         for intent_set_name, intent_names in intent_set_map.items():
-            print(f"      - {intent_set_name}: {len(intent_names)} intent(s) - {', '.join(intent_names)}")
+            print(f"        - {intent_set_name}: {len(intent_names)} intent(s) - {', '.join(intent_names)}")
 
         # Build mlRelatedData with only the referenced intents
         ml_related_data = {"c": {}}
@@ -658,7 +385,7 @@ def main():
 
                     total_intents += len(extracted_intents)
                     total_utterances += utterance_count
-                    print(f"      ✓ Extracted {len(extracted_intents)} intent(s) with {utterance_count} utterances from {intent_set_name}")
+                    print(f"        ✓ Extracted {len(extracted_intents)} intent(s) with {utterance_count} utterances from {intent_set_name}")
             else:
                 missing_sets.append(intent_set_name)
 
@@ -671,20 +398,20 @@ def main():
             with open(output_file, 'w', encoding='utf-8') as f:
                 json.dump(rebuilt, f, indent=2, ensure_ascii=False)
 
-            print(f"\n  ✓ Final version saved to: {output_file}")
-            print(f"  🎉 Extracted {total_intents} intent(s) with {total_utterances} utterances")
+            print(f"\n    ✓ Final version saved to: {output_file}")
+            print(f"    🎉 Extracted {total_intents} intent(s) with {total_utterances} utterances")
 
             # Clean up temporary file
             if temp_file.exists():
                 temp_file.unlink()
-                print(f"  ✓ Cleaned up temporary file: {temp_file}")
+                print(f"    ✓ Cleaned up temporary file: {temp_file}")
         else:
             # No ML related data, save to jsons directory with bot name
             output_file = jsons_dir / f"{bot_name}.json"
             with open(output_file, 'w', encoding='utf-8') as f:
                 json.dump(rebuilt, f, indent=2, ensure_ascii=False)
 
-            print(f"\n  ✓ Saved to: {output_file}")
+            print(f"\n    ✓ Saved to: {output_file}")
 
             # Clean up temporary file
             if temp_file.exists():
