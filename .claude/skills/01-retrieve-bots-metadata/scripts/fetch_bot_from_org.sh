@@ -554,6 +554,23 @@ if [ ! -f "$FINAL_OUTPUT_FILE" ]; then
     exit 1
 fi
 
+# Save pipeline state for session resumption
+STATE_FILE="$PROJECT_ROOT/.claude/pipeline-state.json"
+mkdir -p "$(dirname "$STATE_FILE")"
+cat > "$STATE_FILE" <<EOF
+{
+  "currentStep": 1,
+  "botName": "${BOT_NAME}",
+  "botVersion": "v${BOT_VERSION}",
+  "orgId": "${ORG_ID}",
+  "orgAlias": "${ORG:-default}",
+  "botJsonPath": "${FINAL_OUTPUT_FILE}",
+  "lastUpdated": "$(date -u +"%Y-%m-%dT%H:%M:%SZ" 2>/dev/null || date +"%Y-%m-%dT%H:%M:%S")"
+}
+EOF
+
+log "  💾 Saved pipeline state to .claude/pipeline-state.json"
+
 echo ""
 echo "════════════════════════════════════════════════════════════"
 echo "✅  STEP 1 COMPLETE"
