@@ -536,6 +536,12 @@ else
     fi
 fi
 
+# Clean up temporary JSON file in step1/json if it still exists
+if [ -f "$TEMP_BOT_FILE" ]; then
+    rm "$TEMP_BOT_FILE"
+    log "  🗑️  Cleaned up temporary file: step1/json/${BOT_NAME}.json"
+fi
+
 log ""
 
 # Step 1.11: Removed (merge_ml_data.py is obsolete)
