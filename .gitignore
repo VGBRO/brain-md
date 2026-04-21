@@ -48,4 +48,7 @@ $RECYCLE.BIN/
 **/venv/
 
 # Working data directory
-data/
+data/*
+# Track sf-cli directory only.
+# This folder is not supposed to store anything. And will be used by sf-cli commands.
+!data/sf-cli/
