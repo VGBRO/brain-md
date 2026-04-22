@@ -36,12 +36,12 @@ def list_bots(org: Optional[str] = None) -> List[Dict]:
     """Query all bot versions from org (Einstein Bots only, excludes Agentforce Agents)"""
     query = """
     SELECT
+        BotDefinition.DeveloperName,
         BotDefinition.MasterLabel,
         BotDefinition.Description,
-        BotDefinition.Type,
         VersionNumber,
-        Status,
-        LastModifiedDate
+        LastModifiedDate,
+        Status
     FROM BotVersion
     WHERE BotDefinition.Type = 'Bot'
     ORDER BY BotDefinition.MasterLabel, VersionNumber DESC
@@ -51,10 +51,10 @@ def list_bots(org: Optional[str] = None) -> List[Dict]:
 
 
 def group_by_bot(versions: List[Dict]) -> Dict[str, List[Dict]]:
-    """Group versions by bot master label"""
+    """Group versions by bot developer name"""
     grouped = {}
     for version in versions:
-        bot_name = version["BotDefinition"]["MasterLabel"]
+        bot_name = version["BotDefinition"]["DeveloperName"]
         if bot_name not in grouped:
             grouped[bot_name] = []
         grouped[bot_name].append(version)
@@ -67,26 +67,20 @@ def display_bot_list(bot_list: List[str], grouped_bots: Dict[str, List[Dict]]) -
     print("Available Bots")
     print("="*120)
 
-    # Table header
-    print(f"\n{'#':<5} {'Bot Name':<30} {'Version':<10} {'Description':<45} {'Last Modified':<20}")
+    # Table header - Only Bot Name and Description
+    print(f"\n{'#':<5} {'Bot Name':<35} {'Description':<80}")
     print("-" * 120)
 
-    for i, bot_name in enumerate(bot_list, 1):
-        versions = grouped_bots[bot_name]
-        version_nums = [str(v["VersionNumber"]) for v in versions]
-        version_str = f"v{', v'.join(version_nums)}"
+    for i, dev_name in enumerate(bot_list, 1):
+        versions = grouped_bots[dev_name]
 
-        # Get bot description
+        # Get bot master label (display name) and description
+        bot_label = versions[0]["BotDefinition"].get("MasterLabel", dev_name)
         bot_desc = versions[0]["BotDefinition"].get("Description", "N/A")
-        if len(bot_desc) > 45:
-            bot_desc = bot_desc[:42] + "..."
+        if len(bot_desc) > 80:
+            bot_desc = bot_desc[:77] + "..."
 
-        # Get last modified date
-        last_modified = versions[0].get("LastModifiedDate", "N/A")
-        if last_modified and len(last_modified) > 10:
-            last_modified = last_modified[:10]  # Just the date part
-
-        print(f"[{i}]{' ':<3} {bot_name:<30} {version_str:<10} {bot_desc:<45} {last_modified:<20}")
+        print(f"[{i}]{' ':<3} {bot_label:<35} {bot_desc:<80}")
 
     print("-" * 120)
     print(f"[0]    Cancel / Exit")
@@ -95,22 +89,29 @@ def display_bot_list(bot_list: List[str], grouped_bots: Dict[str, List[Dict]]) -
 
 def display_bot_details(bot_name: str, versions: List[Dict]) -> None:
     """Display detailed version information for a selected bot"""
+    # Get master label for display
+    bot_label = versions[0]["BotDefinition"].get("MasterLabel", bot_name)
+
     print("\n" + "="*80)
-    print(f"Bot Details: {bot_name}")
+    print(f"Bot Details: {bot_label}")
     print("="*80)
 
     # Bot description
     bot_desc = versions[0]["BotDefinition"].get("Description", "N/A")
     print(f"\nDescription: {bot_desc}")
 
-    # Version details
-    print(f"\n{'Version':<10} {'Last Modified':<20}")
-    print("-" * 35)
+    # Sort versions alphabetically by version number
+    sorted_versions = sorted(versions, key=lambda v: v["VersionNumber"])
 
-    for version in versions:
+    # Version details
+    print(f"\n{'#':<5} {'Version':<10} {'Status':<12} {'Last Modified':<20}")
+    print("-" * 50)
+
+    for i, version in enumerate(sorted_versions, 1):
         ver_num = version["VersionNumber"]
+        status = version.get("Status", "Unknown")
         last_modified = version["LastModifiedDate"][:10] if version.get("LastModifiedDate") else "N/A"
-        print(f"v{ver_num:<9} {last_modified:<20}")
+        print(f"[{i}]{' ':<3} v{ver_num:<9} {status:<12} {last_modified:<20}")
 
 
 def get_user_choice(prompt: str, max_choice: int) -> int:
@@ -130,11 +131,11 @@ def get_user_choice(prompt: str, max_choice: int) -> int:
             return 0
 
 
-def confirm_selection(bot_name: str) -> bool:
-    """Confirm bot selection"""
+def confirm_selection(bot_label: str, bot_dev_name: str, version: int) -> bool:
+    """Confirm bot and version selection"""
     print()
     while True:
-        response = input(f"Fetch {bot_name}? [y/n]: ").strip().lower()
+        response = input(f"Fetch {bot_label} v{version}? [y/n]: ").strip().lower()
         if response in ['y', 'yes']:
             return True
         elif response in ['n', 'no']:
@@ -184,19 +185,38 @@ def main():
 
         # Get selected bot
         selected_bot = bot_list[choice - 1]
+        versions = grouped_bots[selected_bot]
 
-        # Display bot details
-        display_bot_details(selected_bot, grouped_bots[selected_bot])
+        # Version selection loop
+        while True:
+            # Display bot details
+            display_bot_details(selected_bot, versions)
 
-        # Confirm selection
-        if confirm_selection(selected_bot):
-            # Output selected bot name to stdout for shell script to capture
-            print(f"\n✓ Bot selected: {selected_bot}")
-            print(f"SELECTED_BOT={selected_bot}")
-            sys.exit(0)
-        else:
-            # Go back to bot list
-            print("\n↩ Going back to bot list...")
+            # Sort versions alphabetically for consistent indexing
+            sorted_versions = sorted(versions, key=lambda v: v["VersionNumber"])
+
+            # Get version selection
+            version_choice = get_user_choice("\nEnter version number (0 to go back): ", len(sorted_versions))
+
+            if version_choice == 0:
+                print("\n↩ Going back to bot list...")
+                break
+
+            # Get selected version
+            selected_version = sorted_versions[version_choice - 1]
+            selected_version_num = selected_version["VersionNumber"]
+
+            # Get bot label for display
+            bot_label = versions[0]["BotDefinition"].get("MasterLabel", selected_bot)
+
+            # Confirm selection
+            if confirm_selection(bot_label, selected_bot, selected_version_num):
+                # Output selected bot name (DeveloperName) and version to stdout for shell script to capture
+                print(f"\n✓ Bot selected: {bot_label} v{selected_version_num}")
+                print(f"SELECTED_BOT={selected_bot}")
+                print(f"SELECTED_VERSION={selected_version_num}")
+                sys.exit(0)
+            # If not confirmed, loop back to version list
 
 
 if __name__ == "__main__":

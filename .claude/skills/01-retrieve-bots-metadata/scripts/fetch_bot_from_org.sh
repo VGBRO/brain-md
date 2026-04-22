@@ -132,8 +132,9 @@ if [ "$INTERACTIVE" = "true" ]; then
         exit 0
     fi
 
-    # Extract selected bot name from captured output
+    # Extract selected bot name and version from captured output
     SELECTED_BOT=$(grep "SELECTED_BOT=" "$TEMP_OUTPUT" | cut -d'=' -f2)
+    SELECTED_VERSION=$(grep "SELECTED_VERSION=" "$TEMP_OUTPUT" | cut -d'=' -f2)
     rm -f "$TEMP_OUTPUT"
 
     if [ -z "$SELECTED_BOT" ]; then
@@ -144,6 +145,11 @@ if [ "$INTERACTIVE" = "true" ]; then
 
     # Set BOT_NAME to selected bot
     BOT_NAME="$SELECTED_BOT"
+
+    # Log selected version (optional, for user visibility)
+    if [ -n "$SELECTED_VERSION" ]; then
+        log "  ✓ Selected version: v${SELECTED_VERSION}"
+    fi
 
     echo ""
 fi
@@ -177,21 +183,27 @@ fi
 
 log "  ✓ Org ID: $ORG_ID"
 
-# Query bot version (suppress JSON output since we parse it, not user-facing)
-if [ -z "$ORG" ]; then
-    BOT_VERSION_QUERY=$(sf data query --query "SELECT VersionNumber FROM BotVersion WHERE BotDefinition.DeveloperName='${BOT_NAME}' ORDER BY VersionNumber DESC LIMIT 1" --json 2>/dev/null)
+# Use selected version from interactive mode if available, otherwise query org
+if [ -n "$SELECTED_VERSION" ]; then
+    BOT_VERSION="$SELECTED_VERSION"
+    log "  ✓ Bot Version: $BOT_VERSION (from selection)"
 else
-    BOT_VERSION_QUERY=$(sf data query --query "SELECT VersionNumber FROM BotVersion WHERE BotDefinition.DeveloperName='${BOT_NAME}' ORDER BY VersionNumber DESC LIMIT 1" --target-org "$ORG" --json 2>/dev/null)
+    # Query bot version (suppress JSON output since we parse it, not user-facing)
+    if [ -z "$ORG" ]; then
+        BOT_VERSION_QUERY=$(sf data query --query "SELECT VersionNumber FROM BotVersion WHERE BotDefinition.DeveloperName='${BOT_NAME}' ORDER BY VersionNumber DESC LIMIT 1" --json 2>/dev/null)
+    else
+        BOT_VERSION_QUERY=$(sf data query --query "SELECT VersionNumber FROM BotVersion WHERE BotDefinition.DeveloperName='${BOT_NAME}' ORDER BY VersionNumber DESC LIMIT 1" --target-org "$ORG" --json 2>/dev/null)
+    fi
+
+    BOT_VERSION=$(echo "$BOT_VERSION_QUERY" | python3 -c "import sys, json; data=json.load(sys.stdin); print(data['result']['records'][0]['VersionNumber'] if data['result']['records'] else '1')")
+
+    if [ -z "$BOT_VERSION" ]; then
+        log "  ⚠️  Could not determine bot version, defaulting to 1"
+        BOT_VERSION="1"
+    fi
+
+    log "  ✓ Bot Version: $BOT_VERSION (from query)"
 fi
-
-BOT_VERSION=$(echo "$BOT_VERSION_QUERY" | python3 -c "import sys, json; data=json.load(sys.stdin); print(data['result']['records'][0]['VersionNumber'] if data['result']['records'] else '1')")
-
-if [ -z "$BOT_VERSION" ]; then
-    log "  ⚠️  Could not determine bot version, defaulting to 1"
-    BOT_VERSION="1"
-fi
-
-log "  ✓ Bot Version: $BOT_VERSION"
 
 # Define new directory structure with lowercase paths
 # Convert to lowercase for directory paths

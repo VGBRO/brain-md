@@ -1,9 +1,7 @@
 ---
 name: retrieve-bots-metadata
 description: >
-   Step 1 of 6: Retrieve Bot Metadata. Interactive conversational interface for fetching Einstein Bot 
-   metadata from Salesforce orgs. Guides users through org connection, bot selection, version selection, 
-   and metadata download with complete ML training data.
+  Retrieve Bot Metadata. Interactive conversational interface for fetching Einstein Bot
 metadata:
    author: salesforce-migration
    version: "3.0-ux-step1"
@@ -45,6 +43,12 @@ This skill activates when the user:
 ---
 
 ## Conversational Flow
+
+**IMPORTANT: No Memory of Previous Selections**
+- Never remember or auto-select org from previous runs
+- Never remember or auto-select bot from previous runs  
+- Never remember or auto-select version from previous runs
+- Always start fresh - show full list and let user select
 
 ### Phase 1.1: Org Connection & Selection
 
@@ -170,23 +174,25 @@ The script will output a formatted table. **You MUST read the Bash tool output a
 **INSTEAD, immediately show the bot list from the script output:**
 
 ```
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   AVAILABLE BOTS  (Org: <OrgName>)
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-  #   Bot Name                  Version    Description
-  ─   ───────────────────────   ───────    ──────────────────────────────────────────
-  1   CustomerServiceBot        v4         Customer service bot for airline services.
-  2   FitnessAssistantBot       v2         Fitness assistant for class bookings.
-  3   SupportBot                v1         General support bot with intent routing
+  #   Bot Name                            Description
+  ─   ──────────────────────────────────  ────────────────────────────────────────────────────────────────
+  1   Customer Service Bot                Customer service bot for airline services and bookings
+  2   Fitness Assistant                   Fitness assistant for class bookings and memberships
+  3   Support Bot                         General support bot with intent routing
 
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
   [1–3]   Select a bot
   [quit]  Exit
 
 Which bot would you like to convert?
 ```
+
+**Note**: Bot names shown are **MasterLabels** (user-friendly display names), not DeveloperNames. The script internally uses DeveloperNames for all Salesforce operations. Only Bot Name and Description are shown; version information appears after bot selection.
 
 **The bot list table IS the prompt for user input.** Don't add any extra text before it.
 
@@ -234,21 +240,24 @@ Claude: Exiting bot selection. You can restart with /01-retrieve-bots-metadata
 
 ### Phase 1.3: Version List Display
 
-**Once bot is selected, show versions:**
+**Once bot is selected, ALWAYS show versions - even if only one version exists:**
+
+**Important**: Never auto-select a version, even if the bot has only one version. Always display the version list and let user confirm.
 
 ```
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  VERSIONS  —  CustomerServiceBot
+  VERSIONS  —  Customer Service Bot
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
   #   Version     Status      Last Modified
   ─   ─────────   ─────────   ──────────────────
-  1   v4          Active      12 Apr 2026, 14:32
-  2   v3          Inactive    01 Mar 2026, 09:15
-  3   v2          Inactive    10 Jan 2026, 11:40
+  1   v2          Inactive    10 Jan 2026
+  2   v3          Inactive    01 Mar 2026
+  3   v4          Active      12 Apr 2026
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
+  Versions sorted alphabetically (v1 → v2 → v3...).
   The Active version is recommended for production migrations.
 
   [1–N]   Select a version
@@ -256,24 +265,34 @@ Claude: Exiting bot selection. You can restart with /01-retrieve-bots-metadata
   [quit]  Exit
 ```
 
+**Note**: Header shows **MasterLabel** (e.g., "Customer Service Bot"), while the script internally uses DeveloperName for operations.
+
 **Natural Language Understanding:**
 
+The script prompts: `Enter version number (0 to go back):`
+
 Accept these variations:
-- "select version 4" / "v4" / "4" / "version 4"
-- "select the active version" / "active one"
-- "select 1st item" / "first" / "1"
-- "back" / "go back"
-- "quit" / "exit"
+- "select version 1" / "1" / "first" / "first one"
+- "select the active version" / "active" (find which number is Active)
+- "3" / "version 3" / "v3"
+- "0" / "back" / "go back"
+
+**Important**: The script expects a **number** (1, 2, 3, etc.), not the version label (v1, v2).
 
 **Conversation Examples:**
 
 ```
 User: select the active version
-Claude: ✅  Selected: v4 (Active)
-        [Proceeds to Phase 1.4]
+Claude: [Reads script output to find Active version is #3]
+        3
+        [Script shows confirmation prompt]
+
+User: 1
+Claude: [Feeds "1" to script stdin]
+        [Script shows confirmation prompt for v1]
 
 User: back
-Claude: ↩ Going back to bot list...
+Claude: 0
         [Returns to Phase 1.2]
 
 User: what does active mean?
@@ -281,118 +300,80 @@ Claude: The "Active" version is the currently deployed version in your org.
         For production migrations, you should use the Active version to ensure
         you're migrating the live bot configuration.
         
-        Would you like to select a version?
+        In the list above, look for the row with "Active" status.
+        Which version number would you like to select?
 ```
 
 **Off-topic handling:**
 
 ```
 User: how do I create a new bot?
-Claude: We are currently in the bot selection phase (Step 1). I can help you:
-        - Select a version to migrate
-        - Go back to the bot list
-        - Exit this process
+Claude: We are currently in the version selection phase (Step 1). I can help you:
+        - Select a version number (1, 2, 3, etc.)
+        - Go back to the bot list (enter 0)
         
         To create a new bot, you would do that in Salesforce Setup after
-        completing the migration. Shall we continue selecting a version?
+        completing the migration. Which version would you like to select?
 ```
 
 ---
 
 ### Phase 1.4: Confirm Selection
 
-**First, check if bot metadata already exists:**
+**The script prompts: `Fetch <BotName> v<X>? [y/n]:`**
 
-Before showing the confirmation, check if the final bot JSON file exists by running:
+This confirmation happens **after** the user selects a version number.
 
-```bash
-# Replace placeholders with actual values from the selection
-# org-id: from `sf org display --json` 
-# bot-name: from user's selection (lowercase)
-# version: from user's selection
-# BotName: original case-sensitive bot name
+**Script handles overwrite checks internally** — Claude does not need to check for existing files.
 
-BOT_JSON_PATH="data/bots/<org-id-lowercase>/<bot-name-lowercase>/v<version>/<BotName>.json"
-
-# Example:
-# data/bots/00dvw0000075wif2ai/b2a_intent_enabled/v1/B2A_Intent_Enabled.json
-
-test -f "$BOT_JSON_PATH" && echo "EXISTS" || echo "NOT_FOUND"
+If the file already exists, the script will prompt the user directly:
 ```
+⚠️  bot.json already exists for <BotName> version <X>
 
-Or use Bash tool:
-```bash
-ls -la data/bots/<org-id-lowercase>/<bot-name-lowercase>/v<version>/<BotName>.json 2>/dev/null
-```
+Do you want to overwrite the existing data?
 
-**If file EXISTS (ls succeeds or test returns "EXISTS"), show confirmation with warning:**
+  [yes]  Overwrite and re-retrieve metadata
+  [no]   Skip retrieval (use existing data)
 
-```
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  CONFIRM SELECTION
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-  Bot      : CustomerServiceBot
-  Version  : v4  (Active)
-  Org      : <OrgName>
-
-  ⚠️  Note: Metadata for this bot already exists from a previous fetch.
-
-  I will download the metadata for this bot and save it
-  locally before proceeding to the inventory step.
-
-  [yes]   Confirm and download
-  [back]  Go back to the version list
-  [quit]  Exit
-```
-
-**If file DOES NOT EXIST, show confirmation without warning:**
-
-```
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  CONFIRM SELECTION
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-  Bot      : CustomerServiceBot
-  Version  : v4  (Active)
-  Org      : <OrgName>
-
-  I will download the metadata for this bot and save it
-  locally before proceeding to the inventory step.
-
-  [yes]   Confirm and download
-  [back]  Go back to the version list
-  [quit]  Exit
+Your choice:
 ```
 
 **Natural Language Understanding:**
 
+The script expects `y` or `n`:
+
 Accept:
-- "yes" / "y" / "confirm" / "proceed" / "download"
-- "no" / "n" / "back" / "cancel"
-- "quit" / "exit"
+- "yes" / "y" → Feed `y` to script
+- "no" / "n" → Feed `n` to script
 
 **Conversation Examples:**
 
 ```
 User: yes
-Claude: ✅ Confirmed. Downloading metadata...
-        [Proceeds to Phase 1.5]
+Claude: y
+        [Script proceeds to download or shows overwrite prompt]
 
-User: wait, go back
-Claude: ↩ Going back to version list...
-        [Returns to Phase 1.3]
-
-User: what metadata will be downloaded?
-Claude: I will download:
-        - Bot structure (dialogs, steps, navigation rules)
-        - All actions and invocations (Apex, Flows)
-        - ML intents and utterances
-        - External ML domain training data (if available)
-        
-        This gives us everything needed for the migration.
-        Ready to proceed?
+User: no
+Claude: n
+        [Script goes back to version selection]
 ```
+
+**If script shows overwrite prompt:**
+
+```
+⚠️  bot.json already exists for B2A_Intent_Enabled version 1
+
+Do you want to overwrite the existing data?
+
+  [yes]  Overwrite and re-retrieve metadata
+  [no]   Skip retrieval (use existing data)
+
+Your choice:
+```
+
+Accept:
+- "yes" / "y" / "overwrite" → Feed `yes` to script
+- "no" / "n" / "skip" / "use existing" → Feed `no` to script
 
 ---
 
@@ -920,9 +901,15 @@ Added `normalize_retry_messages()` function that ensures all `retryMessages` fie
 
 ## Next Steps
 
-After successful completion:
+1. After successful completion:
 - **File ready:** `data/bots/<org-id>/<bot-name>/v<version>/<BotName>.json`
 - **Contains:** Complete bot structure + ML training data + accurate Apex invocation types
 - **Pipeline state saved:** `.claude/pipeline-state.json` (for session resumption)
 - **Next skill:** `/02-process-and-build-inventory`
 - **User prompt:** "Would you like to proceed to Step 2: Bot Inventory?"
+2. **Important Instruction** - For the scope of this session, update the data directory to the new folder `data/bots/<org-id>/<bot-name>/v<version>`.
+   - All new intermediate files or outputs should be written/read from this folder.
+   - Wherever data directory is referenced, it should be resolved to this path.
+   - Example: `data/bots/<ORGID>/<BOT_NAME>/<BOT_VERSION_NAME>` ---> `data/bots/00DSB00000cASgsgAG/Service_Bot/v1`.
+3. Ensure that `<BOT_NAME>.json` file is present in the new data directory.
+4. Finally, provide a message to the user like 'Proceeding to the next step..'.
