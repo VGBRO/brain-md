@@ -1,8 +1,15 @@
 import json
-from pathlib import Path
+import os
 
-def run(data_directory):
-    with open(data_directory + '/bot.json', 'r') as f:
+def run(data_directory, bot_name):
+    if os.path.exists(data_directory + '/bot.json'):
+        bot_file = data_directory + '/bot.json'
+    elif os.path.exists(data_directory + '/' + bot_name + '.json'):
+        bot_file = data_directory + '/' + bot_name + '.json'
+    else:
+        return
+    
+    with open(bot_file, 'r') as f:
         bot_json = json.loads(f.read())
     
     bot = bot_json.get('Bot', {})

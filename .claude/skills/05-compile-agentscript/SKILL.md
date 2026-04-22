@@ -1,5 +1,5 @@
 ---
-name: 05-compile-agentscript
+name: compile-agentscript
 description: >
   Runs the AgentScript compiler (TypeScript/Nexus implementation) in a self-healing loop, automatically
   diagnosing and fixing syntax, structural, and semantic errors until compilation succeeds or

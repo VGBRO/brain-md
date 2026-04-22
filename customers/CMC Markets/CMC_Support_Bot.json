@@ -1,0 +1,1512 @@
+{
+	"Bot": {
+		"agentDSLEnabled": "false",
+		"botMlDomain": {
+			"label": "CMC Support Bot - Platform 2",
+			"mlIntents": [
+				{
+					"developerName": "CONNECT",
+					"label": "CONNECT",
+					"relatedMlIntents": {
+						"relatedMlIntent": "Intent_V1.Connect_to_an_Agent"
+					}
+				},
+				{
+					"developerName": "Knowledge_Action",
+					"label": "Answer Questions with Knowledge"
+				},
+				{
+					"developerName": "Transfer_To_Agent",
+					"label": "Transfer to Agent"
+				},
+				{
+					"developerName": "Welcome",
+					"label": "Welcome"
+				}
+			],
+			"mlSlotClasses": [
+				{
+					"dataType": "Text",
+					"developerName": "HumanConnect",
+					"extractionType": "Value",
+					"label": "HumanConnect"
+				},
+				{
+					"dataType": "Text",
+					"developerName": "UserChoice",
+					"extractionType": "Value",
+					"label": "User Choice"
+				}
+			],
+			"name": "CMC_Support_Bot_Platform_2"
+		},
+		"botSource": "None",
+		"botUser": "salesforce.adminteam@cmcmarkets.com.fullcopy",
+		"botVersions": [
+			{
+				"fullName": "v4",
+				"articleAnswersGPTEnabled": "false",
+				"botDialogs": [
+					{
+						"botSteps": [
+							{
+								"botStepConditions": {
+									"leftOperandName": "_KnowledgeActionResult",
+									"leftOperandType": "ConversationVariable",
+									"operatorType": "IsSet"
+								},
+								"botSteps": {
+									"botMessages": {
+										"message": "{!$System.KnowledgeActionResult.Answer}",
+										"messageIdentifier": "a02eda1d-40d7-4619-98ec-f3328c4de001"
+									},
+									"stepIdentifier": "52401798-2321-4719-8bb0-4352092df63b",
+									"type": "Message"
+								},
+								"conditionLogicType": "And",
+								"stepIdentifier": "7ae87c86-5cdf-42bb-b674-d06240482218",
+								"type": "Group"
+							},
+							{
+								"botStepConditions": {
+									"leftOperandName": "_KnowledgeActionResult",
+									"leftOperandType": "ConversationVariable",
+									"operatorType": "IsNotSet"
+								},
+								"botSteps": {
+									"botNavigation": {
+										"botNavigationLinks": {
+											"targetBotDialog": "Main_Menu"
+										},
+										"type": "Call"
+									},
+									"stepIdentifier": "6eee0371-e18e-4fc2-8595-36848a016d16",
+									"type": "Navigation"
+								},
+								"conditionLogicType": "And",
+								"stepIdentifier": "85f416d8-5981-473f-b68e-1fe44a43834f",
+								"type": "Group"
+							},
+							{
+								"stepIdentifier": "a43ea07e-c06b-4fc3-914c-9597ceb17c5f",
+								"type": "Wait"
+							}
+						],
+						"developerName": "Knowledge_Action",
+						"isPlaceholderDialog": "false",
+						"label": "Answer Questions with Knowledge",
+						"mlIntent": "Knowledge_Action",
+						"mlIntentTrainingEnabled": "false",
+						"showInFooterMenu": "false"
+					},
+					{
+						"botSteps": [
+							{
+								"botMessages": {
+									"message": "Thanks I will try to find an answer for that.",
+									"messageIdentifier": "50a63b34-be69-4cfe-ba9d-60794ae14023"
+								},
+								"stepIdentifier": "7f7be25d-4bad-4133-bf23-2e57cde24eb3",
+								"type": "Message"
+							},
+							{
+								"botVariableOperation": {
+									"askCollectIfSet": "true",
+									"autoSelectIfSingleChoice": "true",
+									"botMessages": {
+										"message": "I found the following articles",
+										"messageIdentifier": "03aa0d33-fe54-4f3f-943f-4784d0ca7a62"
+									},
+									"botVariableOperands": {
+										"disableAutoFill": "true",
+										"sourceName": "_Object",
+										"sourceType": "StandardMlSlotClass",
+										"targetName": "AnswerSelectedResult",
+										"targetType": "ConversationVariable"
+									},
+									"ignoreIntentRecognition": "false",
+									"invalidInputBotNavigation": {
+										"botNavigationLinks": {
+											"targetBotDialog": "No_Article_found"
+										},
+										"type": "Call"
+									},
+									"optionalCollect": "false",
+									"quickReplyOptionTemplate": "{!title}",
+									"quickReplyType": "Dynamic",
+									"quickReplyWidgetType": "Menu",
+									"sourceVariableName": "_AnswerResults",
+									"sourceVariableType": "ConversationVariable",
+									"type": "Collect",
+									"variableOperationIdentifier": "46e10a72-6d20-48d5-8db0-1132201b0f22"
+								},
+								"stepIdentifier": "84fdeb10-24c9-490e-a9ee-87a2d97d32b7",
+								"type": "VariableOperation"
+							},
+							{
+								"botMessages": {
+									"message": "[Click below for more details] https://support.uat.nonprod.cmcmarketsinvest.com/s/article/{!AnswerSelectedResult.UrlName}",
+									"messageIdentifier": "d8367ba9-b720-4af3-b461-bf641d26c04f"
+								},
+								"stepIdentifier": "31403bd1-bd5f-4c4d-b858-66fd810397fb",
+								"type": "Message"
+							},
+							{
+								"botMessages": {
+									"message": "{!AnswerSelectedResult.answer}",
+									"messageIdentifier": "42d70c23-f519-417b-bcce-29e7e86d580a"
+								},
+								"stepIdentifier": "12c28531-605e-4aa2-b344-c0bd834ea896",
+								"type": "Message"
+							},
+							{
+								"botVariableOperation": {
+									"askCollectIfSet": "true",
+									"botMessages": {
+										"message": "Did you find this helpful? Please tell me by selecting one of the options below.",
+										"messageIdentifier": "d0f50575-8a4e-4879-9d5e-9cc914af427a"
+									},
+									"botQuickReplyOptions": [
+										{
+											"literalValue": "YES",
+											"quickReplyOptionIdentifier": "df326b19-fafc-4b7f-a9e2-d3238f7fa082"
+										},
+										{
+											"literalValue": "NO",
+											"quickReplyOptionIdentifier": "92e442ed-f3c3-481d-bb66-735e065f7c8b"
+										}
+									],
+									"botVariableOperands": {
+										"disableAutoFill": "true",
+										"sourceName": "_Boolean",
+										"sourceType": "StandardMlSlotClass",
+										"targetName": "AnswerFeedback",
+										"targetType": "ConversationVariable"
+									},
+									"ignoreIntentRecognition": "false",
+									"optionalCollect": "false",
+									"quickReplyType": "Static",
+									"quickReplyWidgetType": "Buttons",
+									"type": "Collect",
+									"variableOperationIdentifier": "fd277e81-c14e-4bc4-8c5c-af9a1f05d51d"
+								},
+								"stepIdentifier": "67a532e5-5f96-45b7-a086-2b35814aebf0",
+								"type": "VariableOperation"
+							},
+							{
+								"botStepConditions": {
+									"leftOperandName": "AnswerFeedback",
+									"leftOperandType": "ConversationVariable",
+									"operatorType": "Equals",
+									"rightOperandValue": "true"
+								},
+								"botSteps": {
+									"botNavigation": {
+										"botNavigationLinks": {
+											"targetBotDialog": "Helpful"
+										},
+										"type": "Redirect"
+									},
+									"stepIdentifier": "3613468e-a868-4a02-afdf-23ca15ad21cf",
+									"type": "Navigation"
+								},
+								"conditionLogicType": "And",
+								"stepIdentifier": "4a929a3c-bd2b-4ac8-9e8c-85db6faafaed",
+								"type": "Group"
+							},
+							{
+								"botStepConditions": {
+									"leftOperandName": "AnswerFeedback",
+									"leftOperandType": "ConversationVariable",
+									"operatorType": "Equals",
+									"rightOperandValue": "false"
+								},
+								"botSteps": {
+									"botNavigation": {
+										"botNavigationLinks": {
+											"targetBotDialog": "Not_Helpful"
+										},
+										"type": "Redirect"
+									},
+									"stepIdentifier": "cf414c6a-0c26-4ad2-bd25-3654206e928d",
+									"type": "Navigation"
+								},
+								"conditionLogicType": "And",
+								"stepIdentifier": "48a689bf-44e0-4863-a92c-3ddf085955be",
+								"type": "Group"
+							},
+							{
+								"botInvocation": {
+									"invocationActionName": "generateKnowledgeLogData",
+									"invocationActionType": "logFeedback",
+									"invocationMappings": [
+										{
+											"parameterName": "feedback",
+											"type": "Input",
+											"variableName": "AnswerFeedback",
+											"variableType": "ConversationVariable"
+										},
+										{
+											"parameterName": "selectedResult",
+											"type": "Input",
+											"variableName": "AnswerSelectedResult",
+											"variableType": "ConversationVariable"
+										},
+										{
+											"parameterName": "results",
+											"type": "Input",
+											"variableName": "_AnswerResults",
+											"variableType": "ConversationVariable"
+										},
+										{
+											"parameterName": "input",
+											"type": "Input",
+											"variableName": "_AnswerInput",
+											"variableType": "ConversationVariable"
+										}
+									]
+								},
+								"stepIdentifier": "d618adbc-6ab2-4966-acae-5f2f86177e58",
+								"type": "Invocation"
+							},
+							{
+								"stepIdentifier": "033c92b5-028c-48e8-a876-98644d77dfcb",
+								"type": "Wait"
+							}
+						],
+						"developerName": "Answer_Automation",
+						"isPlaceholderDialog": "false",
+						"label": "Article Answers",
+						"showInFooterMenu": "false"
+					},
+					{
+						"botSteps": [
+							{
+								"botVariableOperation": {
+									"botInvocation": {
+										"invocationActionName": "GetMessagingVariables",
+										"invocationActionType": "apex",
+										"invocationMappings": [
+											{
+												"parameterName": "routableID",
+												"type": "Input",
+												"variableName": "RoutableId",
+												"variableType": "ContextVariable"
+											},
+											{
+												"parameterName": "sApply",
+												"type": "Output",
+												"variableName": "vdApply",
+												"variableType": "ConversationVariable"
+											},
+											{
+												"parameterName": "sBroadcastMessage",
+												"type": "Output",
+												"variableName": "broadcastmessage",
+												"variableType": "ConversationVariable"
+											},
+											{
+												"parameterName": "sChatOrigin",
+												"type": "Output",
+												"variableName": "vdChatOrigin",
+												"variableType": "ConversationVariable"
+											},
+											{
+												"parameterName": "sCRC",
+												"type": "Output",
+												"variableName": "vdCRC",
+												"variableType": "ConversationVariable"
+											},
+											{
+												"parameterName": "sEmail",
+												"type": "Output",
+												"variableName": "vdEmail",
+												"variableType": "ConversationVariable"
+											},
+											{
+												"parameterName": "sFinancialAccountNumber",
+												"type": "Output",
+												"variableName": "vdFAN",
+												"variableType": "ConversationVariable"
+											},
+											{
+												"parameterName": "sFirstName",
+												"type": "Output",
+												"variableName": "vdFirstName",
+												"variableType": "ConversationVariable"
+											},
+											{
+												"parameterName": "sFRToken",
+												"type": "Output",
+												"variableName": "vdFRToken",
+												"variableType": "ConversationVariable"
+											},
+											{
+												"parameterName": "sLastName",
+												"type": "Output",
+												"variableName": "vdLastName",
+												"variableType": "ConversationVariable"
+											},
+											{
+												"parameterName": "sQueueName",
+												"type": "Output",
+												"variableName": "vdQueueName",
+												"variableType": "ConversationVariable"
+											},
+											{
+												"parameterName": "sTheme",
+												"type": "Output",
+												"variableName": "vdTheme",
+												"variableType": "ConversationVariable"
+											},
+											{
+												"parameterName": "sURL",
+												"type": "Output",
+												"variableName": "vdURL",
+												"variableType": "ConversationVariable"
+											},
+											{
+												"parameterName": "sUserName",
+												"type": "Output",
+												"variableName": "vdUserName",
+												"variableType": "ConversationVariable"
+											}
+										]
+									},
+									"type": "Set",
+									"variableOperationIdentifier": "e79513a0-14a7-48a7-8f2a-79c04f607fb5"
+								},
+								"stepIdentifier": "8c77b224-5b15-41d5-9edb-4ed2f5d7646d",
+								"type": "VariableOperation"
+							},
+							{
+								"botStepConditions": {
+									"leftOperandName": "broadcastmessage",
+									"leftOperandType": "ConversationVariable",
+									"operatorType": "IsSet"
+								},
+								"botSteps": {
+									"botMessages": {
+										"message": "{!broadcastmessage}",
+										"messageIdentifier": "f42fe740-639f-44df-bb4c-4b80267ab98a"
+									},
+									"stepIdentifier": "0aa4f795-f247-ea2b-cad2-4a6b90ceac58",
+									"type": "Message"
+								},
+								"conditionLogicType": "And",
+								"stepIdentifier": "24de0d8f-1369-45e4-8153-7f4157f432e4",
+								"type": "Group"
+							},
+							{
+								"botStepConditions": {
+									"leftOperandName": "vdFirstName",
+									"leftOperandType": "ConversationVariable",
+									"operatorType": "IsSet"
+								},
+								"botSteps": [
+									{
+										"botMessages": {
+											"message": "Hi {!vdFirstName}! Welcome to CMC Invest Support. I'm your virtual assistant. I can get you answers to common questions or connect you with a member of our team.",
+											"messageIdentifier": "34a0fb0e-69c2-4697-b07f-1825cbd337ba"
+										},
+										"stepIdentifier": "fef146cd-b6bf-4920-811a-d573c822451c",
+										"type": "Message"
+									},
+									{
+										"botMessages": {
+											"message": "In a few words, how can I help?",
+											"messageIdentifier": "71455c50-d43d-4b70-9399-2140ea443bfa"
+										},
+										"stepIdentifier": "70e52f74-d8e1-44d6-bf6e-05c8128951ff",
+										"type": "Message"
+									}
+								],
+								"conditionLogicType": "And",
+								"stepIdentifier": "259c92b2-2ebe-4c33-b04b-04e6683a58d7",
+								"type": "Group"
+							},
+							{
+								"botStepConditions": {
+									"leftOperandName": "vdFirstName",
+									"leftOperandType": "ConversationVariable",
+									"operatorType": "IsNotSet"
+								},
+								"botSteps": [
+									{
+										"botMessages": {
+											"message": "Hi, Welcome to CMC Invest Support. I'm your virtual assistant. I can get you answers to common questions or connect you with a member of our team.",
+											"messageIdentifier": "3702d2cc-bb20-475e-835b-fec53dc5d05f"
+										},
+										"stepIdentifier": "3da587f6-dacd-4e02-ac5b-cb2f696781ec",
+										"type": "Message"
+									},
+									{
+										"botMessages": {
+											"message": "In a few words, how can I help?",
+											"messageIdentifier": "e2ac04b2-3101-4ed6-8f2f-c28bdfc59d39"
+										},
+										"stepIdentifier": "ce4fab73-c2c3-4473-be25-03abf0eaba4e",
+										"type": "Message"
+									}
+								],
+								"conditionLogicType": "And",
+								"stepIdentifier": "f3df370b-205d-42c1-8733-5c4c24e89d00",
+								"type": "Group"
+							},
+							{
+								"stepIdentifier": "fb1e509f-cd39-4b72-9b78-9c9ba9f43bb9",
+								"type": "Wait"
+							}
+						],
+						"developerName": "Welcome",
+						"isPlaceholderDialog": "false",
+						"label": "Welcome",
+						"mlIntent": "Welcome",
+						"mlIntentTrainingEnabled": "false",
+						"showInFooterMenu": "false"
+					},
+					{
+						"botSteps": [
+							{
+								"botVariableOperation": {
+									"askCollectIfSet": "false",
+									"botMessages": {
+										"message": "What would you like to do next?",
+										"messageIdentifier": "397a1cfb-1aa0-47c8-9115-a7df1962cfa9"
+									},
+									"botQuickReplyOptions": [
+										{
+											"literalValue": "ASK ANOTHER QUESTION",
+											"quickReplyOptionIdentifier": "764a5691-6c60-4aa3-b2fc-4896d24beac7"
+										},
+										{
+											"literalValue": "CONNECT WITH A HUMAN",
+											"quickReplyOptionIdentifier": "f6823cd9-5f46-4625-a83e-8e189d51d8d8"
+										},
+										{
+											"literalValue": "END CHAT",
+											"quickReplyOptionIdentifier": "bae8ef31-ffc6-4743-8ac0-3303f91ef5e9"
+										}
+									],
+									"botVariableOperands": {
+										"disableAutoFill": "true",
+										"sourceName": "UserChoice",
+										"sourceType": "MlSlotClass",
+										"targetName": "UserChoice",
+										"targetType": "ConversationVariable"
+									},
+									"ignoreIntentRecognition": "false",
+									"optionalCollect": "false",
+									"quickReplyType": "Static",
+									"quickReplyWidgetType": "Buttons",
+									"type": "Collect",
+									"variableOperationIdentifier": "8696c81e-2ca2-4f6c-b0aa-28883fa0d86a"
+								},
+								"stepIdentifier": "e77e6e6f-32d6-4ee5-9ec8-257d1f141283",
+								"type": "VariableOperation"
+							},
+							{
+								"botStepConditions": {
+									"leftOperandName": "UserChoice",
+									"leftOperandType": "ConversationVariable",
+									"operatorType": "Equals",
+									"rightOperandValue": "ASK ANOTHER QUESTION"
+								},
+								"botSteps": {
+									"botNavigation": {
+										"botNavigationLinks": {
+											"targetBotDialog": "ASK_ANOTHER_QUESTION"
+										},
+										"type": "Call"
+									},
+									"stepIdentifier": "33a22880-1b7e-4a89-bb68-fb01c8140322",
+									"type": "Navigation"
+								},
+								"conditionLogicType": "And",
+								"stepIdentifier": "117c4fa6-a71c-48a4-9ca0-d02b3238b368",
+								"type": "Group"
+							},
+							{
+								"botStepConditions": {
+									"leftOperandName": "UserChoice",
+									"leftOperandType": "ConversationVariable",
+									"operatorType": "Equals",
+									"rightOperandValue": "CONNECT WITH A HUMAN"
+								},
+								"botSteps": {
+									"botNavigation": {
+										"botNavigationLinks": {
+											"targetBotDialog": "CONNECT_WITH_A_HUMAN"
+										},
+										"type": "Call"
+									},
+									"stepIdentifier": "be0c6326-090a-4985-b38e-4a0686fe3483",
+									"type": "Navigation"
+								},
+								"conditionLogicType": "And",
+								"stepIdentifier": "ab40fd00-b7af-431a-b9ce-a0cfd45f411a",
+								"type": "Group"
+							},
+							{
+								"botStepConditions": {
+									"leftOperandName": "UserChoice",
+									"leftOperandType": "ConversationVariable",
+									"operatorType": "Equals",
+									"rightOperandValue": "END CHAT"
+								},
+								"botSteps": {
+									"conversationSystemMessage": {
+										"type": "EndChat"
+									},
+									"stepIdentifier": "ee781c19-15a0-4823-b4a8-34ff1f8a6cdc",
+									"type": "SystemMessage"
+								},
+								"conditionLogicType": "And",
+								"stepIdentifier": "8a684ca8-a47b-40a1-92bb-4f47c248b993",
+								"type": "Group"
+							},
+							{
+								"botStepConditions": {
+									"leftOperandName": "UserChoice",
+									"leftOperandType": "ConversationVariable",
+									"operatorType": "IsNotSet"
+								},
+								"botSteps": {
+									"botNavigation": {
+										"botNavigationLinks": {
+											"targetBotDialog": "Answer_Automation"
+										},
+										"type": "Call"
+									},
+									"stepIdentifier": "5783543f-1b50-4d86-99de-f4b159996e0f",
+									"type": "Navigation"
+								},
+								"conditionLogicType": "And",
+								"stepIdentifier": "dcb990de-3c14-4406-9b84-3cf9a93783a0",
+								"type": "Group"
+							},
+							{
+								"botSteps": {
+									"botVariableOperation": {
+										"botVariableOperands": {
+											"targetName": "UserChoice",
+											"targetType": "ConversationVariable"
+										},
+										"type": "Unset",
+										"variableOperationIdentifier": "9e322c86-a5ad-474c-b4d9-14d063a3b5a5"
+									},
+									"stepIdentifier": "60d6414a-0bae-4b09-9008-d527a4bc5969",
+									"type": "VariableOperation"
+								},
+								"conditionLogicType": "And",
+								"stepIdentifier": "83530c89-e152-4214-a9d6-bce937eb3572",
+								"type": "Group"
+							},
+							{
+								"stepIdentifier": "93ca1cb3-eeef-4ea0-80cd-952cc91b7a3a",
+								"type": "Wait"
+							}
+						],
+						"developerName": "Main_Menu",
+						"isPlaceholderDialog": "false",
+						"label": "Main Menu",
+						"showInFooterMenu": "false"
+					},
+					{
+						"botSteps": {
+							"conversationSystemMessage": {
+								"type": "Transfer"
+							},
+							"stepIdentifier": "88573224-76b5-424e-a799-29c246d2f88c",
+							"type": "SystemMessage"
+						},
+						"developerName": "Transfer_To_Agent",
+						"isPlaceholderDialog": "false",
+						"label": "Transfer to Agent",
+						"mlIntent": "Transfer_To_Agent",
+						"mlIntentTrainingEnabled": "false",
+						"showInFooterMenu": "false"
+					},
+					{
+						"botSteps": [
+							{
+								"botMessages": {
+									"message": "Thanks for taking the time to chat. I’ve ended the conversation. To start a new conversation, enter some text.",
+									"messageIdentifier": "eeec13ed-b014-4174-a298-74894b078125"
+								},
+								"stepIdentifier": "382ceb9f-d511-4b21-baaf-bc67ceac18df",
+								"type": "Message"
+							},
+							{
+								"botSteps": {
+									"conversationSystemMessage": {
+										"type": "EndChat"
+									},
+									"stepIdentifier": "66fd8ec4-a351-4cbd-bf2d-4e6991dcc2d4",
+									"type": "SystemMessage"
+								},
+								"conditionLogicType": "And",
+								"stepIdentifier": "55157d10-5cde-466f-bc8c-4d1caa3c46ee",
+								"type": "Group"
+							},
+							{
+								"stepIdentifier": "b6bda3a0-5c94-497c-b4c0-b77fd4324160",
+								"type": "Wait"
+							}
+						],
+						"developerName": "Rich_Content_End_Chat",
+						"isPlaceholderDialog": "false",
+						"label": "End Chat",
+						"showInFooterMenu": "false"
+					},
+					{
+						"botSteps": [
+							{
+								"botSteps": {
+									"botNavigation": {
+										"botNavigationLinks": {
+											"targetBotDialog": "Knowledge_Action"
+										},
+										"type": "Call"
+									},
+									"stepIdentifier": "99b0c5b4-1b3c-4a50-bd94-714b8eaee24b",
+									"type": "Navigation"
+								},
+								"conditionLogicType": "And",
+								"stepIdentifier": "abeb72f8-9f46-4273-9552-b02f2002d25a",
+								"type": "Group"
+							},
+							{
+								"botStepConditions": {
+									"leftOperandName": "_KnowledgeActionResult",
+									"leftOperandType": "ConversationVariable",
+									"operatorType": "IsNotSet"
+								},
+								"botSteps": [
+									{
+										"botMessages": {
+											"message": "Sorry I could not find any answers.",
+											"messageIdentifier": "6e6c7667-e98d-49ee-8550-3ae95ad12a2d"
+										},
+										"stepIdentifier": "200978c5-bb81-53d7-04aa-10e3c1350b57",
+										"type": "Message"
+									},
+									{
+										"botNavigation": {
+											"botNavigationLinks": {
+												"targetBotDialog": "Main_Menu"
+											},
+											"type": "Call"
+										},
+										"stepIdentifier": "02067c37-5562-40ac-9d86-ed87bc093f78",
+										"type": "Navigation"
+									}
+								],
+								"conditionLogicType": "And",
+								"stepIdentifier": "2855b4d6-2696-497a-9c97-50744381fc0d",
+								"type": "Group"
+							},
+							{
+								"stepIdentifier": "26bc62ad-6eb5-4db9-b2fa-fcd7445ad56c",
+								"type": "Wait"
+							}
+						],
+						"developerName": "Confused",
+						"isPlaceholderDialog": "false",
+						"label": "Confused",
+						"showInFooterMenu": "false"
+					},
+					{
+						"botSteps": [
+							{
+								"botMessages": {
+									"message": "Unfortunately, there are no agents available at the moment",
+									"messageIdentifier": "06518a45-795c-45fa-b1fc-da93cb513a23"
+								},
+								"stepIdentifier": "5f6f49be-8900-4854-80e5-9d427b2d9bb1",
+								"type": "Message"
+							},
+							{
+								"stepIdentifier": "ab4c7102-37c4-4b9f-b654-0cc576980607",
+								"type": "Wait"
+							}
+						],
+						"developerName": "No_Agent_Available",
+						"isPlaceholderDialog": "false",
+						"label": "No Agent",
+						"showInFooterMenu": "false"
+					},
+					{
+						"botSteps": {
+							"botNavigation": {
+								"botNavigationLinks": {
+									"targetBotDialog": "Main_Menu"
+								},
+								"type": "Redirect"
+							},
+							"stepIdentifier": "76119aae-ca48-4087-9507-f42d2ca3c46d",
+							"type": "Navigation"
+						},
+						"developerName": "Rich_Content_Error_Handling",
+						"isPlaceholderDialog": "false",
+						"label": "Error Handler",
+						"showInFooterMenu": "false"
+					},
+					{
+						"botSteps": [
+							{
+								"botMessages": {
+									"message": "Sure!",
+									"messageIdentifier": "12c07108-8553-47e6-9905-9c9b8b0abdf8"
+								},
+								"stepIdentifier": "a1229741-bf89-4c48-8de3-d0f4a2227ec3",
+								"type": "Message"
+							},
+							{
+								"botMessages": {
+									"message": "In a few words, how can I help?",
+									"messageIdentifier": "454d0699-fa49-47aa-a1fd-746a0eff0783"
+								},
+								"stepIdentifier": "b7cd107e-375e-45ea-8ea2-6aff1681cff1",
+								"type": "Message"
+							},
+							{
+								"stepIdentifier": "ef638af7-25e4-44af-b610-fc943fe79229",
+								"type": "Wait"
+							}
+						],
+						"developerName": "ASK_ANOTHER_QUESTION",
+						"isPlaceholderDialog": "false",
+						"label": "ASK ANOTHER QUESTION",
+						"showInFooterMenu": "false"
+					},
+					{
+						"botSteps": [
+							{
+								"botMessages": {
+									"message": "Thanks for letting me know!",
+									"messageIdentifier": "3c8ad398-9f3e-4600-9a90-474b721e3cb1"
+								},
+								"stepIdentifier": "a29e3f72-3c2e-470b-a54f-9900f0560690",
+								"type": "Message"
+							},
+							{
+								"botNavigation": {
+									"botNavigationLinks": {
+										"targetBotDialog": "Main_Menu"
+									},
+									"type": "Redirect"
+								},
+								"stepIdentifier": "61594452-0579-44a8-9f57-c91264d424ef",
+								"type": "Navigation"
+							}
+						],
+						"developerName": "Helpful",
+						"isPlaceholderDialog": "false",
+						"label": "HELPFUL",
+						"showInFooterMenu": "false"
+					},
+					{
+						"botSteps": [
+							{
+								"botMessages": {
+									"message": "Sorry about that. I am learning every day.",
+									"messageIdentifier": "42294409-5695-4177-9759-08df06235997"
+								},
+								"stepIdentifier": "86730a30-b217-4736-9eab-03a73b0214c5",
+								"type": "Message"
+							},
+							{
+								"botMessages": {
+									"message": "If my answer didn't help try asking another way or I can help you get in touch with a member of our team.",
+									"messageIdentifier": "e305b3f3-178d-499e-a436-e5adc107e8a6"
+								},
+								"stepIdentifier": "39a65a6b-34a6-40dd-933f-3a6e9c06ecf0",
+								"type": "Message"
+							},
+							{
+								"botNavigation": {
+									"botNavigationLinks": {
+										"targetBotDialog": "Main_Menu"
+									},
+									"type": "Redirect"
+								},
+								"stepIdentifier": "603b2f9b-d589-43f9-a8c6-2dbc07cc45a6",
+								"type": "Navigation"
+							}
+						],
+						"developerName": "Not_Helpful",
+						"isPlaceholderDialog": "false",
+						"label": "NOT HELPFUL",
+						"showInFooterMenu": "false"
+					},
+					{
+						"botSteps": [
+							{
+								"botVariableOperation": {
+									"botInvocation": {
+										"invocationActionName": "MessagingAgentAvailabilityByQueueName",
+										"invocationActionType": "apex",
+										"invocationMappings": [
+											{
+												"parameterName": "queueDeveloperName",
+												"type": "Input",
+												"value": "CMC_Chat_Queue"
+											},
+											{
+												"parameterName": "isAgentAvailable",
+												"type": "Output",
+												"variableName": "Agent_available",
+												"variableType": "ConversationVariable"
+											}
+										]
+									},
+									"type": "Set",
+									"variableOperationIdentifier": "6a3912e3-e376-4973-a88c-06a7a95b1e2a"
+								},
+								"stepIdentifier": "7498630c-ebe0-41cb-a414-d1ef05f2825c",
+								"type": "VariableOperation"
+							},
+							{
+								"botVariableOperation": {
+									"botInvocation": {
+										"invocationActionName": "GetBusinessHours",
+										"invocationActionType": "apex",
+										"invocationMappings": [
+											{
+												"parameterName": "businessHourName",
+												"type": "Input",
+												"value": "Australia"
+											},
+											{
+												"parameterName": "outputMember",
+												"type": "Output",
+												"variableName": "withInBusinessHours",
+												"variableType": "ConversationVariable"
+											}
+										]
+									},
+									"type": "Set",
+									"variableOperationIdentifier": "3fc2ebbd-0628-4da8-b097-37e6ec2b8bde"
+								},
+								"stepIdentifier": "82a5aec9-c26f-4654-a564-d98def5f53f8",
+								"type": "VariableOperation"
+							},
+							{
+								"botMessages": {
+									"message": "Thanks, I will forward our conversation to a member of our team.",
+									"messageIdentifier": "b55e9134-b4d2-40af-a80a-23f78fae0173"
+								},
+								"stepIdentifier": "b1fca086-ecaf-4875-a319-145f1278091c",
+								"type": "Message"
+							},
+							{
+								"botStepConditions": [
+									{
+										"leftOperandName": "withInBusinessHours",
+										"leftOperandType": "ConversationVariable",
+										"operatorType": "Equals",
+										"rightOperandValue": "true"
+									},
+									{
+										"leftOperandName": "Agent_available",
+										"leftOperandType": "ConversationVariable",
+										"operatorType": "Equals",
+										"rightOperandValue": "true"
+									}
+								],
+								"botSteps": [
+									{
+										"botMessages": {
+											"message": "They will be in touch as soon as possible. You can go about your day and they will reply to you here once they have reviewed your message.",
+											"messageIdentifier": "573162da-3756-427f-93fd-971a05772e1d"
+										},
+										"stepIdentifier": "52e9b5e7-caa5-4841-b421-8594923b5ca2",
+										"type": "Message"
+									},
+									{
+										"botNavigation": {
+											"botNavigationLinks": {
+												"targetBotDialog": "Transfer_To_Agent"
+											},
+											"type": "Call"
+										},
+										"stepIdentifier": "4ac7ff32-9501-460b-9464-4aa18bd823b7",
+										"type": "Navigation"
+									}
+								],
+								"conditionLogicType": "And",
+								"stepIdentifier": "89e57c05-2727-4d7b-ab75-9c79cf4ba960",
+								"type": "Group"
+							},
+							{
+								"botStepConditions": [
+									{
+										"leftOperandName": "withInBusinessHours",
+										"leftOperandType": "ConversationVariable",
+										"operatorType": "Equals",
+										"rightOperandValue": "true"
+									},
+									{
+										"leftOperandName": "Agent_available",
+										"leftOperandType": "ConversationVariable",
+										"operatorType": "Equals",
+										"rightOperandValue": "false"
+									}
+								],
+								"botSteps": [
+									{
+										"botMessages": {
+											"message": "Our Messaging Team is offline at the moment but they will be in touch as soon as possible. You can go about your day and they will reply to you here once they have reviewed your message.",
+											"messageIdentifier": "10393fbc-85e6-4082-8f73-87bf89072178"
+										},
+										"stepIdentifier": "07e7f10d-d99e-4828-9981-417a7604b1ee",
+										"type": "Message"
+									},
+									{
+										"botNavigation": {
+											"botNavigationLinks": {
+												"targetBotDialog": "Transfer_To_Agent"
+											},
+											"type": "Call"
+										},
+										"stepIdentifier": "a2c85d3c-553e-46df-818a-1d2cf90bbe2d",
+										"type": "Navigation"
+									}
+								],
+								"conditionLogicType": "And",
+								"stepIdentifier": "d7bbf245-a35a-452b-809c-48c86c020298",
+								"type": "Group"
+							},
+							{
+								"botStepConditions": [
+									{
+										"leftOperandName": "withInBusinessHours",
+										"leftOperandType": "ConversationVariable",
+										"operatorType": "Equals",
+										"rightOperandValue": "false"
+									},
+									{
+										"leftOperandName": "Agent_available",
+										"leftOperandType": "ConversationVariable",
+										"operatorType": "Equals",
+										"rightOperandValue": "false"
+									}
+								],
+								"botSteps": [
+									{
+										"botMessages": {
+											"message": "Our Messaging Team is offline at the moment but they will be in touch as soon as possible. You can go about your day and they will reply to you here once they have reviewed your message.",
+											"messageIdentifier": "9ce9bf70-2225-4dc9-9a83-8a7097f2b0b3"
+										},
+										"stepIdentifier": "84ecaaa4-6e2a-416a-95cd-07927d001fe4",
+										"type": "Message"
+									},
+									{
+										"botNavigation": {
+											"botNavigationLinks": {
+												"targetBotDialog": "Transfer_To_Agent"
+											},
+											"type": "Call"
+										},
+										"stepIdentifier": "1b450f90-9ed2-413f-a346-230348b36a0d",
+										"type": "Navigation"
+									}
+								],
+								"conditionLogicType": "And",
+								"stepIdentifier": "31eaade6-a0a7-4497-821c-1f8a980ee2e2",
+								"type": "Group"
+							},
+							{
+								"botNavigation": {
+									"botNavigationLinks": {
+										"targetBotDialog": "Transfer_To_Agent"
+									},
+									"type": "Redirect"
+								},
+								"stepIdentifier": "76289a6a-117c-4276-aa99-9cb000ce5c30",
+								"type": "Navigation"
+							}
+						],
+						"developerName": "CONNECT",
+						"isPlaceholderDialog": "false",
+						"label": "CONNECT",
+						"mlIntent": "CONNECT",
+						"mlIntentTrainingEnabled": "false",
+						"showInFooterMenu": "false"
+					},
+					{
+						"botSteps": [
+							{
+								"botMessages": {
+									"message": "Thanks for letting me know!",
+									"messageIdentifier": "96a93223-881f-44d9-b3d4-359b9b209251"
+								},
+								"stepIdentifier": "26a78442-4295-45fa-82a2-9f88c95ac366",
+								"type": "Message"
+							},
+							{
+								"botNavigation": {
+									"botNavigationLinks": {
+										"targetBotDialog": "Main_Menu"
+									},
+									"type": "Redirect"
+								},
+								"stepIdentifier": "2fdb8098-5a88-40b6-9417-c3bb924fe355",
+								"type": "Navigation"
+							}
+						],
+						"developerName": "MAYBE_LATER",
+						"isPlaceholderDialog": "false",
+						"label": "MAYBE LATER",
+						"showInFooterMenu": "false"
+					},
+					{
+						"botSteps": [
+							{
+								"botMessages": {
+									"message": "Sure! I can connect you to a member of our team.",
+									"messageIdentifier": "b3a220db-2bec-4d10-9015-eebb8f48a931"
+								},
+								"stepIdentifier": "3c126692-aa75-46c1-9f1a-b40714756db1",
+								"type": "Message"
+							},
+							{
+								"botVariableOperation": {
+									"askCollectIfSet": "false",
+									"botMessages": {
+										"message": "Please Select CONNECT to confirm that you would like to be connected to a human, Otherwise click MAYBE LATER",
+										"messageIdentifier": "e292a483-4dab-4bba-8a5d-5259a8535a8a"
+									},
+									"botQuickReplyOptions": [
+										{
+											"literalValue": "CONNECT",
+											"quickReplyOptionIdentifier": "0a54a094-a1f2-4f0c-839d-2e0db804d2a5"
+										},
+										{
+											"literalValue": "MAYBE LATER",
+											"quickReplyOptionIdentifier": "c1bb899b-9a5b-46d0-a6ee-1a77054e39dd"
+										}
+									],
+									"botVariableOperands": {
+										"disableAutoFill": "true",
+										"sourceName": "HumanConnect",
+										"sourceType": "MlSlotClass",
+										"targetName": "HumanConnect",
+										"targetType": "ConversationVariable"
+									},
+									"ignoreIntentRecognition": "false",
+									"optionalCollect": "false",
+									"quickReplyType": "Static",
+									"quickReplyWidgetType": "Buttons",
+									"type": "Collect",
+									"variableOperationIdentifier": "078aa45d-04b4-4aef-be78-e0daf306f727"
+								},
+								"stepIdentifier": "f90f9587-8581-4cac-b2b9-430ec5712d07",
+								"type": "VariableOperation"
+							},
+							{
+								"botStepConditions": {
+									"leftOperandName": "HumanConnect",
+									"leftOperandType": "ConversationVariable",
+									"operatorType": "Equals",
+									"rightOperandValue": "CONNECT"
+								},
+								"botSteps": {
+									"botNavigation": {
+										"botNavigationLinks": {
+											"targetBotDialog": "CONNECT"
+										},
+										"type": "Call"
+									},
+									"stepIdentifier": "3508f96a-75cf-40aa-9460-91ae9ed45dca",
+									"type": "Navigation"
+								},
+								"conditionLogicType": "And",
+								"stepIdentifier": "104108c6-2915-4099-a0f3-6847301efceb",
+								"type": "Group"
+							},
+							{
+								"botStepConditions": {
+									"leftOperandName": "HumanConnect",
+									"leftOperandType": "ConversationVariable",
+									"operatorType": "Equals",
+									"rightOperandValue": "MAYBE LATER"
+								},
+								"botSteps": {
+									"botNavigation": {
+										"botNavigationLinks": {
+											"targetBotDialog": "MAYBE_LATER"
+										},
+										"type": "Call"
+									},
+									"stepIdentifier": "e6fcb9f7-b9af-4d4c-950e-5891cf5ab706",
+									"type": "Navigation"
+								},
+								"conditionLogicType": "And",
+								"stepIdentifier": "f4e7ecaf-15d0-48d6-a623-cac20c6e5753",
+								"type": "Group"
+							},
+							{
+								"stepIdentifier": "a5ac0d2d-c998-49e3-8709-f1b7482ff33e",
+								"type": "Wait"
+							}
+						],
+						"developerName": "CONNECT_WITH_A_HUMAN",
+						"isPlaceholderDialog": "false",
+						"label": "CONNECT WITH A HUMAN",
+						"showInFooterMenu": "false"
+					},
+					{
+						"botSteps": [
+							{
+								"botMessages": {
+									"message": "Sorry I couldn't find an answer for that. Try asking another way or I can connect you with a member of our team.",
+									"messageIdentifier": "dbc71dcf-590e-4077-b71c-ef8d8cbfbed6"
+								},
+								"stepIdentifier": "29d1c8b4-df98-4335-9b4d-41d3460dc7e4",
+								"type": "Message"
+							},
+							{
+								"botSteps": {
+									"botNavigation": {
+										"botNavigationLinks": {
+											"targetBotDialog": "Main_Menu"
+										},
+										"type": "Call"
+									},
+									"stepIdentifier": "044f770d-e59b-49a9-8040-710701a943e4",
+									"type": "Navigation"
+								},
+								"conditionLogicType": "And",
+								"stepIdentifier": "981e40d1-1158-48d4-9a3f-99be135ea494",
+								"type": "Group"
+							},
+							{
+								"stepIdentifier": "ee6d050b-cb18-47e8-a135-7b3f42d23b82",
+								"type": "Wait"
+							}
+						],
+						"developerName": "No_Article_found",
+						"isPlaceholderDialog": "false",
+						"label": "NO ARTICLE FOUND",
+						"showInFooterMenu": "false"
+					}
+				],
+				"citationsEnabled": "true",
+				"conversationSystemDialogs": [
+					{
+						"dialog": "Rich_Content_Error_Handling",
+						"type": "ErrorHandling"
+					},
+					{
+						"dialog": "No_Agent_Available",
+						"type": "TransferFailed"
+					},
+					{
+						"dialog": "Answer_Automation",
+						"type": "KnowledgeFallback"
+					},
+					{
+						"dialog": "Knowledge_Action",
+						"type": "KnowledgeAction"
+					}
+				],
+				"conversationVariables": [
+					{
+						"dataType": "Boolean",
+						"developerName": "Agent_available",
+						"includeInPrompt": "false",
+						"label": "Agent available"
+					},
+					{
+						"dataType": "Boolean",
+						"developerName": "AnswerFeedback",
+						"includeInPrompt": "false",
+						"label": "Answer Feedback"
+					},
+					{
+						"dataType": "Object",
+						"developerName": "AnswerSelectedResult",
+						"includeInPrompt": "false",
+						"label": "Answer Selected Result"
+					},
+					{
+						"dataType": "Text",
+						"developerName": "broadcastmessage",
+						"includeInPrompt": "false",
+						"label": "broadcastmessage"
+					},
+					{
+						"dataType": "Text",
+						"developerName": "chatexperience",
+						"includeInPrompt": "false",
+						"label": "chatexperience"
+					},
+					{
+						"dataType": "Text",
+						"developerName": "HumanConnect",
+						"includeInPrompt": "false",
+						"label": "HumanConnect"
+					},
+					{
+						"dataType": "Boolean",
+						"developerName": "KnowledgeActionFeedback",
+						"includeInPrompt": "false",
+						"label": "Answer Feedback"
+					},
+					{
+						"dataType": "Text",
+						"developerName": "Problem_Solved",
+						"includeInPrompt": "false",
+						"label": "Problem Solved"
+					},
+					{
+						"dataType": "Text",
+						"developerName": "recommend",
+						"includeInPrompt": "false",
+						"label": "recommend"
+					},
+					{
+						"dataType": "Text",
+						"developerName": "SelectedAnswer",
+						"includeInPrompt": "false",
+						"label": "SelectedAnswer"
+					},
+					{
+						"dataType": "Text",
+						"developerName": "SelectedArticleURLName",
+						"includeInPrompt": "false",
+						"label": "SelectedArticleURLName"
+					},
+					{
+						"dataType": "Text",
+						"developerName": "UserChoice",
+						"includeInPrompt": "false",
+						"label": "UserChoice"
+					},
+					{
+						"dataType": "Boolean",
+						"developerName": "vdApply",
+						"includeInPrompt": "false",
+						"label": "vdApply"
+					},
+					{
+						"dataType": "Text",
+						"developerName": "vdChatOrigin",
+						"includeInPrompt": "false",
+						"label": "vdChatOrigin"
+					},
+					{
+						"dataType": "Text",
+						"developerName": "vdCRC",
+						"includeInPrompt": "false",
+						"label": "vdCRC"
+					},
+					{
+						"dataType": "Text",
+						"developerName": "vdEmail",
+						"includeInPrompt": "false",
+						"label": "vdEmail"
+					},
+					{
+						"dataType": "Text",
+						"developerName": "vdFAN",
+						"includeInPrompt": "false",
+						"label": "vdFAN"
+					},
+					{
+						"dataType": "Text",
+						"developerName": "vdFirstName",
+						"includeInPrompt": "false",
+						"label": "vdFirstName"
+					},
+					{
+						"dataType": "Text",
+						"developerName": "vdFRToken",
+						"includeInPrompt": "false",
+						"label": "vdFRToken"
+					},
+					{
+						"dataType": "Text",
+						"developerName": "vdLastName",
+						"includeInPrompt": "false",
+						"label": "vdLastName"
+					},
+					{
+						"dataType": "Text",
+						"developerName": "vdQueueName",
+						"includeInPrompt": "false",
+						"label": "vdQueueName"
+					},
+					{
+						"dataType": "Text",
+						"developerName": "vdTheme",
+						"includeInPrompt": "false",
+						"label": "vdTheme"
+					},
+					{
+						"dataType": "Text",
+						"developerName": "vdURL",
+						"includeInPrompt": "false",
+						"label": "vdURL"
+					},
+					{
+						"dataType": "Text",
+						"developerName": "vdUserName",
+						"includeInPrompt": "false",
+						"label": "vdUserName"
+					},
+					{
+						"dataType": "Boolean",
+						"developerName": "withInBusinessHours",
+						"includeInPrompt": "false",
+						"label": "withInBusinessHours"
+					}
+				],
+				"entryDialog": "Welcome",
+				"intentDisambiguationEnabled": "false",
+				"intentV3Enabled": "true",
+				"knowledgeActionEnabled": "true",
+				"knowledgeFallbackEnabled": "false",
+				"mainMenuDialog": "Main_Menu",
+				"nlpProviders": {
+					"language": "en_US",
+					"nlpProviderType": "EinsteinAi"
+				},
+				"responseDelayMilliseconds": "1200",
+				"smallTalkEnabled": "false",
+				"staticPromptsEnabled": "false",
+				"stopRecPrompts": "false",
+				"stopWelcomePrompts": "false",
+				"surfacesEnabled": "false",
+				"toneType": "Casual",
+				"_xmlns": "http://soap.sforce.com/2006/04/metadata"
+			}
+		],
+		"contextVariables": [
+			{
+				"contextVariableMappings": {
+					"SObjectType": "MessagingEndUser",
+					"fieldName": "MessagingEndUser.ContactId",
+					"messageType": "EmbeddedMessaging"
+				},
+				"dataType": "Id",
+				"developerName": "ContactId",
+				"includeInPrompt": "false",
+				"label": "Contact Id"
+			},
+			{
+				"contextVariableMappings": {
+					"SObjectType": "MessagingSession",
+					"fieldName": "MessagingSession.MessagingEndUserId",
+					"messageType": "EmbeddedMessaging"
+				},
+				"dataType": "Id",
+				"developerName": "EndUserId",
+				"includeInPrompt": "true",
+				"label": "End User Id"
+			},
+			{
+				"contextVariableMappings": {
+					"SObjectType": "MessagingSession",
+					"fieldName": "MessagingSession.Id",
+					"messageType": "EmbeddedMessaging"
+				},
+				"dataType": "Id",
+				"developerName": "RoutableId",
+				"includeInPrompt": "true",
+				"label": "Routable Id"
+			}
+		],
+		"defaultOutboundFlow": "CMC_TransferToAgentOutboundWeb",
+		"description": "CMC Support Bot for Web [Platform]",
+		"label": "CMC Knowledge Bot - Platform 2",
+		"logPrivateConversationData": "true",
+		"richContentEnabled": "true",
+		"sessionTimeout": "480",
+		"type": "Bot",
+		"_xmlns": "http://soap.sforce.com/2006/04/metadata"
+	},
+	"availableAgentActions": {},
+	"botInvocationsDescribeInfo": {
+		"apex": {
+			"GetMessagingVariables": {
+				"inputParameters": {
+					"routableID": {
+						"type": "STRING",
+						"required": true
+					}
+				},
+				"outputParameters": {
+					"sApply": {
+						"type": "STRING"
+					},
+					"sBroadcastMessage": {
+						"type": "STRING"
+					},
+					"sChatOrigin": {
+						"type": "STRING"
+					},
+					"sCRC": {
+						"type": "STRING"
+					},
+					"sEmail": {
+						"type": "STRING"
+					},
+					"sFinancialAccountNumber": {
+						"type": "STRING"
+					},
+					"sFirstName": {
+						"type": "STRING"
+					},
+					"sFRToken": {
+						"type": "STRING"
+					},
+					"sLastName": {
+						"type": "STRING"
+					},
+					"sQueueName": {
+						"type": "STRING"
+					},
+					"sTheme": {
+						"type": "STRING"
+					},
+					"sURL": {
+						"type": "STRING"
+					},
+					"sUserName": {
+						"type": "STRING"
+					}
+				}
+			},
+			"MessagingAgentAvailabilityByQueueName": {
+				"inputParameters": {
+					"queueDeveloperName": {
+						"type": "STRING",
+						"required": true
+					}
+				},
+				"outputParameters": {
+					"isAgentAvailable": {
+						"type": "BOOLEAN"
+					}
+				}
+			},
+			"GetBusinessHours": {
+				"inputParameters": {
+					"businessHourName": {
+						"type": "STRING",
+						"required": true
+					}
+				},
+				"outputParameters": {
+					"outputMember": {
+						"type": "BOOLEAN"
+					}
+				}
+			}
+		}
+	},
+	"mlRelatedData": {}
+}

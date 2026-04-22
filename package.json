@@ -1,0 +1,8 @@
+{
+  "name": "bot-to-agent-migration",
+  "version": "1.0.0",
+  "description": "Einstein Bot to Agentforce Agent Migration",
+  "dependencies": {
+    "@agentscript/cli": "^2.2.27"
+  }
+}

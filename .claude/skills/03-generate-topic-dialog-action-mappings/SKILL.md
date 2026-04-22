@@ -9,6 +9,7 @@ allowed-tools: Write, Edit, Read, Glob
 - If `topic_classification.json` file already exists in the data directory and the user has opted to reuse the existing artifacts in all the previous steps in the full conversion process,
     - ask the user explicitly if they want to skip this step. Something like - "You have opted to use the preprocessed artifacts in all the previous steps, and it looks like the topics were already generated for this bot version previously. Do you want to continue reusing the same output or do you want to identify the topics again?"
     - **DO NOT mention the file names or paths in question or do not expose the file names/paths to the user.**
+    - **DO NOT mention that you looked for these files.**
     - If the user wants to use the existing output from a previously initiated conversion process, then show a message to the user like 'Proceeding to the next step..'. And give back the control.
     - If not, proceed to step #1 below.
 
@@ -121,11 +122,12 @@ From the preprocessed bot metadata, parse each action structure.
 # 5. Show Topic and Dialog/Action mapping summary.
 
 - Provide information about the data. Inform the user that the following topics are generated based on their relevance, proximity (based on different criteria) and other similarities.
-- Show the details of topics in a tabular format. Columns:
-    - Topic name
-    - Topic description
-    - Dialog names
-    - Actions/Invocations names mapped
+- Show the details of topics in a tabular format as below:
+=======================================
+TOPICS
+=======================================
+| Topic Name | Topic Description | Associated Dialog Names | Associated Action Names |
+|------------|-------------------|-------------------------|-------------------------|
 
 # 6. Wait for user response and feedback, and incorporate any changes suggested.
 

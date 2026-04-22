@@ -1,0 +1,309 @@
+# CMC Support Bot - Agentforce Agent
+# Generated from Einstein Bot: CMC Knowledge Bot - Platform 2
+# IMPORTANT: Update default_agent_user before deployment
+
+config:
+   developer_name: "CMC_Support_Bot_Agent"
+   agent_label: "CMC Support Bot"
+   agent_type: "AgentforceServiceAgent"
+   description: "CMC Support Bot for Web - Provides knowledge article assistance and connects customers with live agents when needed"
+   default_agent_user: "user@example.com"  # TODO: Update with actual service user email before deployment
+
+variables:
+   # Context variables from MessagingSession
+   ContactId: linked id
+      description: "Contact Id from MessagingEndUser"
+      source: @MessagingEndUser.ContactId
+
+   EndUserId: linked id
+      description: "End User Id from MessagingSession"
+      source: @MessagingSession.EndUserId
+
+   RoutableId: linked id
+      description: "Routable Id from MessagingSession"
+      source: @MessagingSession.RoutableId
+
+   # Conversation state variables
+   vdApply: mutable string = ""
+      description: "Apply flag from messaging variables"
+
+   broadcastmessage: mutable string = ""
+      description: "Broadcast message to display to user"
+
+   vdChatOrigin: mutable string = ""
+      description: "Chat origin from messaging variables"
+
+   vdCRC: mutable string = ""
+      description: "CRC from messaging variables"
+
+   vdEmail: mutable string = ""
+      description: "Email from messaging variables"
+
+   vdFAN: mutable string = ""
+      description: "Financial Account Number from messaging variables"
+
+   vdFirstName: mutable string = ""
+      description: "First name from messaging variables"
+
+   vdFRToken: mutable string = ""
+      description: "FR Token from messaging variables"
+
+   vdLastName: mutable string = ""
+      description: "Last name from messaging variables"
+
+   vdQueueName: mutable string = ""
+      description: "Queue name from messaging variables"
+
+   vdTheme: mutable string = ""
+      description: "Theme from messaging variables"
+
+   vdURL: mutable string = ""
+      description: "URL from messaging variables"
+
+   vdUserName: mutable string = ""
+      description: "Username from messaging variables"
+
+   Agent_available: mutable boolean = False
+      description: "Indicates if a human agent is available"
+
+   withInBusinessHours: mutable boolean = False
+      description: "Indicates if current time is within business hours"
+
+   AnswerFeedback: mutable boolean = False
+      description: "User feedback on knowledge article helpfulness"
+
+   UserChoice: mutable string = ""
+      description: "User's menu choice selection"
+
+   HumanConnect: mutable string = ""
+      description: "User's confirmation for human agent connection"
+
+   session_initialized: mutable boolean = False
+      description: "Tracks if session variables have been initialized"
+
+system:
+   messages:
+      welcome: "Hi! Welcome to CMC Invest Support. I'm your virtual assistant. I can get you answers to common questions or connect you with a member of our team."
+      error: "Sorry, something went wrong. Let me try to help you with that again."
+
+   instructions:|
+      You are a helpful virtual assistant for CMC Invest Support.
+      Your primary functions are:
+      1. Answer customer questions using knowledge articles
+      2. Connect customers with human agents when needed
+      3. Provide a friendly and professional experience
+      Always be polite, clear, and helpful in your responses.
+
+knowledge:
+   rag_feature_config_id: "placeholder_knowledge_config_id"  # TODO: Update with actual RAG feature config ID
+   citations_enabled: True
+   citations_url: "https://support.uat.nonprod.cmcmarketsinvest.com/s/article/"
+
+language:
+   default_locale: "en_US"
+
+connection escalate_to_human:
+   escalation_message: "Let me connect you with a member of our team who can help."
+   outbound_route_type: "OmniChannelFlow"
+   outbound_route_name: "CMC_TransferToAgentOutboundWeb"
+   adaptive_response_allowed: False
+
+start_agent agent_entrypoint:
+   description: "Entry point for CMC Support Bot - initializes session and routes to main conversation flow"
+
+   reasoning:
+      instructions:|
+         Welcome the user and begin the conversation by transitioning to the session initialization topic.
+         This will set up the user's session variables before proceeding with their inquiry.
+
+      actions:
+         initialize_session: @utils.transition to @topic.Session_Initialization
+            description: "Initialize user session and retrieve messaging variables"
+
+topic Session_Initialization:
+   description: "Handles session setup and initialization by retrieving messaging variables and user context information at the start of conversations"
+
+   actions:
+      GetMessagingVariables:
+         description: "Retrieves messaging session variables including user information and chat context"
+         inputs:
+            routableID: string
+               description: "The routable ID from the messaging session"
+               is_required: True
+         outputs:
+            sApply: string
+               description: "Apply flag"
+            sBroadcastMessage: string
+               description: "Broadcast message to display"
+            sChatOrigin: string
+               description: "Origin of the chat session"
+            sCRC: string
+               description: "CRC identifier"
+            sEmail: string
+               description: "User email address"
+            sFinancialAccountNumber: string
+               description: "Financial account number"
+            sFirstName: string
+               description: "User first name"
+            sFRToken: string
+               description: "FR Token"
+            sLastName: string
+               description: "User last name"
+            sQueueName: string
+               description: "Queue name for routing"
+            sTheme: string
+               description: "Theme setting"
+            sURL: string
+               description: "URL context"
+            sUserName: string
+               description: "Username"
+         target: "apex://GetMessagingVariables"
+
+   reasoning:
+      instructions:->
+         | Initialize the user session by retrieving messaging variables.
+
+         if not @variables.session_initialized:
+            | Call {!@actions.GetMessagingVariables} to fetch session information.
+            | After retrieving variables, display the appropriate welcome message.
+
+         if @variables.broadcastmessage:
+            | Display the broadcast message: {!@variables.broadcastmessage}
+
+         if @variables.vdFirstName:
+            | Greet the user by name: "Hi {!@variables.vdFirstName}! Welcome to CMC Invest Support."
+         else:
+            | Provide a generic welcome: "Hi, Welcome to CMC Invest Support."
+
+         | After initialization, transition to the main menu topic to continue the conversation.
+
+      actions:
+         fetch_variables: @actions.GetMessagingVariables
+            available when not @variables.session_initialized
+            with routableID=@variables.RoutableId
+            set @variables.vdApply = @outputs.sApply
+            set @variables.broadcastmessage = @outputs.sBroadcastMessage
+            set @variables.vdChatOrigin = @outputs.sChatOrigin
+            set @variables.vdCRC = @outputs.sCRC
+            set @variables.vdEmail = @outputs.sEmail
+            set @variables.vdFAN = @outputs.sFinancialAccountNumber
+            set @variables.vdFirstName = @outputs.sFirstName
+            set @variables.vdFRToken = @outputs.sFRToken
+            set @variables.vdLastName = @outputs.sLastName
+            set @variables.vdQueueName = @outputs.sQueueName
+            set @variables.vdTheme = @outputs.sTheme
+            set @variables.vdURL = @outputs.sURL
+            set @variables.vdUserName = @outputs.sUserName
+            set @variables.session_initialized = True
+
+         proceed_to_menu: @utils.transition to @topic.topic_router
+            description: "Proceed to main conversation router after session initialization"
+            available when @variables.session_initialized
+
+topic Knowledge_Management:
+   description: "Manages knowledge article interactions and user feedback on article helpfulness"
+
+   reasoning:
+      instructions:->
+         | Help users find answers to their questions using the knowledge base.
+         | When a knowledge article is presented and the user provides feedback:
+
+         if @variables.AnswerFeedback:
+            | The user found the article helpful. Thank them and ask if they need anything else.
+         else:
+            | The user did not find the article helpful. Apologize and offer to connect them with a human agent or try a different search.
+
+         | After handling feedback, transition back to the main menu to see if the user needs additional help.
+
+      actions:
+         return_to_menu: @utils.transition to @topic.topic_router
+            description: "Return to main menu after handling knowledge feedback"
+
+topic Agent_Connection_Management:
+   description: "Manages human agent connection requests by checking agent availability and validating business hours before transferring customers to live support"
+
+   actions:
+      MessagingAgentAvailabilityByQueueName:
+         description: "Checks if human agents are available in the specified queue"
+         inputs:
+            queueDeveloperName: string
+               description: "Developer name of the queue to check for agent availability"
+               is_required: True
+         outputs:
+            isAgentAvailable: boolean
+               description: "True if agents are available in the queue, false otherwise"
+         target: "apex://MessagingAgentAvailabilityByQueueName"
+
+      GetBusinessHours:
+         description: "Checks if the current time is within business hours for the specified business hours configuration"
+         inputs:
+            businessHourName: string
+               description: "Name of the business hours configuration to check"
+               is_required: True
+         outputs:
+            outputMember: boolean
+               description: "True if current time is within business hours, false otherwise"
+         target: "apex://GetBusinessHours"
+
+   reasoning:
+      instructions:->
+         | Manage the process of connecting users with human agents.
+         | When a user requests to connect with a human agent:
+
+         | 1. Check agent availability using {!@actions.MessagingAgentAvailabilityByQueueName} with queue "CMC_Chat_Queue"
+         | 2. Check business hours using {!@actions.GetBusinessHours} with business hours "Australia"
+
+         if @variables.withInBusinessHours and @variables.Agent_available:
+            | Agents are available. Inform the user: "They will be in touch as soon as possible. You can go about your day and they will reply to you here once they have reviewed your message."
+            | Escalate to human agent using {!@actions.escalate_to_agent}.
+         else:
+            if @variables.withInBusinessHours and not @variables.Agent_available:
+               | Within business hours but no agents available. Inform: "Our Messaging Team is offline at the moment but they will be in touch as soon as possible."
+            else:
+               | Outside business hours. Inform: "Our Messaging Team is offline at the moment but they will be in touch as soon as possible."
+
+            | Escalate anyway so the message is queued for the next available agent.
+
+      actions:
+         check_availability: @actions.MessagingAgentAvailabilityByQueueName
+            description: "Check if human agents are available in the CMC Chat Queue"
+            with queueDeveloperName="CMC_Chat_Queue"
+            set @variables.Agent_available = @outputs.isAgentAvailable
+
+         check_hours: @actions.GetBusinessHours
+            description: "Check if current time is within business hours for Australia"
+            with businessHourName="Australia"
+            set @variables.withInBusinessHours = @outputs.outputMember
+
+         escalate_to_agent: @utils.escalate
+            description: "Connect the user with a human agent"
+            available when @variables.Agent_available is not None and @variables.withInBusinessHours is not None
+
+topic topic_router:
+   description: "Routes user requests to appropriate topics based on intent and conversation context"
+
+   reasoning:
+      instructions:->
+         | Route the user's request to the appropriate topic based on their needs.
+         |
+         | Ask the user: "In a few words, how can I help?"
+         | Or present them with options:
+         | - Ask another question
+         | - Connect with a human agent
+         | - End the chat
+         |
+         | Based on their response:
+         | - If they want to ask a question, search knowledge articles and use {!@actions.route_to_knowledge}
+         | - If they want to connect with a human, use {!@actions.route_to_agent_connection}
+         | - If they want to end the chat, thank them and end the conversation
+         | - If their message indicates they need help with knowledge articles, use {!@actions.route_to_knowledge}
+
+      actions:
+         route_to_knowledge: @utils.transition to @topic.Knowledge_Management
+            description: "Route to knowledge management for article search and feedback"
+
+         route_to_agent_connection: @utils.transition to @topic.Agent_Connection_Management
+            description: "Route to agent connection management to connect with a human agent"
+
+         route_to_session: @utils.transition to @topic.Session_Initialization
+            description: "Route to session initialization if session needs to be reset"

@@ -9,6 +9,7 @@ allowed-tools: Write, Edit, Read, Glob
 - If `agentscript.agent` file already exists in the data directory and the user has opted to reuse the existing artifacts in all the previous steps in the full conversion process,
     - ask the user explicitly if they want to skip this step. Something like - "You have opted to use the preprocessed artifacts in all the previous steps, and it looks like the agentscript was already generated for this bot version previously. Do you want to continue reusing the same output or do you want to generate the agentscript again?"
     - **DO NOT mention the file names or paths in question or do not expose the file names/paths to the user.**
+    - **DO NOT mention that you looked for these files.**
     - If the user wants to use the existing output from a previously initiated conversion process, then show a message to the user like 'Proceeding to the next step..'. And give back the control.
     - If not, proceed to step #1 below.
 
@@ -16,8 +17,8 @@ allowed-tools: Write, Edit, Read, Glob
     ```
     1. Read through the output of bot preprocessing
     2. Understand the conversational flows in bot
-    3. Understand the intent digest
-    4. Reference pregenerated topics
+    3. Understand the bot intents and redirections
+    4. Reference pre-generated topic classification
     5. Generate full agentscript
     6. Validate the generated agentscript
     ```
@@ -422,7 +423,8 @@ Delete the topics generated corresponding to the `deleted_topics` in the `topic_
     4. knowledge
     5. language
     6. topics
-- Then, help user review each section of the generated agentscript.
+
+- **Important Instruction** - Review the sections in the agentscript. DO NOT skip the review process by default.
 
 ## 1. Review `system` section in agentscript.
 

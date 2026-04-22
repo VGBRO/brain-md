@@ -9,15 +9,17 @@ allowed-tools: Write, Edit, Read, Glob
 - If both `preprocessed_bot.json` and `intent_digest.json` files already exists in the data directory,
     - ask the user explicitly if they want to skip this step. Something like - "It looks like this version of the bot has already been processed before. Do you want to reuse the same output or do you want to process the bot again?"
     - **DO NOT mention the file names or paths in question or do not expose the file names/paths to the user.**
+    - **DO NOT mention that you looked for these files.**
     - If the user wants to use the existing output from a previously initiated conversion process, then show a message to the user like 'Proceeding to the next step..'. And give back the control.
     - If not, proceed to step #1 below.
 
 # 1. Reformat and refine the bot structure.
 
-Import `preprocess_bot.py` from `scripts` folder and invoke the `run` method in the file by passing the data directory as input.
+Import `preprocess_bot.py` from `scripts` folder and invoke the `run` method in the file by passing the data directory and the bot name as inputs.
 
-# 2. Generate Intent Digest.
+# 2. Process Bot Intents.
 
+- Inform the user that you're processing the intents configured in the bot dialogs to understand the redirections.
 - First, read the json content at the path `Bot.botMlDomain.mlIntents` from `bot.json` file located in the data directory.
 - This data represents a set of intents. Every intent will have the following information:
   - `description`: The description of the intent.
@@ -34,16 +36,20 @@ Import `preprocess_bot.py` from `scripts` folder and invoke the `run` method in 
 
 Show the bot details in a tabular format as suggested below:
 
-1. Show action/invocation details.
+1. Show action/invocation details. Here, action_type can be `apex` or `flow` or `standardInvocableAction` or similar.
 =======================================
 ACTIONS
 =======================================
-| <action_name> | <action_target> |
+| Action/Invocation Name | Invocation Type |
+|------------------------|------------------|
+| <action_name> | <action_type> |
 
 2. Show dialogs containing at least one action, and a comma-separated list of actions in the dialog.
 =======================================
 DIALOGS WITH ACTIONS
 =======================================
+| Dialog Name | Actions/Invocations |
+|------------------------|------------------|
 | <dialog_name> | <list_of_actions_in_the_dialog> |
 
 - Do not show the generated files or file paths to the user.

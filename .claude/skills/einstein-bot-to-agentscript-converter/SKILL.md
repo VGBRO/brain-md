@@ -5,16 +5,16 @@ allowed-tools: Write, Edit, Read, Glob
 ---
 
 # 1. Welcome the user and provide a summary.
-    - Inform them that you will assist them in the process of converting einstein bot to agentforce agent backed by agentscript.
+    - Inform them that you will assist them in the process of converting einstein bot to agentscript.
     - Provide the below summary (exactly as mentioned below) of the full conversion process:
         - The process has the following steps.
-            0. Verifying prerequisites and logging in to salesforce org.
-            1. Selecting an einstein bot and its version.
-            2. Processing and reviewing the selected bot version.
-            3. Identifying and reviewing agentscript topics from the bot functionality.
-            4. Building and reviewing full agentscript.
-            5. Compiling and validating the generated agentscript.
-            6. Deploying agentscript to salesforce org to create an agentforce agent.
+            0. Verify prerequisites and log in to salesforce org.
+            1. Select an einstein bot and its version.
+            2. Process and review the selected bot version.
+            3. Identify and review agentscript topics generated from the bot functionality.
+            4. Build and review full agentscript.
+            5. Compile and validate the generated agentscript.
+            6. Deploy agentscript to salesforce org to create an agentforce agent.
     - Inform the user that you will guide them through each step in order and help them with building their agentforce agent.
     - Inform them that they can move between steps (go back to any previously completed step to regenerate artifacts) whenever they need.
 
