@@ -7,12 +7,7 @@ import json
 import sys
 from pathlib import Path
 from typing import Any, Dict, List, Set, Tuple
-
-
-def load_json(file_path: str) -> Dict:
-    """Load JSON file."""
-    with open(file_path, 'r') as f:
-        return json.load(f)
+from utils import load_json_file
 
 
 def get_keys_recursive(data: Any, prefix: str = "") -> Set[str]:

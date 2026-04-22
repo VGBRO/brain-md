@@ -9,6 +9,12 @@ import json
 import sys
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
+from constants import (
+    APEX_TYPE_MAP, KEY_TYPE, KEY_SOBJECT_TYPE, KEY_COLLECTION_TYPE,
+    KEY_INPUT_PARAMETERS, KEY_OUTPUT_PARAMETERS, KEY_NAME, KEY_REQUIRED,
+    REGEX_LIST_TYPE, REGEX_APEX_VARIABLE, REGEX_INVOCABLE_METHOD
+)
+from utils import load_json_file, save_json_file, parse_list_type, sort_dict_recursive
 
 
 def parse_apex_type(apex_type: str) -> Dict:
@@ -24,37 +30,22 @@ def parse_apex_type(apex_type: str) -> Dict:
     apex_type = apex_type.strip()
 
     # Handle List types
-    list_match = re.match(r'List<(.+)>', apex_type)
-    if list_match:
-        inner_type = list_match.group(1).strip()
+    inner_type = parse_list_type(apex_type)
+    if inner_type:
         result = parse_apex_type(inner_type)
-        result["collectionType"] = "List"
+        result[KEY_COLLECTION_TYPE] = "List"
         return result
 
-    # Type mapping
-    type_map = {
-        'String': 'STRING',
-        'Boolean': 'BOOLEAN',
-        'Integer': 'INTEGER',
-        'Long': 'INTEGER',
-        'Double': 'NUMBER',
-        'Decimal': 'NUMBER',
-        'Date': 'DATE',
-        'DateTime': 'DATETIME',
-        'Time': 'TIME',
-        'Id': 'STRING',
-    }
-
     # Check if it's a standard type
-    if apex_type in type_map:
-        return {"type": type_map[apex_type]}
+    if apex_type in APEX_TYPE_MAP:
+        return {KEY_TYPE: APEX_TYPE_MAP[apex_type]}
 
-    # Otherwise assume it's an SObject (ends with __c or is a standard object)
+    # Otherwise assume it's an SObject
     if apex_type.endswith('__c') or apex_type in ['Account', 'Contact', 'Case', 'User', 'Lead', 'Opportunity']:
-        return {"type": "SOBJECT", "sobjectType": apex_type}
+        return {KEY_TYPE: "SOBJECT", KEY_SOBJECT_TYPE: apex_type}
 
     # Default fallback
-    return {"type": "STRING"}
+    return {KEY_TYPE: "STRING"}
 
 
 def parse_invocable_variable(line: str) -> Optional[Tuple[str, str, bool]]:

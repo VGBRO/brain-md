@@ -1,9 +1,7 @@
 ---
 name: retrieve-bots-metadata
 description: >
-   Retrieve Bot Metadata. Interactive conversational interface for fetching Einstein Bot 
-   metadata from Salesforce orgs. Guides users through org connection, bot selection, version selection, 
-   and metadata download with complete ML training data.
+  Retrieve Bot Metadata. Interactive conversational interface for fetching Einstein Bot
 metadata:
    author: salesforce-migration
    version: "3.0-ux-step1"
@@ -45,6 +43,27 @@ This skill activates when the user:
 ---
 
 ## Conversational Flow
+
+**🚨 CRITICAL RULES - READ THIS FIRST 🚨**
+
+1. **NEVER AUTO-SELECT ANYTHING**
+   - ❌ Never auto-select org (always show list, ask user to choose)
+   - ❌ Never auto-select bot (always show list, ask user to choose)
+   - ❌ Never auto-select version (always show list, ask user to choose)
+   - ❌ Never remember previous selections across sessions
+   - ✅ Always show full list and wait for user input
+
+2. **SINGLE CONTINUOUS SCRIPT EXECUTION**
+   - ❌ Never restart the script multiple times
+   - ❌ Never call non-interactive mode when user is selecting
+   - ✅ Use ONE bash command with piped input: `printf "1\n1\ny\n" | bash fetch_bot_from_org.sh interactive <ORG>`
+   - ✅ Feed all selections (bot, version, confirmation) in one continuous stdin stream
+
+3. **RESPECT USER'S VERSION CHOICE**
+   - ❌ Never query org for "latest version" - that ignores user's selection
+   - ❌ Never bypass the Python selector's SELECTED_VERSION output
+   - ✅ User selects version 1 → Script uses version 1 (not version 2)
+   - ✅ Continuous script execution preserves SELECTED_VERSION variable
 
 ### Phase 1.1: Org Connection & Selection
 
@@ -155,35 +174,42 @@ Execute:
 bash .claude/skills/01-retrieve-bots-metadata/scripts/fetch_bot_from_org.sh interactive <ORG_ALIAS>
 ```
 
-This invokes the existing `list_bots_interactive.py` script which queries:
-```sql
-SELECT BotDefinition.DeveloperName, BotDefinition.Description, 
-       VersionNumber, LastModifiedDate
-FROM BotVersion
-ORDER BY BotDefinition.DeveloperName, VersionNumber DESC
-```
+This invokes the existing `list_bots_interactive.py` script which queries and displays bots.
 
-**Expected output from script:**
+**IMPORTANT: Read the script output and display the bot list to the user.**
+
+The script will output a formatted table. **You MUST read the Bash tool output and extract the bot list to show the user.** Look for the section that starts with "AVAILABLE BOTS".
+
+**DO NOT say any of these phrases:**
+- ❌ "The script is waiting for your selection"
+- ❌ "The script is waiting for your input"  
+- ❌ "Please select a bot"
+- ❌ Any mention of "waiting" or "script"
+
+**INSTEAD, immediately show the bot list from the script output:**
+
 ```
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   AVAILABLE BOTS  (Org: <OrgName>)
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-  #   Bot Name                  Description
-  ─   ─────────────────────     ──────────────────────────────────────────
-  1   CustomerServiceBot              Customer service bot for airline services.
-                                Handles reservations, baggage, rewards.
-  2   FitnessAssistantBot               Fitness assistant. Manages class
-                                bookings, memberships, and support queries.
-  3   SupportBot        General support bot with intent routing
+  #   Bot Name                            Description
+  ─   ──────────────────────────────────  ────────────────────────────────────────────────────────────────
+  1   Customer Service Bot                Customer service bot for airline services and bookings
+  2   Fitness Assistant                   Fitness assistant for class bookings and memberships
+  3   Support Bot                         General support bot with intent routing
 
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-  Type the number of the bot you want to convert.
-
-  [1–N]   Select a bot
+  [1–3]   Select a bot
   [quit]  Exit
+
+Which bot would you like to convert?
 ```
+
+**Note**: Bot names shown are **MasterLabels** (user-friendly display names), not DeveloperNames. The script internally uses DeveloperNames for all Salesforce operations. Only Bot Name and Description are shown; version information appears after bot selection.
+
+**The bot list table IS the prompt for user input.** Don't add any extra text before it.
 
 **Handle edge cases:**
 
@@ -229,21 +255,24 @@ Claude: Exiting bot selection. You can restart with /01-retrieve-bots-metadata
 
 ### Phase 1.3: Version List Display
 
-**Once bot is selected, show versions:**
+**Once bot is selected, ALWAYS show versions - even if only one version exists:**
+
+**Important**: Never auto-select a version, even if the bot has only one version. Always display the version list and let user confirm.
 
 ```
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  VERSIONS  —  CustomerServiceBot
+  VERSIONS  —  Customer Service Bot
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
   #   Version     Status      Last Modified
   ─   ─────────   ─────────   ──────────────────
-  1   v4          Active      12 Apr 2026, 14:32
-  2   v3          Inactive    01 Mar 2026, 09:15
-  3   v2          Inactive    10 Jan 2026, 11:40
+  1   v2          Inactive    10 Jan 2026
+  2   v3          Inactive    01 Mar 2026
+  3   v4          Active      12 Apr 2026
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
+  Versions sorted alphabetically (v1 → v2 → v3...).
   The Active version is recommended for production migrations.
 
   [1–N]   Select a version
@@ -251,24 +280,34 @@ Claude: Exiting bot selection. You can restart with /01-retrieve-bots-metadata
   [quit]  Exit
 ```
 
+**Note**: Header shows **MasterLabel** (e.g., "Customer Service Bot"), while the script internally uses DeveloperName for operations.
+
 **Natural Language Understanding:**
 
+The script prompts: `Enter version number (0 to go back):`
+
 Accept these variations:
-- "select version 4" / "v4" / "4" / "version 4"
-- "select the active version" / "active one"
-- "select 1st item" / "first" / "1"
-- "back" / "go back"
-- "quit" / "exit"
+- "select version 1" / "1" / "first" / "first one"
+- "select the active version" / "active" (find which number is Active)
+- "3" / "version 3" / "v3"
+- "0" / "back" / "go back"
+
+**Important**: The script expects a **number** (1, 2, 3, etc.), not the version label (v1, v2).
 
 **Conversation Examples:**
 
 ```
 User: select the active version
-Claude: ✅  Selected: v4 (Active)
-        [Proceeds to Phase 1.4]
+Claude: [Reads script output to find Active version is #3]
+        3
+        [Script shows confirmation prompt]
+
+User: 1
+Claude: [Feeds "1" to script stdin]
+        [Script shows confirmation prompt for v1]
 
 User: back
-Claude: ↩ Going back to bot list...
+Claude: 0
         [Returns to Phase 1.2]
 
 User: what does active mean?
@@ -276,90 +315,35 @@ Claude: The "Active" version is the currently deployed version in your org.
         For production migrations, you should use the Active version to ensure
         you're migrating the live bot configuration.
         
-        Would you like to select a version?
+        In the list above, look for the row with "Active" status.
+        Which version number would you like to select?
 ```
 
 **Off-topic handling:**
 
 ```
 User: how do I create a new bot?
-Claude: We are currently in the bot selection phase (Step 1). I can help you:
-        - Select a version to migrate
-        - Go back to the bot list
-        - Exit this process
+Claude: We are currently in the version selection phase (Step 1). I can help you:
+        - Select a version number (1, 2, 3, etc.)
+        - Go back to the bot list (enter 0)
         
         To create a new bot, you would do that in Salesforce Setup after
-        completing the migration. Shall we continue selecting a version?
+        completing the migration. Which version would you like to select?
 ```
 
 ---
 
 ### Phase 1.4: Confirm Selection
 
-**Before downloading, show confirmation:**
+**The script prompts: `Fetch <BotName> v<X>? [y/n]:`**
 
+This confirmation happens **after** the user selects a version number.
+
+**Script handles overwrite checks internally** — Claude does not need to check for existing files.
+
+If the file already exists, the script will prompt the user directly:
 ```
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  CONFIRM SELECTION
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-  Bot      : CustomerServiceBot
-  Version  : v4  (Active)
-  Org      : <OrgName>
-
-  I will download the metadata for this bot and save it
-  locally before proceeding to the inventory step.
-
-  [yes]   Confirm and download
-  [back]  Go back to the version list
-  [quit]  Exit
-```
-
-**Natural Language Understanding:**
-
-Accept:
-- "yes" / "y" / "confirm" / "proceed" / "download"
-- "no" / "n" / "back" / "cancel"
-- "quit" / "exit"
-
-**Conversation Examples:**
-
-```
-User: yes
-Claude: ✅ Confirmed. Downloading metadata...
-        [Proceeds to Phase 1.5]
-
-User: wait, go back
-Claude: ↩ Going back to version list...
-        [Returns to Phase 1.3]
-
-User: what metadata will be downloaded?
-Claude: I will download:
-        - Bot structure (dialogs, steps, navigation rules)
-        - All actions and invocations (Apex, Flows)
-        - ML intents and utterances
-        - External ML domain training data (if available)
-        
-        This gives us everything needed for the migration.
-        Ready to proceed?
-```
-
----
-
-### Phase 1.5: Download & Save
-
-**Execute download:**
-
-Run the existing infrastructure:
-```bash
-bash .claude/skills/01-retrieve-bots-metadata/scripts/fetch_bot_from_org.sh <BOT_NAME> <ORG_ALIAS>
-```
-
-**Check for existing metadata first:**
-
-If metadata already exists for this bot+version:
-```
-⚠️  CustomerServiceBot.json already exists for version v4
+⚠️  bot.json already exists for <BotName> version <X>
 
 Do you want to overwrite the existing data?
 
@@ -368,6 +352,155 @@ Do you want to overwrite the existing data?
 
 Your choice:
 ```
+
+**Natural Language Understanding:**
+
+The script expects `y` or `n`:
+
+Accept:
+- "yes" / "y" → Feed `y` to script
+- "no" / "n" → Feed `n` to script
+
+**Conversation Examples:**
+
+```
+User: yes
+Claude: y
+        [Script proceeds to download or shows overwrite prompt]
+
+User: no
+Claude: n
+        [Script goes back to version selection]
+```
+
+**If script shows overwrite prompt:**
+
+```
+⚠️  bot.json already exists for B2A_Intent_Enabled version 1
+
+Do you want to overwrite the existing data?
+
+  [yes]  Overwrite and re-retrieve metadata
+  [no]   Skip retrieval (use existing data)
+
+Your choice:
+```
+
+Accept:
+- "yes" / "y" / "overwrite" → Feed `yes` to script
+- "no" / "n" / "skip" / "use existing" → Feed `no` to script
+
+---
+
+### Phase 1.5: Download & Save
+
+**🚨 CRITICAL: Single Script Execution - Never Restart the Script 🚨**
+
+The `interactive` mode script runs **continuously as ONE PROCESS** from Phase 1.2 through completion.
+
+**❌ WRONG - Never Do This:**
+```bash
+# Starting script multiple times breaks the flow
+bash fetch_bot_from_org.sh interactive orgfarm-cult          # Shows bot list
+echo "1" | bash fetch_bot_from_org.sh interactive orgfarm-cult  # ❌ WRONG - restarts script
+echo "1" | bash fetch_bot_from_org.sh interactive orgfarm-cult  # ❌ WRONG - restarts again
+bash fetch_bot_from_org.sh B2A_Intent_Enabled orgfarm-cult    # ❌ WRONG - bypasses user selection
+```
+
+**✅ CORRECT - Do This:**
+```bash
+# Single continuous script execution with piped input (4 inputs if file exists)
+printf "1\n1\ny\nyes\n" | bash fetch_bot_from_org.sh interactive orgfarm-cult
+# Input 1: Bot selection (1)
+# Input 2: Version selection (1)
+# Input 3: Confirmation (y)
+# Input 4: Overwrite choice (yes) - only if file already exists
+```
+
+**If file doesn't exist:**
+```bash
+printf "1\n1\ny\n" | bash fetch_bot_from_org.sh interactive orgfarm-cult
+# Only 3 inputs needed
+```
+
+**Script execution flow (ONE continuous process):**
+1. Script shows bot list (Phase 1.2)
+2. Script **waits for stdin** ← Reads first line (bot selection)
+3. Script shows version list (Phase 1.3)  
+4. Script **waits for stdin** ← Reads second line (version selection)
+5. Script **exits Python selector** with SELECTED_BOT and SELECTED_VERSION
+6. Script shows confirmation prompt (Phase 1.4)
+7. Script **waits for stdin** ← Reads third line (y/n confirmation)
+8. Script checks if `${BOT_NAME}.json` exists (e.g., `B2A_Intent_Enabled.json`)
+9. **If file exists**: Script shows overwrite prompt
+10. Script **waits for stdin** ← Reads fourth line (yes/no for overwrite)
+11. If yes, script deletes old directory and downloads fresh
+12. If no, script exits with "Using existing" message
+13. Script outputs success/failure
+14. Script exits
+
+**IMPORTANT**: Always provide 4 inputs via printf if you don't know whether file exists:
+```bash
+printf "1\n2\ny\nyes\n" | bash fetch_bot_from_org.sh interactive orgfarm-cult
+```
+The 4th input (yes) will only be consumed if file exists. Otherwise it's ignored.
+
+**🚨 CRITICAL RULES FOR CLAUDE:**
+
+1. **NEVER auto-select org, bot, or version** - Always ask user to choose
+2. **NEVER restart the script multiple times** - Run it ONCE with all inputs
+3. **NEVER "preview" or "fetch" lists separately** - The single script run will show everything
+4. **ALWAYS use printf, NEVER use { echo } syntax** - Use: `printf "1\n2\ny\nyes\n"`
+5. **ASK user for numbers BEFORE running script** - Don't run script to show lists first
+6. **The script WILL show lists during execution** - User sees them in the final output
+7. **NEVER say "fetching versions" or "fetching bots"** - Just run the single command
+
+**User experience should be:**
+- User sees org list → selects org (e.g., "1")
+- Claude asks: "Which bot number?" → User says: "1"  
+- Claude asks: "Which version number?" → User says: "2"
+- Claude runs: `printf "1\n2\ny\nyes\n" | bash ... interactive orgfarm-cult`
+- User sees the script output showing bot list, version list, and download progress
+- Done! No intermediate prompts or selections
+
+**Claude's role - Complete Flow:**
+
+**🚨 CRITICAL: ONE SCRIPT EXECUTION ONLY 🚨**
+
+1. **Show org list**: Run `sf org list --json` and display formatted table
+2. **User selects org number**: Capture user's choice (e.g., "1" for orgfarm-cult)
+3. **Get user's bot selection**: Ask "Which bot number?" (user will say "1" or "2" etc.)
+4. **Get user's version selection**: Ask "Which version number?" (user will say "1" or "2" etc.)
+5. **Run script ONCE with all inputs**:
+   ```bash
+   printf "1\n2\ny\nyes\n" | bash .claude/skills/01-retrieve-bots-metadata/scripts/fetch_bot_from_org.sh interactive orgfarm-cult
+   ```
+   Replace 1, 2 with actual user selections and orgfarm-cult with actual org alias
+   
+   **The 4 inputs:**
+   - Line 1: Bot number (e.g., 1)
+   - Line 2: Version number (e.g., 2)
+   - Line 3: Confirmation (always "y")
+   - Line 4: Overwrite (always "yes") - consumed only if file exists
+
+6. **NEVER use**: `{ echo "1"; echo "2"; }` - Use `printf` with `\n` instead
+7. **NEVER restart the script** - The user already told you the bot and version numbers
+8. Parse final output for success/failure
+
+**Why this works:**
+- Script shows bot list → reads bot# from stdin
+- Script shows version list → reads version# from stdin  
+- Script shows confirmation → reads "y" from stdin
+- Script checks file exists → reads "yes" from stdin (if needed)
+- Script downloads and completes
+
+**The script output will show the lists to the user naturally as it runs**
+
+**Why this matters:**
+- ❌ Restarting the script queries org again and picks latest version (ignores user selection)
+- ❌ Non-interactive mode bypasses user's version choice
+- ✅ Continuous process preserves SELECTED_VERSION from Python script
+- ✅ Single execution respects all user choices
 
 If user chooses "no":
 ```
@@ -437,9 +570,45 @@ Which option would you prefer?
 
 **Handle user responses:**
 - **Option 1**: Proceed to `/02-process-and-build-inventory`
-- **Option 2**: Return to Phase 1.2 (bot list) with same org
-- **Option 3**: Return to Phase 1.1 (org selection)
-- **Option 4**: Ask for confirmation, then re-fetch same bot (will overwrite existing data)
+- **Option 2**: Return to Phase 1.2 (bot list) with same org - **Start fresh interactive flow, no auto-selection**
+- **Option 3**: Return to Phase 1.1 (org selection) - **Start fresh, show org list, no auto-selection**
+- **Option 4**: Check if bot JSON file exists, then:
+  - If file exists: Show confirmation with overwrite warning
+  - If file doesn't exist: Proceed directly to fetch (no warning needed)
+
+**🚨 CRITICAL for Options 2 & 3:**
+- **NEVER remember** the previous org, bot, or version
+- **ALWAYS show** the full list again
+- **ALWAYS ask** the user to select from the list
+- Use the same continuous script execution pattern: `printf "...\n...\n...\n" | bash fetch_bot_from_org.sh interactive <ORG>`
+
+**Option 4 detailed flow:**
+
+First, check if the bot JSON file exists at the expected path:
+```
+data/bots/<org-id-lowercase>/<bot-name-lowercase>/v<version>/<BotName>.json
+```
+
+**If file exists:**
+```
+⚠️  You've chosen to re-fetch <BotName> <VersionNumber>.
+
+This will overwrite the existing metadata that was just downloaded.
+
+Are you sure you want to proceed?
+
+  [yes] Re-fetch and overwrite existing data
+  [no]  Cancel and keep existing data
+
+Your choice:
+```
+
+**If file does NOT exist:**
+```
+✅ Confirmed. Fetching metadata for <BotName> <VersionNumber>...
+```
+
+Then proceed directly to run the fetch script (no confirmation needed since there's nothing to overwrite).
 
 **Important**: Replace `<BotName>`, `<VersionNumber>`, and `<OrgAlias>` with actual values from the completed fetch.
 
@@ -561,10 +730,12 @@ After successful completion:
 
 | File | Location | Purpose |
 |------|----------|---------|
-| Complete bot JSON | `data/sf-cli/custom/<ORGID_BOTNAME_VERSION>/jsons/<BOTNAME>.json` | Main output for Step 2 |
-| Bot XML | `data/sf-cli/custom/<ORGID_BOTNAME_VERSION>/bots/` | Raw bot metadata |
-| ML Domain XML | `data/sf-cli/custom/<ORGID_BOTNAME_VERSION>/mlDomains/` | Raw ML metadata |
-| All JSONs | `data/sf-cli/custom/<ORGID_BOTNAME_VERSION>/jsons/` | Converted metadata |
+| **Final bot JSON** | `data/bots/<org-id>/<bot-name>/v<version>/<BotName>.json` | **Main output for Step 2** |
+| Step 1 intermediates | `data/bots/<org-id>/<bot-name>/v<version>/step1/` | All intermediate files (XML, JSON, Apex) |
+| Bot XML | `step1/xml/bots/` | Raw bot metadata |
+| ML Domain XML | `step1/xml/mlDomains/` | Raw ML metadata |
+| JSON conversions | `step1/json/` | Converted metadata |
+| Apex parsing | `step1/apex-invocations/` | Apex classes and parsing artifacts |
 
 ### Error Handling
 
@@ -591,7 +762,12 @@ Once Step 1 completes successfully, hand off to Step 2:
 
 **File to pass:**
 ```
-data/sf-cli/custom/<ORGID_BOTNAME_VERSION>/jsons/<BOTNAME>.json
+data/bots/<org-id-lowercase>/<bot-name-lowercase>/v<version>/<BotName>.json
+```
+
+Example:
+```
+data/bots/00dvw0000075wif2ai/b2a_intent_enabled/v1/B2A_Intent_Enabled.json
 ```
 
 **Transition message:**
@@ -736,16 +912,21 @@ Use these formatting patterns consistently:
     └── compare_bot_jsons.py                  # Validation tool
 
 Output:
-data/sf-cli/custom/<ORGID_BOTNAME_VERSION>/
-├── bots/                                     # Raw bot XML
-├── mlDomains/                                # Raw ML XML
-├── apex-invocations/                         # Apex parsing artifacts
-│   ├── classes/                              # Retrieved Apex .cls files
-│   ├── bot-invocations.json                  # Phase 1 output (parameter names)
-│   ├── parsed-apex-types.json                # Phase 2a output (types from Apex)
-│   └── merged-invocations.json               # Phase 2b output (complete data)
-└── jsons/                                    # Converted JSON (main output)
-    └── <BOTNAME>.json                        # ⭐ Pass this to Step 2 (includes real Apex types)
+data/bots/<org-id-lowercase>/<bot-name-lowercase>/v<version>/
+├── <BotName>.json                           # ⭐ FINAL OUTPUT - Pass this to Step 2
+└── step1/                                   # All Step 1 intermediate files
+    ├── xml/
+    │   ├── bots/                            # Raw bot XML
+    │   └── mlDomains/                       # Raw ML XML
+    ├── json/                                # Converted JSON files
+    │   ├── <BotName>.bot-meta.json
+    │   ├── v<N>.botVersion-meta.json
+    │   └── <MLDomain>.json
+    └── apex-invocations/                    # Apex parsing artifacts
+        ├── classes/                         # Retrieved Apex .cls files
+        ├── bot-invocations.json             # Phase 1: parameter names
+        ├── parsed-apex-types.json           # Phase 2a: types from Apex
+        └── merged-invocations.json          # Phase 2b: complete data
 ```
 
 ---
@@ -819,14 +1000,14 @@ Added `normalize_retry_messages()` function that ensures all `retryMessages` fie
 ## Next Steps
 
 1. After successful completion:
-- **File ready:** `data/sf-cli/custom/.../jsons/<BOTNAME>.json`
+- **File ready:** `data/bots/<org-id>/<bot-name>/v<version>/<BotName>.json`
 - **Contains:** Complete bot structure + ML training data + accurate Apex invocation types
-2. Within the data directory, create a folder structure `bots/<ORGID>/<BOTNAME>/<BOT_VERSION_NAME>`. This would be used as the temporary directory to store all the intermediate outputs in the entire conversion process in this session.
-3. Copy over ONLY the json file at `data/sf-cli/custom/.../jsons/<BOTNAME>.json` to the newly created folder and rename the file to `bot.json`.
-4. **Important Instruction** - For the scope of this session, update the data directory to the new folder.
-  - All new intermediate files or outputs should be written/read from this folder.
-  - Wherever data directory is referenced, it should be resolved to this path.
-  - Example: `data/bots/<ORGID>/<BOTNAME>/<BOT_VERSION_NAME>` ---> `data/bots/00DSB00000cASgsgAG/Service_Bot/v1`.
-5. DO NOT expose the data directory to the user. User does not need to know about the data directory in the entire session. Do not show the copy command or setting up the data directory. Avoid any output showing the data directory path.
-5. Ensure that `bot.json` file is present in the new data directory.
-6. Finally, provide a message to the user like 'Proceeding to the next step..'.
+- **Pipeline state saved:** `.claude/pipeline-state.json` (for session resumption)
+- **Next skill:** `/02-process-and-build-inventory`
+- **User prompt:** "Would you like to proceed to Step 2: Bot Inventory?"
+2. **Important Instruction** - For the scope of this session, update the data directory to the new folder `data/bots/<org-id>/<bot-name>/v<version>`.
+   - All new intermediate files or outputs should be written/read from this folder.
+   - Wherever data directory is referenced, it should be resolved to this path.
+   - Example: `data/bots/<ORGID>/<BOT_NAME>/<BOT_VERSION_NAME>` ---> `data/bots/00DSB00000cASgsgAG/Service_Bot/v1`.
+3. Ensure that `<BOT_NAME>.json` file is present in the new data directory.
+4. Finally, provide a message to the user like 'Proceeding to the next step..'.

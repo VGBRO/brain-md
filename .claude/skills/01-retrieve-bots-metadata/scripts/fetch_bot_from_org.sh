@@ -16,6 +16,7 @@ log() {
 BOT_NAME="${1}"
 ORG="${2:-}"
 ML_DOMAIN="${3:-}"  # Optional - will auto-discover if not provided
+SKIP_OVERWRITE_CHECK="${4:-}"  # Optional - set to "--skip-overwrite-check" to skip the prompt
 
 # Check if first argument is "interactive"
 if [ "$BOT_NAME" = "interactive" ]; then
@@ -25,17 +26,24 @@ if [ "$BOT_NAME" = "interactive" ]; then
     if [ -z "$ORG" ]; then
         echo "Error: Org alias required for interactive mode"
         echo ""
-        echo "Usage: $0 interactive <ORG_ALIAS>"
+        echo "Usage: $0 interactive <ORG_ALIAS> [--skip-overwrite-check]"
         echo ""
         echo "Example:"
         echo "  $0 interactive my-org"
+        echo "  $0 interactive my-org --skip-overwrite-check"
         exit 1
+    fi
+
+    # In interactive mode, 3rd argument can be skip flag (no ML_DOMAIN in interactive)
+    if [ "$ML_DOMAIN" = "--skip-overwrite-check" ]; then
+        SKIP_OVERWRITE_CHECK="--skip-overwrite-check"
+        ML_DOMAIN=""
     fi
 else
     INTERACTIVE="false"
 
     if [ -z "$BOT_NAME" ]; then
-        echo "Usage: $0 <BOT_NAME> [ORG_ALIAS] [ML_DOMAIN]"
+        echo "Usage: $0 <BOT_NAME> [ORG_ALIAS] [ML_DOMAIN] [--skip-overwrite-check]"
         echo "   or: $0 interactive <ORG_ALIAS>"
         echo ""
         echo "Examples:"
@@ -131,8 +139,9 @@ if [ "$INTERACTIVE" = "true" ]; then
         exit 0
     fi
 
-    # Extract selected bot name from captured output
+    # Extract selected bot name and version from captured output
     SELECTED_BOT=$(grep "SELECTED_BOT=" "$TEMP_OUTPUT" | cut -d'=' -f2)
+    SELECTED_VERSION=$(grep "SELECTED_VERSION=" "$TEMP_OUTPUT" | cut -d'=' -f2)
     rm -f "$TEMP_OUTPUT"
 
     if [ -z "$SELECTED_BOT" ]; then
@@ -143,6 +152,11 @@ if [ "$INTERACTIVE" = "true" ]; then
 
     # Set BOT_NAME to selected bot
     BOT_NAME="$SELECTED_BOT"
+
+    # Log selected version (optional, for user visibility)
+    if [ -n "$SELECTED_VERSION" ]; then
+        log "  ✓ Selected version: v${SELECTED_VERSION}"
+    fi
 
     echo ""
 fi
@@ -176,21 +190,27 @@ fi
 
 log "  ✓ Org ID: $ORG_ID"
 
-# Query bot version (suppress JSON output since we parse it, not user-facing)
-if [ -z "$ORG" ]; then
-    BOT_VERSION_QUERY=$(sf data query --query "SELECT VersionNumber FROM BotVersion WHERE BotDefinition.DeveloperName='${BOT_NAME}' ORDER BY VersionNumber DESC LIMIT 1" --json 2>/dev/null)
+# Use selected version from interactive mode if available, otherwise query org
+if [ -n "$SELECTED_VERSION" ]; then
+    BOT_VERSION="$SELECTED_VERSION"
+    log "  ✓ Bot Version: $BOT_VERSION (from selection)"
 else
-    BOT_VERSION_QUERY=$(sf data query --query "SELECT VersionNumber FROM BotVersion WHERE BotDefinition.DeveloperName='${BOT_NAME}' ORDER BY VersionNumber DESC LIMIT 1" --target-org "$ORG" --json 2>/dev/null)
+    # Query bot version (suppress JSON output since we parse it, not user-facing)
+    if [ -z "$ORG" ]; then
+        BOT_VERSION_QUERY=$(sf data query --query "SELECT VersionNumber FROM BotVersion WHERE BotDefinition.DeveloperName='${BOT_NAME}' ORDER BY VersionNumber DESC LIMIT 1" --json 2>/dev/null)
+    else
+        BOT_VERSION_QUERY=$(sf data query --query "SELECT VersionNumber FROM BotVersion WHERE BotDefinition.DeveloperName='${BOT_NAME}' ORDER BY VersionNumber DESC LIMIT 1" --target-org "$ORG" --json 2>/dev/null)
+    fi
+
+    BOT_VERSION=$(echo "$BOT_VERSION_QUERY" | python3 -c "import sys, json; data=json.load(sys.stdin); print(data['result']['records'][0]['VersionNumber'] if data['result']['records'] else '1')")
+
+    if [ -z "$BOT_VERSION" ]; then
+        log "  ⚠️  Could not determine bot version, defaulting to 1"
+        BOT_VERSION="1"
+    fi
+
+    log "  ✓ Bot Version: $BOT_VERSION (from query)"
 fi
-
-BOT_VERSION=$(echo "$BOT_VERSION_QUERY" | python3 -c "import sys, json; data=json.load(sys.stdin); print(data['result']['records'][0]['VersionNumber'] if data['result']['records'] else '1')")
-
-if [ -z "$BOT_VERSION" ]; then
-    log "  ⚠️  Could not determine bot version, defaulting to 1"
-    BOT_VERSION="1"
-fi
-
-log "  ✓ Bot Version: $BOT_VERSION"
 
 # Define new directory structure with lowercase paths
 # Convert to lowercase for directory paths
@@ -204,8 +224,8 @@ FINAL_OUTPUT_FILE="${BOT_VERSION_DIR}/${BOT_NAME}.json"
 
 log "  ℹ️  Will organize files into: bots/${ORG_ID_LOWER}/${BOT_NAME_LOWER}/v${BOT_VERSION}"
 
-# Check if bot metadata already exists
-if [ -d "$BOT_VERSION_DIR" ]; then
+# Check if bot metadata already exists (check for final JSON file, not just directory)
+if [ -f "$FINAL_OUTPUT_FILE" ] && [ "$SKIP_OVERWRITE_CHECK" != "--skip-overwrite-check" ]; then
     echo ""
     echo "⚠️  ${BOT_NAME}.json already exists for version ${BOT_VERSION}"
     echo ""
@@ -214,7 +234,8 @@ if [ -d "$BOT_VERSION_DIR" ]; then
     echo "  [yes]  Overwrite and re-retrieve metadata"
     echo "  [no]   Skip retrieval (use existing data)"
     echo ""
-    read -p "Your choice: " OVERWRITE_CHOICE
+    echo "Your choice: "
+    read OVERWRITE_CHOICE
 
     case "${OVERWRITE_CHOICE,,}" in
         yes|y)
@@ -240,6 +261,10 @@ if [ -d "$BOT_VERSION_DIR" ]; then
             exit 1
             ;;
     esac
+elif [ -f "$FINAL_OUTPUT_FILE" ] && [ "$SKIP_OVERWRITE_CHECK" = "--skip-overwrite-check" ]; then
+    # Explicit skip flag passed - just clean and proceed
+    log "  🗑️  Cleaning previous run: $BOT_VERSION_DIR"
+    rm -rf "$BOT_VERSION_DIR"
 fi
 
 log ""
