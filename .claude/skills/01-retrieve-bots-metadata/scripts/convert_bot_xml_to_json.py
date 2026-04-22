@@ -7,30 +7,14 @@ import json
 import sys
 import xml.etree.ElementTree as ET
 from pathlib import Path
+from constants import ALWAYS_ARRAY_FIELDS, BOOLEAN_FIELDS, DIR_XML, DIR_JSON, DIR_BOTS
+from utils import extract_tag_name, save_json_file
 
 
 def xml_to_dict(element):
     """Recursively convert XML element to dictionary"""
-    # Fields that should ALWAYS be arrays, even with single element
-    ALWAYS_ARRAY_FIELDS = {
-        'mlSlotClasses', 'nlpProviders', 'botVariableOperands',
-        'mlIntentUtterances', 'invocationMappings', 'botStepConditions',
-        'botSteps', 'conversationVariables', 'botDialogs', 'contextVariables',
-        'mlIntents', 'botDialogGroups', 'conversationSystemDialogs',
-        'relatedMlIntents', 'botNavigationLinks', 'botMessages',
-        'conversationRecordLookupFields', 'lookupFields', 'conditions'
-    }
-
-    # Fields that should be converted from string to boolean
-    BOOLEAN_FIELDS = {
-        'mlIntentTrainingEnabled', 'showInFooterMenu', 'isPlaceholderDialog',
-        'optionalCollect', 'articleAnswersGPTEnabled', 'citationsEnabled',
-        'intentDisambiguationEnabled', 'knowledgeActionEnabled',
-        'knowledgeFallbackEnabled', 'smallTalkEnabled', 'staticPromptsEnabled'
-    }
-
     result = {}
-    tag_name = element.tag.split('}')[-1]  # Remove namespace
+    tag_name = extract_tag_name(element)
 
     # Add text content if present
     if element.text and element.text.strip():
@@ -45,7 +29,7 @@ def xml_to_dict(element):
     # Process child elements
     for child in element:
         child_data = xml_to_dict(child)
-        tag = child.tag.split('}')[-1]  # Remove namespace
+        tag = extract_tag_name(child)
 
         if tag in result:
             # Convert to list if multiple elements with same tag
@@ -89,37 +73,29 @@ def main():
     bot_name = sys.argv[1]
     step1_dir = Path(sys.argv[2]) if len(sys.argv) > 2 else Path("step1")
 
-    # New structure: step1/xml/bots and step1/json
-    bots_dir = step1_dir / "xml" / "bots"
-    jsons_dir = step1_dir / "json"
+    bots_dir = step1_dir / DIR_XML / DIR_BOTS
+    jsons_dir = step1_dir / DIR_JSON
 
-    # Create json subdirectory
     jsons_dir.mkdir(parents=True, exist_ok=True)
 
-    # Convert bot-meta.xml (look in xml/bots subfolder)
+    # Convert bot-meta.xml
     bot_xml = bots_dir / f"{bot_name}.bot-meta.xml"
     if bot_xml.exists():
         print(f"Converting {bot_xml}...")
         bot_data = convert_bot_xml(bot_xml)
-
-        # Save to json directory
         jsons_output = jsons_dir / f"{bot_name}.bot-meta.json"
-        with open(jsons_output, 'w') as f:
-            json.dump(bot_data, f, indent=2)
+        save_json_file(bot_data, jsons_output)
         print(f"  ✓ Created {jsons_output}")
     else:
         print(f"Error: {bot_xml} not found")
         sys.exit(1)
 
-    # Convert botVersion XML files (look in xml/bots subfolder)
+    # Convert botVersion XML files
     for version_xml in bots_dir.glob("*.botVersion-meta.xml"):
         print(f"Converting {version_xml}...")
         version_data = convert_bot_xml(version_xml)
-
-        # Save to json directory
         jsons_output = jsons_dir / version_xml.with_suffix('.json').name
-        with open(jsons_output, 'w') as f:
-            json.dump(version_data, f, indent=2)
+        save_json_file(version_data, jsons_output)
         print(f"  ✓ Created {jsons_output}")
 
     print("\n✅ XML to JSON conversion complete!")

@@ -16,6 +16,7 @@ log() {
 BOT_NAME="${1}"
 ORG="${2:-}"
 ML_DOMAIN="${3:-}"  # Optional - will auto-discover if not provided
+SKIP_OVERWRITE_CHECK="${4:-}"  # Optional - set to "--skip-overwrite-check" to skip the prompt
 
 # Check if first argument is "interactive"
 if [ "$BOT_NAME" = "interactive" ]; then
@@ -35,7 +36,7 @@ else
     INTERACTIVE="false"
 
     if [ -z "$BOT_NAME" ]; then
-        echo "Usage: $0 <BOT_NAME> [ORG_ALIAS] [ML_DOMAIN]"
+        echo "Usage: $0 <BOT_NAME> [ORG_ALIAS] [ML_DOMAIN] [--skip-overwrite-check]"
         echo "   or: $0 interactive <ORG_ALIAS>"
         echo ""
         echo "Examples:"
@@ -204,8 +205,9 @@ FINAL_OUTPUT_FILE="${BOT_VERSION_DIR}/${BOT_NAME}.json"
 
 log "  ℹ️  Will organize files into: bots/${ORG_ID_LOWER}/${BOT_NAME_LOWER}/v${BOT_VERSION}"
 
-# Check if bot metadata already exists
-if [ -d "$BOT_VERSION_DIR" ]; then
+# Check if bot metadata already exists (check for final JSON file, not just directory)
+# Skip this check in interactive mode since Claude handles overwrite confirmation in Phase 1.4
+if [ -f "$FINAL_OUTPUT_FILE" ] && [ "$SKIP_OVERWRITE_CHECK" != "--skip-overwrite-check" ]; then
     echo ""
     echo "⚠️  ${BOT_NAME}.json already exists for version ${BOT_VERSION}"
     echo ""
@@ -240,6 +242,10 @@ if [ -d "$BOT_VERSION_DIR" ]; then
             exit 1
             ;;
     esac
+elif [ -f "$FINAL_OUTPUT_FILE" ] && [ "$SKIP_OVERWRITE_CHECK" = "--skip-overwrite-check" ]; then
+    # In interactive mode, Claude already confirmed - just clean and proceed
+    log "  🗑️  Cleaning previous run: $BOT_VERSION_DIR"
+    rm -rf "$BOT_VERSION_DIR"
 fi
 
 log ""

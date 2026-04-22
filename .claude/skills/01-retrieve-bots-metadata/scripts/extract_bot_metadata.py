@@ -9,12 +9,8 @@ import sys
 import argparse
 from pathlib import Path
 from typing import Any, Dict, List, Set, Optional, Tuple
-
-
-def load_json_file(file_path: Path) -> Dict[str, Any]:
-    """Load JSON file."""
-    with open(file_path, 'r', encoding='utf-8') as f:
-        return json.load(f)
+from constants import DIR_XML, DIR_JSON, DIR_ML_DOMAINS, SF_CLI_RETRIEVE_ML_DOMAIN
+from utils import load_json_file, save_json_file, recursive_process
 
 
 def normalize_retry_messages(obj: Any) -> Any:

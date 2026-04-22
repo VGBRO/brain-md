@@ -1,7 +1,7 @@
 ---
 name: retrieve-bots-metadata
 description: >
-   Retrieve Bot Metadata. Interactive conversational interface for fetching Einstein Bot 
+   Step 1 of 6: Retrieve Bot Metadata. Interactive conversational interface for fetching Einstein Bot 
    metadata from Salesforce orgs. Guides users through org connection, bot selection, version selection, 
    and metadata download with complete ML training data.
 metadata:
@@ -155,35 +155,40 @@ Execute:
 bash .claude/skills/01-retrieve-bots-metadata/scripts/fetch_bot_from_org.sh interactive <ORG_ALIAS>
 ```
 
-This invokes the existing `list_bots_interactive.py` script which queries:
-```sql
-SELECT BotDefinition.DeveloperName, BotDefinition.Description, 
-       VersionNumber, LastModifiedDate
-FROM BotVersion
-ORDER BY BotDefinition.DeveloperName, VersionNumber DESC
-```
+This invokes the existing `list_bots_interactive.py` script which queries and displays bots.
 
-**Expected output from script:**
+**IMPORTANT: Read the script output and display the bot list to the user.**
+
+The script will output a formatted table. **You MUST read the Bash tool output and extract the bot list to show the user.** Look for the section that starts with "AVAILABLE BOTS".
+
+**DO NOT say any of these phrases:**
+- ❌ "The script is waiting for your selection"
+- ❌ "The script is waiting for your input"  
+- ❌ "Please select a bot"
+- ❌ Any mention of "waiting" or "script"
+
+**INSTEAD, immediately show the bot list from the script output:**
+
 ```
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   AVAILABLE BOTS  (Org: <OrgName>)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-  #   Bot Name                  Description
-  ─   ─────────────────────     ──────────────────────────────────────────
-  1   CustomerServiceBot              Customer service bot for airline services.
-                                Handles reservations, baggage, rewards.
-  2   FitnessAssistantBot               Fitness assistant. Manages class
-                                bookings, memberships, and support queries.
-  3   SupportBot        General support bot with intent routing
+  #   Bot Name                  Version    Description
+  ─   ───────────────────────   ───────    ──────────────────────────────────────────
+  1   CustomerServiceBot        v4         Customer service bot for airline services.
+  2   FitnessAssistantBot       v2         Fitness assistant for class bookings.
+  3   SupportBot                v1         General support bot with intent routing
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-  Type the number of the bot you want to convert.
-
-  [1–N]   Select a bot
+  [1–3]   Select a bot
   [quit]  Exit
+
+Which bot would you like to convert?
 ```
+
+**The bot list table IS the prompt for user input.** Don't add any extra text before it.
 
 **Handle edge cases:**
 
@@ -296,7 +301,52 @@ Claude: We are currently in the bot selection phase (Step 1). I can help you:
 
 ### Phase 1.4: Confirm Selection
 
-**Before downloading, show confirmation:**
+**First, check if bot metadata already exists:**
+
+Before showing the confirmation, check if the final bot JSON file exists by running:
+
+```bash
+# Replace placeholders with actual values from the selection
+# org-id: from `sf org display --json` 
+# bot-name: from user's selection (lowercase)
+# version: from user's selection
+# BotName: original case-sensitive bot name
+
+BOT_JSON_PATH="data/bots/<org-id-lowercase>/<bot-name-lowercase>/v<version>/<BotName>.json"
+
+# Example:
+# data/bots/00dvw0000075wif2ai/b2a_intent_enabled/v1/B2A_Intent_Enabled.json
+
+test -f "$BOT_JSON_PATH" && echo "EXISTS" || echo "NOT_FOUND"
+```
+
+Or use Bash tool:
+```bash
+ls -la data/bots/<org-id-lowercase>/<bot-name-lowercase>/v<version>/<BotName>.json 2>/dev/null
+```
+
+**If file EXISTS (ls succeeds or test returns "EXISTS"), show confirmation with warning:**
+
+```
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  CONFIRM SELECTION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  Bot      : CustomerServiceBot
+  Version  : v4  (Active)
+  Org      : <OrgName>
+
+  ⚠️  Note: Metadata for this bot already exists from a previous fetch.
+
+  I will download the metadata for this bot and save it
+  locally before proceeding to the inventory step.
+
+  [yes]   Confirm and download
+  [back]  Go back to the version list
+  [quit]  Exit
+```
+
+**If file DOES NOT EXIST, show confirmation without warning:**
 
 ```
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -348,26 +398,36 @@ Claude: I will download:
 
 ### Phase 1.5: Download & Save
 
-**Execute download:**
+**Critical Understanding: Single Script Execution**
 
-Run the existing infrastructure:
+The `interactive` mode script runs **continuously** from Phase 1.2 through completion:
+
 ```bash
-bash .claude/skills/01-retrieve-bots-metadata/scripts/fetch_bot_from_org.sh <BOT_NAME> <ORG_ALIAS>
+bash .claude/skills/01-retrieve-bots-metadata/scripts/fetch_bot_from_org.sh interactive <ORG_ALIAS>
 ```
 
-**Check for existing metadata first:**
+**Script execution flow:**
+1. Script shows bot list (Phase 1.2)
+2. Script **waits for stdin** ← Claude feeds user's bot selection
+3. Script shows version list (Phase 1.3)  
+4. Script **waits for stdin** ← Claude feeds user's version selection
+5. Script **exits Python selector**, returns to bash
+6. Script checks for existing file, but **skips prompt** (trusts Claude)
+7. Script downloads metadata automatically
+8. Script outputs success/failure
+9. Script exits
 
-If metadata already exists for this bot+version:
-```
-⚠️  CustomerServiceBot.json already exists for version v4
+**Claude's role:**
+- Read script output → Show formatted tables to user
+- Capture user selections → Feed to script's stdin via piped echo commands
+- Check for existing files **before Phase 1.4** → Show warning if file exists
+- When user confirms → Script continues automatically (no additional prompting)
 
-Do you want to overwrite the existing data?
-
-  [yes]  Overwrite and re-retrieve metadata
-  [no]   Skip retrieval (use existing data)
-
-Your choice:
-```
+**Key points:**
+- ✅ **ONE script call** runs the entire flow (don't call script multiple times)
+- ✅ Claude checks files, script trusts Claude (receives `--skip-overwrite-check` in interactive mode)
+- ✅ Script output contains tables - Claude must parse and display them
+- ✅ Use piped echo to send selections: `echo "2" | bash fetch_bot_from_org.sh interactive org`
 
 If user chooses "no":
 ```
@@ -439,7 +499,37 @@ Which option would you prefer?
 - **Option 1**: Proceed to `/02-process-and-build-inventory`
 - **Option 2**: Return to Phase 1.2 (bot list) with same org
 - **Option 3**: Return to Phase 1.1 (org selection)
-- **Option 4**: Ask for confirmation, then re-fetch same bot (will overwrite existing data)
+- **Option 4**: Check if bot JSON file exists, then:
+  - If file exists: Show confirmation with overwrite warning
+  - If file doesn't exist: Proceed directly to fetch (no warning needed)
+
+**Option 4 detailed flow:**
+
+First, check if the bot JSON file exists at the expected path:
+```
+data/bots/<org-id-lowercase>/<bot-name-lowercase>/v<version>/<BotName>.json
+```
+
+**If file exists:**
+```
+⚠️  You've chosen to re-fetch <BotName> <VersionNumber>.
+
+This will overwrite the existing metadata that was just downloaded.
+
+Are you sure you want to proceed?
+
+  [yes] Re-fetch and overwrite existing data
+  [no]  Cancel and keep existing data
+
+Your choice:
+```
+
+**If file does NOT exist:**
+```
+✅ Confirmed. Fetching metadata for <BotName> <VersionNumber>...
+```
+
+Then proceed directly to run the fetch script (no confirmation needed since there's nothing to overwrite).
 
 **Important**: Replace `<BotName>`, `<VersionNumber>`, and `<OrgAlias>` with actual values from the completed fetch.
 
@@ -561,10 +651,12 @@ After successful completion:
 
 | File | Location | Purpose |
 |------|----------|---------|
-| Complete bot JSON | `data/sf-cli/custom/<ORGID_BOTNAME_VERSION>/jsons/<BOTNAME>.json` | Main output for Step 2 |
-| Bot XML | `data/sf-cli/custom/<ORGID_BOTNAME_VERSION>/bots/` | Raw bot metadata |
-| ML Domain XML | `data/sf-cli/custom/<ORGID_BOTNAME_VERSION>/mlDomains/` | Raw ML metadata |
-| All JSONs | `data/sf-cli/custom/<ORGID_BOTNAME_VERSION>/jsons/` | Converted metadata |
+| **Final bot JSON** | `data/bots/<org-id>/<bot-name>/v<version>/<BotName>.json` | **Main output for Step 2** |
+| Step 1 intermediates | `data/bots/<org-id>/<bot-name>/v<version>/step1/` | All intermediate files (XML, JSON, Apex) |
+| Bot XML | `step1/xml/bots/` | Raw bot metadata |
+| ML Domain XML | `step1/xml/mlDomains/` | Raw ML metadata |
+| JSON conversions | `step1/json/` | Converted metadata |
+| Apex parsing | `step1/apex-invocations/` | Apex classes and parsing artifacts |
 
 ### Error Handling
 
@@ -591,7 +683,12 @@ Once Step 1 completes successfully, hand off to Step 2:
 
 **File to pass:**
 ```
-data/sf-cli/custom/<ORGID_BOTNAME_VERSION>/jsons/<BOTNAME>.json
+data/bots/<org-id-lowercase>/<bot-name-lowercase>/v<version>/<BotName>.json
+```
+
+Example:
+```
+data/bots/00dvw0000075wif2ai/b2a_intent_enabled/v1/B2A_Intent_Enabled.json
 ```
 
 **Transition message:**
@@ -736,16 +833,21 @@ Use these formatting patterns consistently:
     └── compare_bot_jsons.py                  # Validation tool
 
 Output:
-data/sf-cli/custom/<ORGID_BOTNAME_VERSION>/
-├── bots/                                     # Raw bot XML
-├── mlDomains/                                # Raw ML XML
-├── apex-invocations/                         # Apex parsing artifacts
-│   ├── classes/                              # Retrieved Apex .cls files
-│   ├── bot-invocations.json                  # Phase 1 output (parameter names)
-│   ├── parsed-apex-types.json                # Phase 2a output (types from Apex)
-│   └── merged-invocations.json               # Phase 2b output (complete data)
-└── jsons/                                    # Converted JSON (main output)
-    └── <BOTNAME>.json                        # ⭐ Pass this to Step 2 (includes real Apex types)
+data/bots/<org-id-lowercase>/<bot-name-lowercase>/v<version>/
+├── <BotName>.json                           # ⭐ FINAL OUTPUT - Pass this to Step 2
+└── step1/                                   # All Step 1 intermediate files
+    ├── xml/
+    │   ├── bots/                            # Raw bot XML
+    │   └── mlDomains/                       # Raw ML XML
+    ├── json/                                # Converted JSON files
+    │   ├── <BotName>.bot-meta.json
+    │   ├── v<N>.botVersion-meta.json
+    │   └── <MLDomain>.json
+    └── apex-invocations/                    # Apex parsing artifacts
+        ├── classes/                         # Retrieved Apex .cls files
+        ├── bot-invocations.json             # Phase 1: parameter names
+        ├── parsed-apex-types.json           # Phase 2a: types from Apex
+        └── merged-invocations.json          # Phase 2b: complete data
 ```
 
 ---
@@ -818,15 +920,9 @@ Added `normalize_retry_messages()` function that ensures all `retryMessages` fie
 
 ## Next Steps
 
-1. After successful completion:
-- **File ready:** `data/sf-cli/custom/.../jsons/<BOTNAME>.json`
+After successful completion:
+- **File ready:** `data/bots/<org-id>/<bot-name>/v<version>/<BotName>.json`
 - **Contains:** Complete bot structure + ML training data + accurate Apex invocation types
-2. Within the data directory, create a folder structure `bots/<ORGID>/<BOTNAME>/<BOT_VERSION_NAME>`. This would be used as the temporary directory to store all the intermediate outputs in the entire conversion process in this session.
-3. Copy over ONLY the json file at `data/sf-cli/custom/.../jsons/<BOTNAME>.json` to the newly created folder and rename the file to `bot.json`.
-4. **Important Instruction** - For the scope of this session, update the data directory to the new folder.
-  - All new intermediate files or outputs should be written/read from this folder.
-  - Wherever data directory is referenced, it should be resolved to this path.
-  - Example: `data/bots/<ORGID>/<BOTNAME>/<BOT_VERSION_NAME>` ---> `data/bots/00DSB00000cASgsgAG/Service_Bot/v1`.
-5. DO NOT expose the data directory to the user. User does not need to know about the data directory in the entire session. Do not show the copy command or setting up the data directory. Avoid any output showing the data directory path.
-5. Ensure that `bot.json` file is present in the new data directory.
-6. Finally, provide a message to the user like 'Proceeding to the next step..'.
+- **Pipeline state saved:** `.claude/pipeline-state.json` (for session resumption)
+- **Next skill:** `/02-process-and-build-inventory`
+- **User prompt:** "Would you like to proceed to Step 2: Bot Inventory?"
