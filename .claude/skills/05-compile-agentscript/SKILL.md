@@ -30,6 +30,7 @@ loop to diagnose and fix errors. The compiler validates syntax (via ANTLR parser
 - Network access to Nexus npm registry (for verification)
 - The compiler script: `skills/00-verify-prerequisites/scripts/compile_agentscript_nexus_ts.py`
 
+
 **Note:** The compiler automatically checks all prerequisites and provides installation instructions if anything is missing.
 
 ## Authoritative Rules Reference
@@ -58,7 +59,7 @@ Before compilation, copy the generated `agentscript.agent` from the data directo
 
 2. **Define paths**:
    ```
-   SOURCE_FILE = data/agentscript.txt
+   SOURCE_FILE = data/agentscript.agent
    TARGET_DIR = data/sf-cli/generated/aiAuthoringBundles/AGENT_NAME
    TARGET_FILE = data/sf-cli/generated/aiAuthoringBundles/AGENT_NAME/AGENT_NAME.agent
    ```
@@ -70,7 +71,7 @@ Before compilation, copy the generated `agentscript.agent` from the data directo
 
 4. **Copy and rename the file**:
    ```bash
-   cp data/agentscript.txt data/sf-cli/generated/aiAuthoringBundles/AGENT_NAME/AGENT_NAME.agent
+   cp data/agentscript.agent data/sf-cli/generated/aiAuthoringBundles/AGENT_NAME/AGENT_NAME.agent
    ```
 
 5. **Verify the copy**:
@@ -78,7 +79,7 @@ Before compilation, copy the generated `agentscript.agent` from the data directo
    ls -lh data/sf-cli/generated/aiAuthoringBundles/AGENT_NAME/AGENT_NAME.agent
    ```
 
-If the source file `data/agentscript.txt` doesn't exist, STOP and report to the user that Step 4 (Generate AgentScript) must be completed first.
+If the source file `data/agentscript.agent` doesn't exist, STOP and report to the user that Step 4 (Generate AgentScript) must be completed first.
 
 Store `TARGET_FILE` as `AGENT_FILE_PATH` for use in subsequent steps.
 
@@ -167,6 +168,75 @@ python3 skills/00-start-migration/scripts/compile_agentscript_nexus_ts.py AGENT_
 4. Agent details (developer name, type, topics count)
 
 Capture BOTH stdout and stderr output.
+
+### Step 4a: Log Compilation Results
+
+After each compilation attempt, save the compilation output to a log file for tracking and debugging:
+
+1. **Determine the log directory path**:
+   ```
+   LOG_DIR = data/sf-cli/generated/aiAuthoringBundles/AGENT_NAME/compilation-logs
+   ```
+
+2. **Create the log directory if it doesn't exist**:
+   ```bash
+   mkdir -p data/sf-cli/generated/aiAuthoringBundles/AGENT_NAME/compilation-logs
+   ```
+
+3. **Create the log file with iteration number**:
+   ```
+   LOG_FILE = data/sf-cli/generated/aiAuthoringBundles/AGENT_NAME/compilation-logs/iteration-{ITERATION}.log
+   ```
+
+4. **Write the compilation output to the log file**:
+   Save the complete compilation output (stdout and stderr) to the log file with the following structure:
+   ```
+   ============================================
+   COMPILATION ITERATION {ITERATION}
+   ============================================
+   Timestamp: {current_timestamp}
+   Agent File: {AGENT_FILE_PATH}
+   Compiler: TypeScript/Nexus @agentscript/cli
+   
+   COMPILATION OUTPUT:
+   ============================================
+   {full_compilation_output}
+   
+   ============================================
+   ERRORS DETECTED:
+   ============================================
+   {extracted_error_messages_if_any}
+   
+   ============================================
+   STATUS: {SUCCESS/FAILED}
+   ============================================
+   ```
+
+5. **Implementation**:
+   ```bash
+   # Create log directory
+   mkdir -p data/sf-cli/generated/aiAuthoringBundles/AGENT_NAME/compilation-logs
+   
+   # Save compilation output to log file
+   cat > data/sf-cli/generated/aiAuthoringBundles/AGENT_NAME/compilation-logs/iteration-${ITERATION}.log <<'EOF'
+   ============================================
+   COMPILATION ITERATION ${ITERATION}
+   ============================================
+   Timestamp: $(date '+%Y-%m-%d %H:%M:%S')
+   Agent File: AGENT_FILE_PATH
+   Compiler: TypeScript/Nexus @agentscript/cli
+   
+   COMPILATION OUTPUT:
+   ============================================
+   ${COMPILATION_OUTPUT}
+   
+   ============================================
+   STATUS: [SUCCESS/FAILED]
+   ============================================
+   EOF
+   ```
+
+**Important**: Always create a log file for each iteration, regardless of success or failure. This provides a complete audit trail of all compilation attempts.
 
 ### Step 5: Analyze Output
 
@@ -418,6 +488,11 @@ Iterations: ITERATION
 Library warnings: [count or "none"]
 Linter errors: [PASS — all resolved]
 
+Compilation Logs:
+  Location: data/sf-cli/generated/aiAuthoringBundles/AGENT_NAME/compilation-logs/
+  Files: iteration-0.log through iteration-{ITERATION}.log
+  Total Attempts: {ITERATION + 1}
+
 The AgentScript file has been validated by the local compiler.
 Note: The authoritative validator is `sf agent publish`. Library warnings
 (if any) about developer_name=None are known issues and do not indicate
@@ -435,9 +510,17 @@ Remaining errors:
   1. [error description] (line [N])
   2. [error description] (line [N])
 
+Compilation Logs:
+  Location: data/sf-cli/generated/aiAuthoringBundles/AGENT_NAME/compilation-logs/
+  Files: iteration-0.log through iteration-{MAX_ITERATIONS - 1}.log
+  Total Attempts: {MAX_ITERATIONS}
+
 These errors could not be automatically resolved. Please review the
-errors above and the .agent file manually, or provide guidance on
-how to fix them.
+errors above, the compilation logs, and the .agent file manually, or 
+provide guidance on how to fix them.
+
+To review detailed error information for each iteration, check the log files in:
+  data/sf-cli/generated/aiAuthoringBundles/AGENT_NAME/compilation-logs/
 ```
 
 ## Output

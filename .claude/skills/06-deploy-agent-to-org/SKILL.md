@@ -43,6 +43,34 @@ self-healing loop to fix publish errors.
 
 ## Instructions
 
+### Step 0: Setup AgentforceDX Project
+
+Before proceeding with deployment, ensure the `agentforcedx` project exists:
+
+**Check if agentforcedx project exists:**
+```bash
+ls -la bot-to-agent-migration-dev/agentforcedx
+```
+
+**If it doesn't exist, create it:**
+```bash
+cd bot-to-agent-migration-dev
+sf template generate project --name agentforcedx --template agent
+cd agentforcedx
+```
+
+**Verify the project structure:**
+The project should have this directory structure:
+```
+agentforcedx/
+├── force-app/
+│   └── main/
+│       └── default/
+│           └── aiAuthoringBundles/
+```
+
+**If agentforcedx project exists, proceed to Step 1.**
+
 ### Step 1: Load Deployment Context
 
 Read `migration-architecture.md` and extract:
@@ -54,7 +82,24 @@ Always ask for TARGET_ORG from user.
 Verify the compiled `.agent` file exists at:
 `force-app/main/default/aiAuthoringBundles/AGENT_NAME/AGENT_NAME.agent`
 
-#### 1a: Verify No Linter Errors
+#### 1a: Copy Agent Bundle to AgentforceDX Project
+
+Copy the compiled agent bundle to the agentforcedx project for deployment:
+
+```bash
+cp -r force-app/main/default/aiAuthoringBundles/AGENT_NAME bot-to-agent-migration-dev/agentforcedx/force-app/main/default/aiAuthoringBundles/
+```
+
+Verify the copy was successful:
+```bash
+ls -la bot-to-agent-migration-dev/agentforcedx/force-app/main/default/aiAuthoringBundles/AGENT_NAME/
+```
+
+The agent bundle should now exist in both locations:
+- Source: `force-app/main/default/aiAuthoringBundles/AGENT_NAME/`
+- Deployment: `bot-to-agent-migration-dev/agentforcedx/force-app/main/default/aiAuthoringBundles/AGENT_NAME/`
+
+#### 1c: Verify No Linter Errors
 
 Before proceeding with deployment, you MUST verify that all linter errors in the `.agent`
 file and related project files have been resolved. Open the files in the IDE and check for
@@ -118,7 +163,7 @@ Do you confirm this deployment? Please respond YES or NO.
 #### 4a: Verify `.bundle-meta.xml` Exists
 
 Before deploying, verify that the bundle metadata file exists at:
-`force-app/main/default/aiAuthoringBundles/AGENT_NAME/AGENT_NAME.bundle-meta.xml`
+`bot-to-agent-migration-dev/agentforcedx/force-app/main/default/aiAuthoringBundles/AGENT_NAME/AGENT_NAME.bundle-meta.xml`
 
 If it does NOT exist, create it with this exact content:
 
@@ -138,10 +183,10 @@ There is NO need to run `sf project deploy start` separately.
 
 Initialize publish loop: Set `PUBLISH_ITERATION = 0` and `MAX_PUBLISH_ITERATIONS = 15`.
 
-Run the publish command:
+Run the publish command from the agentforcedx project directory:
 
 ```bash
-sf agent publish authoring-bundle --dev-debug --api-name AGENT_NAME --target-org TARGET_ORG
+cd bot-to-agent-migration-dev/agentforcedx && sf agent publish authoring-bundle --dev-debug --api-name AGENT_NAME --target-org TARGET_ORG
 ```
 Very Important: Always provide detailed error output in the console in case of error. The dev-debug flag attached to publish command will get detailed error output.
 
