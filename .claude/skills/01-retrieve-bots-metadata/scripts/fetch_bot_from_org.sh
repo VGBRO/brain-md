@@ -26,11 +26,18 @@ if [ "$BOT_NAME" = "interactive" ]; then
     if [ -z "$ORG" ]; then
         echo "Error: Org alias required for interactive mode"
         echo ""
-        echo "Usage: $0 interactive <ORG_ALIAS>"
+        echo "Usage: $0 interactive <ORG_ALIAS> [--skip-overwrite-check]"
         echo ""
         echo "Example:"
         echo "  $0 interactive my-org"
+        echo "  $0 interactive my-org --skip-overwrite-check"
         exit 1
+    fi
+
+    # In interactive mode, 3rd argument can be skip flag (no ML_DOMAIN in interactive)
+    if [ "$ML_DOMAIN" = "--skip-overwrite-check" ]; then
+        SKIP_OVERWRITE_CHECK="--skip-overwrite-check"
+        ML_DOMAIN=""
     fi
 else
     INTERACTIVE="false"
@@ -218,7 +225,6 @@ FINAL_OUTPUT_FILE="${BOT_VERSION_DIR}/${BOT_NAME}.json"
 log "  ℹ️  Will organize files into: bots/${ORG_ID_LOWER}/${BOT_NAME_LOWER}/v${BOT_VERSION}"
 
 # Check if bot metadata already exists (check for final JSON file, not just directory)
-# Skip this check in interactive mode since Claude handles overwrite confirmation in Phase 1.4
 if [ -f "$FINAL_OUTPUT_FILE" ] && [ "$SKIP_OVERWRITE_CHECK" != "--skip-overwrite-check" ]; then
     echo ""
     echo "⚠️  ${BOT_NAME}.json already exists for version ${BOT_VERSION}"
@@ -228,7 +234,8 @@ if [ -f "$FINAL_OUTPUT_FILE" ] && [ "$SKIP_OVERWRITE_CHECK" != "--skip-overwrite
     echo "  [yes]  Overwrite and re-retrieve metadata"
     echo "  [no]   Skip retrieval (use existing data)"
     echo ""
-    read -p "Your choice: " OVERWRITE_CHOICE
+    echo "Your choice: "
+    read OVERWRITE_CHOICE
 
     case "${OVERWRITE_CHOICE,,}" in
         yes|y)
@@ -255,7 +262,7 @@ if [ -f "$FINAL_OUTPUT_FILE" ] && [ "$SKIP_OVERWRITE_CHECK" != "--skip-overwrite
             ;;
     esac
 elif [ -f "$FINAL_OUTPUT_FILE" ] && [ "$SKIP_OVERWRITE_CHECK" = "--skip-overwrite-check" ]; then
-    # In interactive mode, Claude already confirmed - just clean and proceed
+    # Explicit skip flag passed - just clean and proceed
     log "  🗑️  Cleaning previous run: $BOT_VERSION_DIR"
     rm -rf "$BOT_VERSION_DIR"
 fi

@@ -44,11 +44,26 @@ This skill activates when the user:
 
 ## Conversational Flow
 
-**IMPORTANT: No Memory of Previous Selections**
-- Never remember or auto-select org from previous runs
-- Never remember or auto-select bot from previous runs  
-- Never remember or auto-select version from previous runs
-- Always start fresh - show full list and let user select
+**🚨 CRITICAL RULES - READ THIS FIRST 🚨**
+
+1. **NEVER AUTO-SELECT ANYTHING**
+   - ❌ Never auto-select org (always show list, ask user to choose)
+   - ❌ Never auto-select bot (always show list, ask user to choose)
+   - ❌ Never auto-select version (always show list, ask user to choose)
+   - ❌ Never remember previous selections across sessions
+   - ✅ Always show full list and wait for user input
+
+2. **SINGLE CONTINUOUS SCRIPT EXECUTION**
+   - ❌ Never restart the script multiple times
+   - ❌ Never call non-interactive mode when user is selecting
+   - ✅ Use ONE bash command with piped input: `printf "1\n1\ny\n" | bash fetch_bot_from_org.sh interactive <ORG>`
+   - ✅ Feed all selections (bot, version, confirmation) in one continuous stdin stream
+
+3. **RESPECT USER'S VERSION CHOICE**
+   - ❌ Never query org for "latest version" - that ignores user's selection
+   - ❌ Never bypass the Python selector's SELECTED_VERSION output
+   - ✅ User selects version 1 → Script uses version 1 (not version 2)
+   - ✅ Continuous script execution preserves SELECTED_VERSION variable
 
 ### Phase 1.1: Org Connection & Selection
 
@@ -379,36 +394,113 @@ Accept:
 
 ### Phase 1.5: Download & Save
 
-**Critical Understanding: Single Script Execution**
+**🚨 CRITICAL: Single Script Execution - Never Restart the Script 🚨**
 
-The `interactive` mode script runs **continuously** from Phase 1.2 through completion:
+The `interactive` mode script runs **continuously as ONE PROCESS** from Phase 1.2 through completion.
 
+**❌ WRONG - Never Do This:**
 ```bash
-bash .claude/skills/01-retrieve-bots-metadata/scripts/fetch_bot_from_org.sh interactive <ORG_ALIAS>
+# Starting script multiple times breaks the flow
+bash fetch_bot_from_org.sh interactive orgfarm-cult          # Shows bot list
+echo "1" | bash fetch_bot_from_org.sh interactive orgfarm-cult  # ❌ WRONG - restarts script
+echo "1" | bash fetch_bot_from_org.sh interactive orgfarm-cult  # ❌ WRONG - restarts again
+bash fetch_bot_from_org.sh B2A_Intent_Enabled orgfarm-cult    # ❌ WRONG - bypasses user selection
 ```
 
-**Script execution flow:**
+**✅ CORRECT - Do This:**
+```bash
+# Single continuous script execution with piped input (4 inputs if file exists)
+printf "1\n1\ny\nyes\n" | bash fetch_bot_from_org.sh interactive orgfarm-cult
+# Input 1: Bot selection (1)
+# Input 2: Version selection (1)
+# Input 3: Confirmation (y)
+# Input 4: Overwrite choice (yes) - only if file already exists
+```
+
+**If file doesn't exist:**
+```bash
+printf "1\n1\ny\n" | bash fetch_bot_from_org.sh interactive orgfarm-cult
+# Only 3 inputs needed
+```
+
+**Script execution flow (ONE continuous process):**
 1. Script shows bot list (Phase 1.2)
-2. Script **waits for stdin** ← Claude feeds user's bot selection
+2. Script **waits for stdin** ← Reads first line (bot selection)
 3. Script shows version list (Phase 1.3)  
-4. Script **waits for stdin** ← Claude feeds user's version selection
-5. Script **exits Python selector**, returns to bash
-6. Script checks for existing file, but **skips prompt** (trusts Claude)
-7. Script downloads metadata automatically
-8. Script outputs success/failure
-9. Script exits
+4. Script **waits for stdin** ← Reads second line (version selection)
+5. Script **exits Python selector** with SELECTED_BOT and SELECTED_VERSION
+6. Script shows confirmation prompt (Phase 1.4)
+7. Script **waits for stdin** ← Reads third line (y/n confirmation)
+8. Script checks if `${BOT_NAME}.json` exists (e.g., `B2A_Intent_Enabled.json`)
+9. **If file exists**: Script shows overwrite prompt
+10. Script **waits for stdin** ← Reads fourth line (yes/no for overwrite)
+11. If yes, script deletes old directory and downloads fresh
+12. If no, script exits with "Using existing" message
+13. Script outputs success/failure
+14. Script exits
 
-**Claude's role:**
-- Read script output → Show formatted tables to user
-- Capture user selections → Feed to script's stdin via piped echo commands
-- Check for existing files **before Phase 1.4** → Show warning if file exists
-- When user confirms → Script continues automatically (no additional prompting)
+**IMPORTANT**: Always provide 4 inputs via printf if you don't know whether file exists:
+```bash
+printf "1\n2\ny\nyes\n" | bash fetch_bot_from_org.sh interactive orgfarm-cult
+```
+The 4th input (yes) will only be consumed if file exists. Otherwise it's ignored.
 
-**Key points:**
-- ✅ **ONE script call** runs the entire flow (don't call script multiple times)
-- ✅ Claude checks files, script trusts Claude (receives `--skip-overwrite-check` in interactive mode)
-- ✅ Script output contains tables - Claude must parse and display them
-- ✅ Use piped echo to send selections: `echo "2" | bash fetch_bot_from_org.sh interactive org`
+**🚨 CRITICAL RULES FOR CLAUDE:**
+
+1. **NEVER auto-select org, bot, or version** - Always ask user to choose
+2. **NEVER restart the script multiple times** - Run it ONCE with all inputs
+3. **NEVER "preview" or "fetch" lists separately** - The single script run will show everything
+4. **ALWAYS use printf, NEVER use { echo } syntax** - Use: `printf "1\n2\ny\nyes\n"`
+5. **ASK user for numbers BEFORE running script** - Don't run script to show lists first
+6. **The script WILL show lists during execution** - User sees them in the final output
+7. **NEVER say "fetching versions" or "fetching bots"** - Just run the single command
+
+**User experience should be:**
+- User sees org list → selects org (e.g., "1")
+- Claude asks: "Which bot number?" → User says: "1"  
+- Claude asks: "Which version number?" → User says: "2"
+- Claude runs: `printf "1\n2\ny\nyes\n" | bash ... interactive orgfarm-cult`
+- User sees the script output showing bot list, version list, and download progress
+- Done! No intermediate prompts or selections
+
+**Claude's role - Complete Flow:**
+
+**🚨 CRITICAL: ONE SCRIPT EXECUTION ONLY 🚨**
+
+1. **Show org list**: Run `sf org list --json` and display formatted table
+2. **User selects org number**: Capture user's choice (e.g., "1" for orgfarm-cult)
+3. **Get user's bot selection**: Ask "Which bot number?" (user will say "1" or "2" etc.)
+4. **Get user's version selection**: Ask "Which version number?" (user will say "1" or "2" etc.)
+5. **Run script ONCE with all inputs**:
+   ```bash
+   printf "1\n2\ny\nyes\n" | bash .claude/skills/01-retrieve-bots-metadata/scripts/fetch_bot_from_org.sh interactive orgfarm-cult
+   ```
+   Replace 1, 2 with actual user selections and orgfarm-cult with actual org alias
+   
+   **The 4 inputs:**
+   - Line 1: Bot number (e.g., 1)
+   - Line 2: Version number (e.g., 2)
+   - Line 3: Confirmation (always "y")
+   - Line 4: Overwrite (always "yes") - consumed only if file exists
+
+6. **NEVER use**: `{ echo "1"; echo "2"; }` - Use `printf` with `\n` instead
+7. **NEVER restart the script** - The user already told you the bot and version numbers
+8. Parse final output for success/failure
+
+**Why this works:**
+- Script shows bot list → reads bot# from stdin
+- Script shows version list → reads version# from stdin  
+- Script shows confirmation → reads "y" from stdin
+- Script checks file exists → reads "yes" from stdin (if needed)
+- Script downloads and completes
+
+**The script output will show the lists to the user naturally as it runs**
+
+**Why this matters:**
+- ❌ Restarting the script queries org again and picks latest version (ignores user selection)
+- ❌ Non-interactive mode bypasses user's version choice
+- ✅ Continuous process preserves SELECTED_VERSION from Python script
+- ✅ Single execution respects all user choices
 
 If user chooses "no":
 ```
@@ -478,11 +570,17 @@ Which option would you prefer?
 
 **Handle user responses:**
 - **Option 1**: Proceed to `/02-process-and-build-inventory`
-- **Option 2**: Return to Phase 1.2 (bot list) with same org
-- **Option 3**: Return to Phase 1.1 (org selection)
+- **Option 2**: Return to Phase 1.2 (bot list) with same org - **Start fresh interactive flow, no auto-selection**
+- **Option 3**: Return to Phase 1.1 (org selection) - **Start fresh, show org list, no auto-selection**
 - **Option 4**: Check if bot JSON file exists, then:
   - If file exists: Show confirmation with overwrite warning
   - If file doesn't exist: Proceed directly to fetch (no warning needed)
+
+**🚨 CRITICAL for Options 2 & 3:**
+- **NEVER remember** the previous org, bot, or version
+- **ALWAYS show** the full list again
+- **ALWAYS ask** the user to select from the list
+- Use the same continuous script execution pattern: `printf "...\n...\n...\n" | bash fetch_bot_from_org.sh interactive <ORG>`
 
 **Option 4 detailed flow:**
 
