@@ -181,7 +181,7 @@ If it does NOT exist, create it with this exact content:
 `sf agent publish authoring-bundle` both deploys source files and publishes in one step.
 There is NO need to run `sf project deploy start` separately.
 
-Initialize publish loop: Set `PUBLISH_ITERATION = 0` and `MAX_PUBLISH_ITERATIONS = 15`.
+Initialize publish loop: Set `PUBLISH_ITERATION = 0` and `MAX_PUBLISH_ITERATIONS = 3`.
 
 Run the publish command from the agentforcedx project directory:
 
