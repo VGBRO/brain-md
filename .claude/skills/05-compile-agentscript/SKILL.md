@@ -41,8 +41,8 @@ for all AgentScript syntax, structure, naming, types, block ordering, and valida
 is dynamic and may change between runs — always read its current contents.
 
 When fixing errors, consult the rules file for the correct syntax, then check
-`recipes/AGENT_SCRIPT_RECIPES.xml` from resources directory for working examples if needed.
-**Precedence order** (highest to lowest): `AGENT_SCRIPT_RULES.md` > `AGENT_SCRIPT_RECIPES.xml`. The migration
+`recipes/AGENT_SCRIPT_RECIPES.xml` from resources directory for working examples, then check `agentScripts/` from resources directory for working agent examples.
+**Precedence order** (highest to lowest): `AGENT_SCRIPT_RULES.md` > `AGENT_SCRIPT_RECIPES.xml` > `agentScripts\`. The migration
 skill files contain overrides and refinements that take precedence over the general-purpose
 rules file.
 

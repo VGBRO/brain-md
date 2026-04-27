@@ -181,12 +181,13 @@ If it does NOT exist, create it with this exact content:
 `sf agent publish authoring-bundle` both deploys source files and publishes in one step.
 There is NO need to run `sf project deploy start` separately.
 
-Initialize publish loop: Set `PUBLISH_ITERATION = 0` and `MAX_PUBLISH_ITERATIONS = 3`.
+Initialize publish loop: Set `PUBLISH_ITERATION = 0` and `MAX_PUBLISH_ITERATIONS = 5`.
 
 Run the publish command from the agentforcedx project directory:
 
 ```bash
-cd bot-to-agent-migration-dev/agentforcedx && sf agent publish authoring-bundle --dev-debug --api-name AGENT_NAME --target-org TARGET_ORG
+#cd bot-to-agent-migration-dev/agentforcedx && sf agent publish authoring-bundle --dev-debug --api-name AGENT_NAME --target-org TARGET_ORG
+cd bot-to-agent-migration-dev/agentforcedx && sf project deploy start -m --dev-debug AiAuthoringBundle:AGENT_NAME -o TARGET_ORG
 ```
 Very Important: Always provide detailed error output in the console in case of error. The dev-debug flag attached to publish command will get detailed error output.
 
@@ -215,7 +216,13 @@ This is non-negotiable. You MUST rely ONLY on these local project files:
    AgentScript syntax and rules. Consult this FIRST when diagnosing publish errors.
 2. **`00-start-migration/assets/AGENT_SCRIPT_RECIPES.xml`** — Working examples of correct
    AgentScript patterns.
-3. **Legacy `genAiPlannerBundles` JSON schema files** — For verifying action schemas.
+3. When fixing errors, consult the rules file for the correct syntax, then check
+   `recipes/AGENT_SCRIPT_RECIPES.xml` from resources directory for working examples, then check `agentScripts/` from resources directory for working agent examples.
+   **Precedence order** (highest to lowest): `AGENT_SCRIPT_RULES.md` > `AGENT_SCRIPT_RECIPES.xml` > `agentScripts\`. The migration
+   skill files contain overrides and refinements that take precedence over the general-purpose
+   rules file.
+
+4. **Legacy `genAiPlannerBundles` JSON schema files** — For verifying action schemas.
 
 If the error cannot be resolved from these sources alone, STOP and report it to the user.
 
