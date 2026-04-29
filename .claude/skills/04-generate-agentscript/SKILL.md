@@ -236,6 +236,13 @@ config:
 
 Context variables are present in bot metadata at the json path `Bot.contextVariables`. Translate them as-is into `linked` variables in agentscript. Refer agentscript syntax to do this.
 
+Sample variable in the agentscript:
+```
+<variable_name>: linked string = ''
+    description: "dummy sample variable"
+    source: @MessagingSession.<variable_name>
+```
+
 **IMPORTANT - Make sure to align with the agentscript syntax**
 
 ## 4. Generate knowledge section in agentscript.
@@ -270,14 +277,18 @@ language:
 
 ## 6. Generate topics.
 
-### 4.1 Create topics from pre-selected topics.
+### 6.1 Create topics from pre-selected topics.
 
 Follow the below steps for each topic in the selected topics:
 1. Generate `actions` section. Create an action corresponding to every action/tool in `associated_actions` attached to the topic.
     - `target` in the action should be of the format "apex://<action_name>" or "flow://<action_name>".
         - If the action is not an apex or flow action, `target` should just contain the name of the action. Also, add a comment to indicate that this should be fixed before using the agent.
     - populate `inputs` and `outputs` for every action. Retrieve this information from `botInvocationsDescribeInfo` in bot metadata.
-        - if inputs or outputs are of type object, also include the `complex_data_type_name`. This can be obtained from the `sObjectType` in inputParameters in `botInvocationsDescribeInfo`.
+        - **Important Instruction** - Ensure that the names of the inputs and outputs match exactly with the provided data in `botInvocationsDescribeInfo`.
+        - if inputs or outputs are of type object,
+            - include the field `complex_data_type_name`. This can be obtained from the `sObjectType` in inputParameters or outputParameters in `botInvocationsDescribeInfo`.
+            - if the value of the field `sObjectType` exists and starts with `lightning__`, retain the same value.
+            - Else, hardcode the value of this field to `lightning__recordInfoType`.
     - Try to populate all the fields (including optional fields) in the action definitions.
 2. Generate `reasoning` section.
     - Generate instructions and tools for each topic. To do this:
@@ -336,7 +347,7 @@ Follow the below steps for each topic in the selected topics:
                   | Invoke {!@actions.escalate_to_human} to escalate the conversation to a human agent.
             ```
 
-### 4.2 Create topics routing to pre-selected topics.
+### 6.2 Create topics routing to pre-selected topics.
 
 The einstein bot may also contain some logic/functionality outside the dialogs attached to the pre-defined topics. So, in order to stitch everything together, follow the below steps:
 1. Create a topic (mark it as `start_agent` in agentscript) to indicate the start of conversation. Name of the topic should be `agent_entrypoint`. Generate an appropriate description for this topic.
@@ -390,7 +401,7 @@ The einstein bot may also contain some logic/functionality outside the dialogs a
     - **Important Instruction** - Follow the agentscript syntax according to the grammar files.
 4. **Important Instruction** - All the action references should be in the format `{!@actions.<action_name>}`. Modify the instructions to ensure this, if necessary.
 
-### 4.3 Topic consolidation.
+### 6.3 Topic consolidation.
 
 Among the generated topics, try to merge the topics if (highest criteria first):
 - the topic is not a pre-generated topic.
@@ -410,6 +421,8 @@ Delete the topics generated corresponding to the `deleted_topics` in the `topic_
 5. Consolidate all the comments at the start of the agentscript. Comment starts with '#'.
 6. Ensure that comments are added to explain every placeholder entry in the agentscript.
 7. Ensure that all actions have correct input and output mappings in the right expected variable formats. If not, fix the problem by matching the format with `botInvocationsDescribeInfo` in bot metadata.
+    - Ensure that the variable names in the actions generated match the variables inputs/outputs names provided in the corresponding action in `botInvocationsDescribeInfo`.
+    - Ensure that if the input/output type is `object`, the value of `complex_data_type_name` is populated and starts with `lightning__`.
 8. The agent execution starts from the topic labelled `start_agent`. Make sure that every other topic is reachable in any path via transitions. If a topic is not reachable, delete that topic.
 9. Ensure that all the instructions that are referencing action invocations have the format {!@actions.<action_name>}.
 10. Ensure that all the instructions that are referencing variables have the format {!@variables.<variable_name>}.
