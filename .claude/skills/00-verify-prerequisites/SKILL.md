@@ -78,25 +78,44 @@ If this fails:
 > Install from: https://docs.astral.sh/uv/getting-started/installation/"
 
 
-### 1e: Authenticated Salesforce Org
+### 1e: Nexus Authentication Files
+
+Check for the existence of required Nexus authentication configuration files:
 
 ```bash
-sf org list
+test -f ~/.npmrc && echo "✓ ~/.npmrc exists" || echo "✗ ~/.npmrc missing"
 ```
 
-Verify at least one org is listed. If none:
-> "No authenticated Salesforce orgs found. Authenticate with:
-> 
->   `sf org login web --instance-url <ORG_LOGIN_URL> --alias <CUSTOM_NAME>`
-> 
-> Example:
->   `sf org login web --instance-url https://orgfarm-7532d67587.test1.my.pc-rnd.salesforce.com/ --alias orgfarm-epic`"
+```bash
+test -f ~/.m2/settings.xml && echo "✓ ~/.m2/settings.xml exists" || echo "✗ ~/.m2/settings.xml missing"
+```
 
+```bash
+(test -f ~/.config/nexus-npm/npm-sfdc-certs.pem || test -f ~/npm-sfdc-certs.pem) && echo "✓ npm-sfdc-certs.pem exists" || echo "✗ npm-sfdc-certs.pem missing"
+```
+
+If **any** of these files are missing:
+
+1. Ask the user to open https://nexus-dev.data.sfdc.net/nexus/ and login with SSO
+2. Instruct them to retrieve their user access token details (NEXUS_TOKEN_ID and NEXUS_TOKEN_HASH)
+3. Ask for NEXUS_TOKEN_ID (wait for user response)
+4. Ask for NEXUS_TOKEN_HASH (wait for user response)
+5. Run the Nexus installer command (piped directly from source):
+
+```bash
+NEXUS_TOKEN_ID=<id> NEXUS_TOKEN_HASH=<hash> node npm-setup.js bash
+```
+
+Replace `<id>` and `<hash>` with the values provided by the user.
+
+**Important:** Do not proceed until all three authentication files are present.
+
+**Note:** The installer script URL requires SSO authentication and cannot be downloaded directly to disk. The curl-pipe-to-bash approach handles the authentication automatically.
 
 ### 1f: Compiler Dependencies (Network Access)
 
 ```bash
-python3 skills/00-verify-prerequisites/scripts/compile_agentscript_nexus_ts.py 2>&1 || true
+python3 .claude/skills/00-verify-prerequisites/scripts/compile_agentscript_nexus_ts.py 2>&1 || true
 ```
 
 If the output shows a network error reaching the Nexus PyPI proxy:
@@ -113,20 +132,34 @@ After all checks, display a summary:
 ```
 Prerequisites Check
 ====================
-  Python 3.11+:       [PASS version / FAIL]
-  Node.js:            [PASS version / FAIL]
-  Salesforce CLI:     [PASS version / FAIL]
-  uv:                 [PASS version / FAIL]
-  Authenticated Orgs: [PASS count found / FAIL none]
-  Compiler Access:    [PASS / FAIL]
+  Python 3.11+:         [PASS version / FAIL]
+  Node.js:              [PASS version / FAIL]
+  Salesforce CLI:       [PASS version / FAIL]
+  uv:                   [PASS version / FAIL]
+  Nexus Auth Files:     [PASS / FAIL (list missing files)]
+  Compiler Access:      [PASS / FAIL]
 ```
 
+**Note:** Org authentication will be verified in Step 1 (Retrieve Bot Metadata) when you need to connect to Salesforce.
+
 If **all checks pass**:
-> "Your environment is ready. Starting Step 1: Retrieve Legacy Agent."
+> "Your environment is ready. Starting Step 1: Retrieve Bot Metadata."
 
-Then invoke the **01-retrieve-legacy-agent** skill.
+Then invoke the **01-retrieve-bots-metadata** skill.
 
-If **any of checks 2a, 2b, 2c, or 2d fail** (Python 3.11+, Node.js, sf CLI, or uv missing), suggest the user
+If **check 1e fails** (Nexus authentication files missing):
+> "Nexus authentication is not configured. Please follow these steps:
+>
+> 1. Open https://nexus-dev.data.sfdc.net/nexus/ in your browser
+> 2. Login with your SSO credentials
+> 3. Retrieve your NEXUS_TOKEN_ID and NEXUS_TOKEN_HASH
+> 4. Provide them when prompted below
+>
+> I will run the Nexus installer to configure your authentication."
+
+Wait for user to provide NEXUS_TOKEN_ID and NEXUS_TOKEN_HASH, then run the installer command (curl piped to bash with the credentials).
+
+If **any of checks 1a, 1b, 1c, or 1d fail** (Python 3.11+, Node.js, sf CLI, or uv missing), suggest the user
 run the appropriate one-line installer command:
 
 > "Some prerequisites are missing: [list missing tools].

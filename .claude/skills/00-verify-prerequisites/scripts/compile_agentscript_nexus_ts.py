@@ -155,12 +155,70 @@ def find_cli_location() -> Optional[Path]:
     return None
 
 
+def fix_node_module_paths(project_root: Path) -> bool:
+    """
+    Fix Node.js module path resolution by creating symlinks.
+
+    @agentscript/cli tries to resolve dependencies from:
+      node_modules/@agentscript/cli/node_modules/@agentscript/*
+    But npm installs them at:
+      node_modules/@agentscript/*
+
+    This function creates symlinks to fix the resolution.
+    Returns True if successful or already fixed.
+    """
+    cli_node_modules = project_root / "node_modules" / "@agentscript" / "cli" / "node_modules"
+    target_dir = cli_node_modules / "@agentscript"
+
+    # Create directory if needed
+    target_dir.mkdir(parents=True, exist_ok=True)
+
+    packages = [
+        "agentforce-dialect",
+        "compiler",
+        "parser",
+        "language",
+        "types",
+        "agentforce",
+        "agentscript-dialect",
+        "agentfabric-dialect",
+    ]
+
+    for package in packages:
+        source = project_root / "node_modules" / "@agentscript" / package
+        link = target_dir / package
+
+        if not source.exists():
+            continue  # Skip missing packages
+
+        if link.is_symlink():
+            # Check if it points to the right place
+            if link.resolve() == source.resolve():
+                continue  # Already correct
+            else:
+                link.unlink()  # Remove incorrect symlink
+        elif link.exists():
+            continue  # Real directory exists, don't touch it
+
+        # Create symlink
+        try:
+            link.symlink_to(source)
+        except OSError:
+            return False  # Failed to create symlink
+
+    return True
+
+
 def check_cli_installed() -> Tuple[bool, str, Optional[Path]]:
     """Check if @agentscript/cli is installed."""
     cli_path = find_cli_location()
 
     if cli_path is None:
         return False, "not found in node_modules", None
+
+    # Fix path resolution by creating symlinks
+    project_root = cli_path.parent.parent.parent.parent
+    fix_node_module_paths(project_root)
 
     # Try to get version
     try:
@@ -299,11 +357,10 @@ def verify_nexus_availability(cli_path: Path) -> None:
         log(f"✓ @agentscript/cli@{nexus_version} IS available in Nexus", Colors.GREEN)
         log(f"  Registry: https://nexus-proxy.repo.local.sfdc.net/nexus/content/groups/npm-all/", Colors.GRAY)
         log("")
-        log(f"{Colors.YELLOW}Note: Using pre-built CLI binary to work around path resolution bug.{Colors.RESET}", Colors.YELLOW)
-        log(f"{Colors.YELLOW}      The CLI packages themselves are available in Nexus npm registry.{Colors.RESET}", Colors.YELLOW)
+        log(f"{Colors.GRAY}Note: Using symlinks in node_modules/@agentscript/cli/node_modules/ to fix Node.js path resolution.{Colors.RESET}", Colors.GRAY)
     else:
         log(f"⚠️  Could not verify Nexus availability: {nexus_version}", Colors.YELLOW)
-        log(f"  Continuing with local CLI binary at: {cli_path}", Colors.YELLOW)
+        log(f"  Continuing with local CLI at: {cli_path}", Colors.YELLOW)
 
     log("")
 

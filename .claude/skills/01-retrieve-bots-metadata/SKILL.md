@@ -77,8 +77,13 @@ When this skill activates, display the Step 1 header and check for authenticated
   Retrieve Bot Metadata
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-Checking authenticated orgs...
+Verifying Salesforce CLI authentication...
 ```
+
+**IMPORTANT: You MUST wait for up to 5 minutes for ALL `sf` CLI commands to complete.** Do
+not cancel, retry, or re-run the same `sf` command without first giving it adequate time to
+finish. Salesforce CLI operations (especially org-related commands) can be slow depending on
+network conditions and org size.
 
 **Check org authentication:**
 ```bash

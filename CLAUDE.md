@@ -31,8 +31,8 @@ Each step is implemented as a **skill** in `.claude/skills/<NN>-<step-name>/` an
 ## Key Components
 
 ### Skills (`.claude/skills/`)
-- **00-start-migration** — Entry point, verifies prerequisites (Node.js, `sf` CLI, `uv`, org auth)
-- **01-retrieve-bots-metadata** — Parses `data/bot.json`, extracts dialogs/intents/actions, outputs `migration-inventory.md`
+- **00-verify-prerequisites** — Entry point, verifies prerequisites (Node.js, Python 3.11+, `sf` CLI, `uv`, Nexus authentication)
+- **01-retrieve-bots-metadata** — Verifies org authentication, retrieves bot metadata from Salesforce org, extracts dialogs/intents/actions, outputs bot JSON
 - **02-process-and-build-inventory** — Designs agent architecture, maps bot constructs to AgentScript patterns, outputs `migration-architecture.md`
 - **03-map-dialogs-actions-to-topics** — Groups actions into topics (max 7 actions per topic), outputs `data/topic_classification.json`
 - **04-generate-agentscript** — Core engine that transforms bot steps into AgentScript topics (reasoning, actions, transitions), outputs `.agent` file
@@ -101,7 +101,8 @@ Preserve exact target names from bot metadata:
    ```
    or invoke skill directly: `/00-start-migration`
 3. **Follow checkpoints**:
-   - Step 1: Confirm bot identity and inventory
+   - Step 0: Verify prerequisites (Python, Node.js, sf CLI, uv, Nexus auth)
+   - Step 1: Authenticate to Salesforce org, select and retrieve bot metadata
    - Step 2: Provide agent name/label, approve architecture
    - Step 6: Confirm deployment target org
 
@@ -128,8 +129,8 @@ If interrupted, resume from any step:
 
 | Resume From | Required Artifact | Invoke |
 |-------------|------------------|--------|
-| Step 0 | _(none)_ | `/00-start-migration` |
-| Step 1 | _(none)_ | `/01-retrieve-bots-metadata` |
+| Step 0 | _(none)_ | `/00-verify-prerequisites` |
+| Step 1 | Authenticated Salesforce org | `/01-retrieve-bots-metadata` |
 | Step 2 | `migration-inventory.md` | `/02-process-and-build-inventory` |
 | Step 3 | `migration-architecture.md` | `/03-map-dialogs-actions-to-topics` |
 | Step 4 | `data/topic_classification.json` + architecture | `/04-generate-agentscript` |

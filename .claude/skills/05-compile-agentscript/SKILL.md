@@ -8,16 +8,20 @@ metadata:
   author: salesforce-migration
   version: "2.0-nexus-ts"
   pipeline-order: "5"
-compatibility: Requires Python 3.11+, Node.js v18+, npm, tree-sitter-cli (global), @agentscript/cli from Nexus npm registry, and 00-start-migration/assets/AGENT_SCRIPT_RULES.md for error diagnosis reference.
+compatibility: Requires Python 3.11+, Node.js v18+, npm, tree-sitter-cli (global), @agentscript/cli from Nexus npm registry, and 00-verify-prerequisites/assets/AGENT_SCRIPT_RULES.md for error diagnosis reference.
 ---
 
 # Compile AgentScript
 
 ## Purpose
 
-Run the local AgentScript compiler against the generated `.agent` file and enter a self-healing
-loop to diagnose and fix errors. The compiler validates syntax (via ANTLR parser), structure
-(via the DSL model), and semantic correctness (via the compiler backend).
+**This is a MANDATORY step that cannot be skipped.** Run the authoritative AgentScript compiler 
+against the generated `.agent` file and enter a self-healing loop to diagnose and fix errors. 
+The compiler validates syntax (via ANTLR parser), structure (via the DSL model), and semantic 
+correctness (via the compiler backend).
+
+The AgentScript MUST compile successfully before proceeding to deployment. This step ensures
+the generated code is syntactically and semantically correct.
 
 ## Prerequisites
 
@@ -101,7 +105,7 @@ npm --version
 tree-sitter --version
 
 # Check @agentscript/cli installation
-python3 skills/00-start-migration/scripts/compile_agentscript_nexus_ts.py --help
+python3 .claude/skills/00-verify-prerequisites/scripts/compile_agentscript_nexus_ts.py --help
 ```
 
 **The compiler will automatically display a Prerequisites Check:**
@@ -142,7 +146,7 @@ Set `ITERATION = 0` and `MAX_ITERATIONS = 30`.
 Execute the compiler using the TypeScript/Nexus implementation:
 
 ```bash
-python3 skills/00-start-migration/scripts/compile_agentscript_nexus_ts.py AGENT_FILE_PATH
+python3 .claude/skills/00-verify-prerequisites/scripts/compile_agentscript_nexus_ts.py AGENT_FILE_PATH
 ```
 
 **Important Notes:**
@@ -285,10 +289,10 @@ These are structural or semantic errors caught during compilation. Go to Step 6.
 you use web search, internet search, or any external lookup to diagnose or fix compilation
 errors. This is non-negotiable. You MUST rely ONLY on these local project files:
 
-1. **`00-start-migration/assets/AGENT_SCRIPT_RULES.md`** — The **primary authority** for all
+1. **`00-verify-prerequisites/assets/AGENT_SCRIPT_RULES.md`** — The **primary authority** for all
    AgentScript syntax and rules. Consult this FIRST when diagnosing errors. The Validation
    Checklist and Error Prevention sections are especially relevant for fixing issues.
-2. **`00-start-migration/assets/AGENT_SCRIPT_RECIPES.xml`** — Working examples of correct
+2. **`00-verify-prerequisites/assets/AGENT_SCRIPT_RECIPES.xml`** — Working examples of correct
    AgentScript patterns.
 3. **Legacy `genAiPlannerBundles` JSON schema files** — For verifying action schemas.
 
@@ -385,9 +389,9 @@ to something that doesn't exist.
 
 **Fix procedure**:
 1. Identify which block is missing the field.
-2. Consult `00-start-migration/assets/AGENT_SCRIPT_RULES.md` for the required elements and
+2. Consult `00-verify-prerequisites/assets/AGENT_SCRIPT_RULES.md` for the required elements and
    correct structure of that block type (see the Block Reference and Required Elements sections).
-3. If needed, search `00-start-migration/assets/AGENT_SCRIPT_RECIPES.xml` for a working example.
+3. If needed, search `00-verify-prerequisites/assets/AGENT_SCRIPT_RECIPES.xml` for a working example.
 4. Add the missing field with the appropriate value.
 
 #### Category 7: Invalid Target Format
@@ -443,11 +447,11 @@ For each diagnosed error:
 
 1. Read the section of the `.agent` file around the error line.
 2. Identify the root cause using the diagnosis guide above.
-3. Consult `00-start-migration/assets/AGENT_SCRIPT_RULES.md` for the correct syntax of the
+3. Consult `00-verify-prerequisites/assets/AGENT_SCRIPT_RULES.md` for the correct syntax of the
    affected construct. Pay attention to the Error Prevention section for common mistakes.
 4. Apply the MINIMUM fix needed — do not rewrite large sections.
 5. If you need a working example of the construct, search
-   `00-start-migration/assets/AGENT_SCRIPT_RECIPES.xml` for one — but verify the example
+   `00-verify-prerequisites/assets/AGENT_SCRIPT_RECIPES.xml` for one — but verify the example
    conforms to the current rules in `AGENT_SCRIPT_RULES.md`.
 
 **Important**: Fix ALL errors from the current compilation run before re-compiling.
@@ -493,10 +497,13 @@ Compilation Logs:
   Files: iteration-0.log through iteration-{ITERATION}.log
   Total Attempts: {ITERATION + 1}
 
-The AgentScript file has been validated by the local compiler.
-Note: The authoritative validator is `sf agent publish`. Library warnings
-(if any) about developer_name=None are known issues and do not indicate
-problems with your AgentScript.
+The AgentScript file has been successfully compiled and validated.
+This compilation step is MANDATORY and authoritative - the AgentScript
+must compile successfully before proceeding to deployment.
+
+Note: Library warnings (if any) about developer_name=None are known 
+issues in the compiler libraries and do not indicate problems with 
+your AgentScript.
 ```
 
 ### Step 11: Report Failure (if max iterations reached)
