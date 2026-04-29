@@ -135,11 +135,59 @@ cd <project-root>
 npm install --legacy-peer-deps --ignore-scripts
 ```
 
+### Step 2a: Fix Node.js Module Path Resolution (CRITICAL)
+
+**IMPORTANT:** The @agentscript/cli package has a path resolution bug where it tries to find dependencies in `node_modules/@agentscript/cli/node_modules/@agentscript/*` but npm installs them at `node_modules/@agentscript/*`. This causes `ENOENT` errors when running the compiler.
+
+**You MUST create symlinks to fix this issue before running any compilation.**
+
+Run the following commands to create the required symlinks:
+
+```bash
+# Create the symlinks directory if it doesn't exist
+mkdir -p node_modules/@agentscript/cli/node_modules/@agentscript
+
+# Create absolute symlinks for all required packages
+for pkg in agentforce-dialect compiler parser language types agentforce agentscript-dialect agentfabric-dialect; do
+  if [ -d "node_modules/@agentscript/$pkg" ]; then
+    ln -sf "$(pwd)/node_modules/@agentscript/$pkg" "node_modules/@agentscript/cli/node_modules/@agentscript/$pkg"
+    echo "✓ Created symlink for $pkg"
+  fi
+done
+```
+
+**Verify the symlinks were created successfully:**
+
+```bash
+ls -la node_modules/@agentscript/cli/node_modules/@agentscript/
+```
+
+You should see symlinks pointing to the parent node_modules directory:
+
+```
+lrwxr-xr-x  agentfabric-dialect -> /full/path/to/node_modules/@agentscript/agentfabric-dialect
+lrwxr-xr-x  agentforce -> /full/path/to/node_modules/@agentscript/agentforce
+lrwxr-xr-x  agentforce-dialect -> /full/path/to/node_modules/@agentscript/agentforce-dialect
+...
+```
+
+**Test that symlinks work:**
+
+```bash
+cat node_modules/@agentscript/cli/node_modules/@agentscript/agentforce-dialect/package.json | head -5
+```
+
+If this command succeeds and displays JSON content, the symlinks are working correctly.
+
+**Note:** This step must be run once per project setup, or anytime node_modules is reinstalled. The Python compiler script attempts to create these automatically but may fail in some environments.
+
 ### Step 3: Initialize Loop Counter
 
 Set `ITERATION = 0` and `MAX_ITERATIONS = 30`.
 
 ### Step 4: Run Compilation
+
+**PREREQUISITE:** Ensure Step 2a (Fix Node.js Module Path Resolution) has been completed. If you see an `ENOENT` error about missing `package.json` files in `node_modules/@agentscript/cli/node_modules/@agentscript/*`, you MUST go back and create the symlinks from Step 2a.
 
 **Note:** Use the `AGENT_FILE_PATH` from Step 1 (the `.agent` file in the `data/sf-cli/generated/aiAuthoringBundles/AGENT_NAME/` directory).
 
@@ -155,6 +203,7 @@ python3 .claude/skills/00-verify-prerequisites/scripts/compile_agentscript_nexus
 - Provides detailed diagnostics with error messages and line numbers
 - Validates against the full AgentJSON (AgentDSLAuthoring) schema
 - Automatically checks all prerequisites and displays results
+- **If you get `ENOENT` errors:** The symlinks from Step 2a are missing or broken - recreate them
 
 **What the compiler checks:**
 - Syntax validation (AgentScript grammar via tree-sitter)
@@ -528,6 +577,81 @@ provide guidance on how to fix them.
 
 To review detailed error information for each iteration, check the log files in:
   data/sf-cli/generated/aiAuthoringBundles/AGENT_NAME/compilation-logs/
+```
+
+## Troubleshooting
+
+### Issue: ENOENT errors about missing package.json files
+
+**Symptom:**
+```
+Error: ENOENT: no such file or directory, open '/path/to/node_modules/@agentscript/cli/node_modules/@agentscript/agentforce-dialect/package.json'
+```
+
+**Cause:** The Node.js module path resolution symlinks are missing or broken.
+
+**Solution:** Run Step 2a again to create the symlinks:
+
+```bash
+mkdir -p node_modules/@agentscript/cli/node_modules/@agentscript
+
+for pkg in agentforce-dialect compiler parser language types agentforce agentscript-dialect agentfabric-dialect; do
+  if [ -d "node_modules/@agentscript/$pkg" ]; then
+    ln -sf "$(pwd)/node_modules/@agentscript/$pkg" "node_modules/@agentscript/cli/node_modules/@agentscript/$pkg"
+    echo "✓ Created symlink for $pkg"
+  fi
+done
+```
+
+Verify the symlinks work:
+```bash
+cat node_modules/@agentscript/cli/node_modules/@agentscript/agentforce-dialect/package.json | head -5
+```
+
+### Issue: Compiler output is truncated or empty
+
+**Symptom:** The compilation command runs but shows no error details.
+
+**Cause:** The compiler may be outputting to stderr which isn't being captured properly.
+
+**Solution:** Run the compiler with explicit output redirection:
+```bash
+python3 .claude/skills/00-verify-prerequisites/scripts/compile_agentscript_nexus_ts.py AGENT_FILE_PATH > /tmp/stdout.txt 2> /tmp/stderr.txt
+cat /tmp/stdout.txt
+cat /tmp/stderr.txt
+```
+
+### Issue: "DictLiteral" or "Unsupported expression kind" errors
+
+**Symptom:**
+```
+Unsupported expression kind: DictLiteral
+```
+
+**Cause:** Using `{}` (empty object literal) in expressions or conditions.
+
+**Solution:** Replace object literal comparisons with truthiness checks:
+- Change: `@variables.obj is not {}` 
+- To: `@variables.obj`
+
+### Issue: Prerequisites check fails
+
+**Symptom:** Prerequisites check shows failures for Node.js, npm, tree-sitter, or @agentscript/cli.
+
+**Solution:** Install missing prerequisites:
+
+```bash
+# Install Node.js v18+ (if missing)
+# On macOS with Homebrew:
+brew install node
+
+# Install tree-sitter CLI globally
+npm install -g tree-sitter-cli
+
+# Install @agentscript/cli from Nexus
+npm install --legacy-peer-deps --ignore-scripts
+
+# After installing, recreate symlinks (Step 2a)
 ```
 
 ## Output
