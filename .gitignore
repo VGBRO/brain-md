@@ -56,3 +56,6 @@ data/sf-cli/*
 
 # Pipeline runtime state
 .claude/pipeline-state.json
+
+# Slack auth tokens (credentials, never commit)
+slack-auth.json
